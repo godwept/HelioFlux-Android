@@ -16,6 +16,15 @@ import kotlinx.coroutines.flow.combine
 
 class SolarHeroRepository(private val frameDao:SolarHeroFrameDao,private val statusDao:DataSourceStatusDao,private val api:HelioviewerApi,private val nowMillis:()->Long=System::currentTimeMillis){
  fun frames():Flow<RepositoryState<List<SolarImage>>> = combine(frameDao.observeAll(),statusDao.observe(SOURCE)){rows,status->state(rows.map{SolarImage(SolarImageType.Aia304,it.sourceTimestampMillis,it.url)},status)}
+ suspend fun refreshLatest():SolarImage? {
+  val now=nowMillis();attempt(now)
+  return try {
+   val image=api.getClosestImage(Instant.ofEpochMilli(now).toString());val timestamp=parseDate(image.date)
+   require(HelioviewerFramePlanner.isLatestUsable(now,timestamp)){"Latest Helioviewer image is older than 6 hours"}
+   if(frameDao.latest()?.imageId==image.id)return null
+   val entity=SolarHeroFrameEntity(image.id,timestamp,api.downloadUrl(image.id));frameDao.upsertAll(listOf(entity));statusDao.upsert(DataSourceStatusEntity(SOURCE,timestamp,now,now,now,null,null));SolarImage(SolarImageType.Aia304,timestamp,entity.url)
+  } catch(e:Exception){val p=statusDao.get(SOURCE);statusDao.upsert(DataSourceStatusEntity(SOURCE,p?.observationTimestampMillis,p?.fetchedTimestampMillis,p?.lastSuccessTimestampMillis,now,now,e.message?:"Refresh failed"));throw e}
+ }
  suspend fun refresh(){val now=nowMillis();attempt(now);try{val images=HelioviewerFramePlanner.sampleTimes(now).map{api.getClosestImage(Instant.ofEpochMilli(it).toString())};val deduped=HelioviewerFramePlanner.deduplicateById(images){it.id};require(deduped.isNotEmpty()){"Helioviewer returned no frames"};val latest=deduped.maxOf{parseDate(it.date)};require(HelioviewerFramePlanner.isLatestUsable(now,latest)){"Latest Helioviewer image is older than 6 hours"};frameDao.deleteAll();frameDao.upsertAll(deduped.map{SolarHeroFrameEntity(it.id,parseDate(it.date),api.downloadUrl(it.id))});statusDao.upsert(DataSourceStatusEntity(SOURCE,latest,now,now,now,null,null))}catch(e:Exception){val p=statusDao.get(SOURCE);statusDao.upsert(DataSourceStatusEntity(SOURCE,p?.observationTimestampMillis,p?.fetchedTimestampMillis,p?.lastSuccessTimestampMillis,now,now,e.message?:"Refresh failed"))}}
  private fun parseDate(value:String):Long=runCatching{Instant.parse(value).toEpochMilli()}.getOrElse{LocalDateTime.parse(value,DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toInstant(ZoneOffset.UTC).toEpochMilli()}
  private suspend fun attempt(n:Long){val p=statusDao.get(SOURCE);statusDao.upsert(p?.copy(lastAttemptTimestampMillis=n)?:DataSourceStatusEntity(SOURCE,null,null,null,n,null,null))}
