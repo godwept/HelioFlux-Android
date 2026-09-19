@@ -3,7 +3,6 @@ package ca.stewark.helioflux.ui.solaractivity
 import ca.stewark.helioflux.core.data.repository.RepositoryState
 import ca.stewark.helioflux.core.model.*
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -34,11 +33,12 @@ class SolarActivityViewModelTest {
         )
         advanceUntilIdle()
 
-        assertTrue(vm.state.value.probabilities is RepositoryState.Failure)
-        assertTrue(vm.state.value.magnetogram is RepositoryState.Loading)
-        assertTrue(vm.state.value.xray is RepositoryState.Loading)
-        assertTrue(vm.state.value.flares is RepositoryState.Loading)
-        assertTrue(vm.state.value.cmes is RepositoryState.Loading)
-        assertTrue(vm.state.value.epam is RepositoryState.Loading)
+        val current = vm.state.value
+        assertTrue("probabilities=${current.probabilities}", current.probabilities is RepositoryState.Failure)
+        assertTrue("magnetogram=${current.magnetogram}", current.magnetogram is RepositoryState.Loading)
+        assertTrue("xray=${current.xray}", current.xray is RepositoryState.Loading)
+        assertTrue("flares=${current.flares}", current.flares is RepositoryState.Loading)
+        assertTrue("cmes=${current.cmes}", current.cmes is RepositoryState.Loading)
+        assertTrue("epam=${current.epam}", current.epam is RepositoryState.Loading)
     }
 }
