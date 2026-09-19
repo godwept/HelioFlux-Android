@@ -14,3 +14,8 @@ android {
 }
 
 kotlin { jvmToolchain(17) }
+
+dependencies {
+    testImplementation(libs.junit)
+    testImplementation(libs.room.testing)
+}
