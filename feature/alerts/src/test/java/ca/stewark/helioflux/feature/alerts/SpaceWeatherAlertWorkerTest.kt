@@ -9,7 +9,12 @@ import androidx.work.testing.TestListenableWorkerBuilder
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [35])
 class SpaceWeatherAlertWorkerTest {
     @Test fun postsOnlyNewAlertsAndPersistsState() = runTest {
         val store = FakeStore(AlertState(lastKpBand = 5, notifiedFlareIds = setOf("old")))
