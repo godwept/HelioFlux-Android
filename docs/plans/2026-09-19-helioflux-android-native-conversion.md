@@ -1591,6 +1591,8 @@ Use these files from `godwept/HelioFlux-web` as behavioral references while impl
 
 ## Implementation Order Notes
 
+- Minimize GitHub Actions usage. Do not trigger CI for every small TDD step or individual file change; batch coherent work locally/in commits and use Actions only at meaningful verification gates where CI adds value.
+
 - Execute tasks strictly in order unless a task explicitly says it can be skipped based on a recorded validation result.
 - Do not build UI network calls directly; all screens/widgets/workers consume repositories.
 - Do not modify `godwept/HelioFlux-web`.
