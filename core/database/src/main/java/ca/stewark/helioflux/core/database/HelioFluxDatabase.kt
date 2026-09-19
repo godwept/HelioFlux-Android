@@ -16,6 +16,7 @@ import ca.stewark.helioflux.core.database.dao.HemisphericPowerDao
 import ca.stewark.helioflux.core.database.dao.KpDao
 import ca.stewark.helioflux.core.database.dao.XrayFluxDao
 import ca.stewark.helioflux.core.database.dao.SolarImageDao
+import ca.stewark.helioflux.core.database.dao.SolarHeroFrameDao
 import ca.stewark.helioflux.core.database.dao.SolarWindMagDao
 import ca.stewark.helioflux.core.database.dao.SolarWindPlasmaDao
 import ca.stewark.helioflux.core.database.entity.AceEpamEntity
@@ -32,6 +33,7 @@ import ca.stewark.helioflux.core.database.entity.HemisphericPowerEntity
 import ca.stewark.helioflux.core.database.entity.KpEntity
 import ca.stewark.helioflux.core.database.entity.XrayFluxEntity
 import ca.stewark.helioflux.core.database.entity.SolarImageEntity
+import ca.stewark.helioflux.core.database.entity.SolarHeroFrameEntity
 import ca.stewark.helioflux.core.database.entity.SolarWindMagEntity
 import ca.stewark.helioflux.core.database.entity.SolarWindPlasmaEntity
 
@@ -51,10 +53,11 @@ import ca.stewark.helioflux.core.database.entity.SolarWindPlasmaEntity
         AuroraSnapshotEntity::class,
         AuroraPointEntity::class,
         SolarImageEntity::class,
+        SolarHeroFrameEntity::class,
         ActiveRegionEntity::class,
         EnlilFrameEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 @TypeConverters(DatabaseConverters::class)
@@ -72,6 +75,7 @@ abstract class HelioFluxDatabase : RoomDatabase() {
     abstract fun forecastSectionDao(): ForecastSectionDao
     abstract fun auroraSnapshotDao(): AuroraSnapshotDao
     abstract fun solarImageDao(): SolarImageDao
+    abstract fun solarHeroFrameDao(): SolarHeroFrameDao
     abstract fun activeRegionDao(): ActiveRegionDao
     abstract fun enlilFrameDao(): EnlilFrameDao
 }

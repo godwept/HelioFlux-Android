@@ -5,10 +5,13 @@ import androidx.room.Query
 import androidx.room.Upsert
 import ca.stewark.helioflux.core.database.entity.SolarImageEntity
 import ca.stewark.helioflux.core.model.SolarImageType
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SolarImageDao {
     @Upsert suspend fun upsert(image: SolarImageEntity)
     @Query("SELECT * FROM solar_images WHERE type = :type LIMIT 1")
     suspend fun getLatest(type: SolarImageType): SolarImageEntity?
+    @Query("SELECT * FROM solar_images WHERE type = :type LIMIT 1")
+    fun observeLatest(type: SolarImageType): Flow<SolarImageEntity?>
 }
