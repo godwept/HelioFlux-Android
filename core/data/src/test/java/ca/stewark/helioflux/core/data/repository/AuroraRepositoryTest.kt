@@ -61,7 +61,7 @@ class AuroraRepositoryTest {
         repository.refresh()
 
         val failed = repository.snapshot().first() as RepositoryState.Failure
-        assertEquals(1_000, failed.retainedData?.observationTimestampMillis)
+        assertEquals(1_000L, failed.retainedData?.observationTimestampMillis)
         assertEquals(DataFreshness.Cached, failed.freshness)
         assertNotNull(status.get(AuroraRepository.SOURCE)?.lastErrorTimestampMillis)
     }
