@@ -26,7 +26,11 @@ android {
 kotlin { jvmToolchain(17) }
 
 dependencies {
+    implementation(project(":core:data"))
+    implementation(project(":core:database"))
     implementation(libs.activity.compose)
+    implementation(libs.room.runtime)
+    implementation(libs.coil.compose)
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.material3)

@@ -18,6 +18,7 @@ import ca.stewark.helioflux.core.database.dao.HemisphericPowerDao
 import ca.stewark.helioflux.core.database.dao.KpDao
 import ca.stewark.helioflux.core.database.dao.SolarWindMagDao
 import ca.stewark.helioflux.core.database.dao.SolarWindPlasmaDao
+import ca.stewark.helioflux.core.database.RetentionPolicy
 import ca.stewark.helioflux.core.database.entity.DataSourceStatusEntity
 import ca.stewark.helioflux.core.database.entity.GoesMagEntity
 import ca.stewark.helioflux.core.database.toDomain
@@ -83,7 +84,7 @@ class SpaceWeatherRepository(
             source = MAGNETIC,
             request = { transport.get(HelioFluxEndpoints.rtswMag) },
             parse = MagneticFieldParser::parse,
-            persist = { magneticDao.upsertAll(it.map(SolarWindMag::toEntity)) },
+            persist = { magneticDao.upsertAll(it.map(SolarWindMag::toEntity)); magneticDao.deleteBefore(RetentionPolicy.normalSeriesCutoff(nowMillis())) },
             observation = { it.maxOf { sample -> sample.timestampMillis } },
         )
     }
@@ -93,7 +94,7 @@ class SpaceWeatherRepository(
             source = PLASMA,
             request = { transport.get(HelioFluxEndpoints.rtswPlasma) },
             parse = PlasmaParser::parse,
-            persist = { plasmaDao.upsertAll(it.map(SolarWindPlasma::toEntity)) },
+            persist = { plasmaDao.upsertAll(it.map(SolarWindPlasma::toEntity)); plasmaDao.deleteBefore(RetentionPolicy.normalSeriesCutoff(nowMillis())) },
             observation = { it.maxOf { sample -> sample.timestampMillis } },
         )
     }
@@ -103,7 +104,7 @@ class SpaceWeatherRepository(
             source = KP,
             request = { transport.get(HelioFluxEndpoints.kp) },
             parse = KpParser::parse,
-            persist = { kpDao.upsertAll(it.map(KpSample::toEntity)) },
+            persist = { kpDao.upsertAll(it.map(KpSample::toEntity)); kpDao.deleteBefore(RetentionPolicy.normalSeriesCutoff(nowMillis())) },
             observation = { it.maxOf { sample -> sample.timestampMillis } },
         )
     }
@@ -126,6 +127,7 @@ class SpaceWeatherRepository(
                     secondaryLabel = parsed.secondaryLabel,
                 )
             })
+            goesMagDao.deleteBefore(RetentionPolicy.normalSeriesCutoff(now))
             markSuccess(GOES_MAG, parsed.data.maxOf { it.timestampMillis }, now)
         } catch (error: Exception) {
             markFailure(GOES_MAG, now, error)
@@ -137,7 +139,7 @@ class SpaceWeatherRepository(
             source = HEMISPHERIC_POWER,
             request = { transport.get(HelioFluxEndpoints.hemisphericPower) },
             parse = HemisphericPowerParser::parse,
-            persist = { hemisphericPowerDao.upsertAll(it.map(HemisphericPowerSample::toEntity)) },
+            persist = { hemisphericPowerDao.upsertAll(it.map(HemisphericPowerSample::toEntity)); hemisphericPowerDao.deleteBefore(RetentionPolicy.normalSeriesCutoff(nowMillis())) },
             observation = { it.maxOf { sample -> sample.timestampMillis } },
         )
     }

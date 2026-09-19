@@ -8,6 +8,7 @@ import ca.stewark.helioflux.core.data.network.HelioFluxEndpoints
 import ca.stewark.helioflux.core.data.network.HttpTransport
 import ca.stewark.helioflux.core.data.parser.OvationParser
 import ca.stewark.helioflux.core.database.dao.AuroraSnapshotDao
+import ca.stewark.helioflux.core.database.RetentionPolicy
 import ca.stewark.helioflux.core.database.dao.DataSourceStatusDao
 import ca.stewark.helioflux.core.database.entity.DataSourceStatusEntity
 import ca.stewark.helioflux.core.database.toDomain
@@ -37,6 +38,7 @@ class AuroraRepository(
             val parsed = requireNotNull(OvationParser.parse(response.body)) { "OVATION response was invalid" }
             val (snapshot, points) = parsed.toEntities()
             auroraDao.replaceSnapshot(snapshot, points)
+            auroraDao.deleteOld(now - RetentionPolicy.SOLAR_ACTIVITY_SERIES_MILLIS)
             statusDao.upsert(
                 DataSourceStatusEntity(SOURCE, parsed.observationTimestampMillis, now, now, now, null, null)
             )
