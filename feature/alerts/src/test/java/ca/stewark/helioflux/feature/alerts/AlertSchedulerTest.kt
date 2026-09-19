@@ -20,7 +20,7 @@ class AlertSchedulerTest {
         WorkManagerTestInitHelper.initializeTestWorkManager(context)
         val scheduler = AlertScheduler(context)
 
-        assertEquals(NetworkType.CONNECTED, buildAlertWorkRequest().workSpec.constraints.requiredNetworkType)
+        assertEquals(NetworkType.CONNECTED, alertWorkConstraints.requiredNetworkType)
         scheduler.schedule()
         scheduler.schedule()
 
