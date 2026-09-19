@@ -6,7 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class WidgetModelMapperTest {
-    private val source = DataSourceKey.NOAA
+    private val source = DataSourceKey("NOAA")
 
     @Test
     fun cachedRepositoryStateMapsToCompactDisplayStringsAndCachedIndicator() {
