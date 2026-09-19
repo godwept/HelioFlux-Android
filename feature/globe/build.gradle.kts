@@ -16,3 +16,9 @@ android {
 }
 
 kotlin { jvmToolchain(17) }
+
+dependencies {
+    testImplementation(libs.junit)
+    androidTestImplementation(platform(libs.compose.bom))
+    androidTestImplementation(libs.compose.ui.test.junit4)
+}
