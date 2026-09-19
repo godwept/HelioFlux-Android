@@ -7,6 +7,7 @@ import ca.stewark.helioflux.core.database.dao.AceEpamDao
 import ca.stewark.helioflux.core.database.dao.CmeEventDao
 import ca.stewark.helioflux.core.database.dao.DataSourceStatusDao
 import ca.stewark.helioflux.core.database.dao.FlareEventDao
+import ca.stewark.helioflux.core.database.dao.ForecastSectionDao
 import ca.stewark.helioflux.core.database.dao.GoesMagDao
 import ca.stewark.helioflux.core.database.dao.HemisphericPowerDao
 import ca.stewark.helioflux.core.database.dao.KpDao
@@ -17,6 +18,7 @@ import ca.stewark.helioflux.core.database.entity.AceEpamEntity
 import ca.stewark.helioflux.core.database.entity.CmeEventEntity
 import ca.stewark.helioflux.core.database.entity.DataSourceStatusEntity
 import ca.stewark.helioflux.core.database.entity.FlareEventEntity
+import ca.stewark.helioflux.core.database.entity.ForecastSectionEntity
 import ca.stewark.helioflux.core.database.entity.GoesMagEntity
 import ca.stewark.helioflux.core.database.entity.HemisphericPowerEntity
 import ca.stewark.helioflux.core.database.entity.KpEntity
@@ -36,6 +38,7 @@ import ca.stewark.helioflux.core.database.entity.SolarWindPlasmaEntity
         AceEpamEntity::class,
         FlareEventEntity::class,
         CmeEventEntity::class,
+        ForecastSectionEntity::class,
     ],
     version = 1,
     exportSchema = false,
@@ -52,4 +55,5 @@ abstract class HelioFluxDatabase : RoomDatabase() {
     abstract fun aceEpamDao(): AceEpamDao
     abstract fun flareEventDao(): FlareEventDao
     abstract fun cmeEventDao(): CmeEventDao
+    abstract fun forecastSectionDao(): ForecastSectionDao
 }
