@@ -16,3 +16,10 @@ android {
 }
 
 kotlin { jvmToolchain(17) }
+
+dependencies {
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    androidTestImplementation(platform(libs.compose.bom))
+    androidTestImplementation(libs.compose.ui.test.junit4)
+}
