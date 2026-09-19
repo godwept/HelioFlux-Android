@@ -5,6 +5,7 @@ import ca.stewark.helioflux.core.model.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.backgroundScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,7 +22,7 @@ class SolarActivityViewModelTest {
         val cmes = MutableStateFlow<RepositoryState<List<CmeEvent>>>(RepositoryState.Loading)
         val epam = MutableStateFlow<RepositoryState<List<AceEpamSample>>>(RepositoryState.Loading)
         val vm = SolarActivityViewModel.forTest(
-            probability, loading, loading, loading, regions, enlil, xray, flares, cmes, epam, this,
+            probability, loading, loading, loading, regions, enlil, xray, flares, cmes, epam, backgroundScope,
         )
         advanceUntilIdle()
 
