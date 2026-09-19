@@ -19,6 +19,7 @@ kotlin { jvmToolchain(17) }
 dependencies {
     implementation(project(":core:model"))
     implementation(libs.room.runtime)
+    implementation(libs.kotlinx.coroutines.core)
     ksp(libs.room.compiler)
 
     testImplementation(libs.junit)
