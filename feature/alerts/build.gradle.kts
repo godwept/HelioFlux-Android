@@ -15,9 +15,13 @@ android {
 kotlin { jvmToolchain(17) }
 
 dependencies {
+    implementation(project(":core:model"))
+    implementation(project(":core:data"))
+    implementation(project(":core:database"))
     implementation(libs.work.runtime.ktx)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
     testImplementation("androidx.test:core:1.7.0")
+    testImplementation("androidx.work:work-testing:2.11.2")
 }
