@@ -15,6 +15,10 @@ android {
 kotlin { jvmToolchain(17) }
 
 dependencies {
+    implementation(project(":core:model"))
+    implementation(libs.okhttp)
+    implementation(libs.kotlinx.serialization.json)
+
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockwebserver)
