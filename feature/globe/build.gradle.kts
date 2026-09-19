@@ -17,7 +17,11 @@ android {
 kotlin { jvmToolchain(17) }
 
 dependencies {
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.sceneview)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.compose.ui.test.junit4)
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
