@@ -135,7 +135,7 @@ class SpaceWeatherRepositoryTest {
         repository.refreshHemisphericPower()
 
         assertEquals(1, power.rows.value.size)
-        assertEquals(35.0, power.rows.value.single().north, 0.0)
+        assertEquals(35.0, power.rows.value.single().north!!, 0.0)
         assertNotNull(status.get(SpaceWeatherRepository.HEMISPHERIC_POWER)?.lastErrorTimestampMillis)
     }
 
