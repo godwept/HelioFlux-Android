@@ -15,6 +15,8 @@ android {
 kotlin { jvmToolchain(17) }
 
 dependencies {
+    implementation(libs.work.runtime.ktx)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.robolectric)
 }
