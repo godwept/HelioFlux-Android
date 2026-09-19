@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import ca.stewark.helioflux.ui.HelioFluxApp
+import ca.stewark.helioflux.ui.navigation.WidgetDeepLinks
 import ca.stewark.helioflux.ui.theme.HelioFluxTheme
 
 class MainActivity : ComponentActivity() {
@@ -13,7 +14,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             HelioFluxTheme {
-                HelioFluxApp()
+                HelioFluxApp(initialDestination = WidgetDeepLinks.destination(intent), initialFocus = WidgetDeepLinks.focus(intent))
             }
         }
     }

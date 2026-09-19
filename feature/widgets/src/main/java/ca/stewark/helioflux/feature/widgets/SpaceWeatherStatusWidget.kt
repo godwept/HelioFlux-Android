@@ -7,6 +7,7 @@ import androidx.glance.GlanceModifier
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.provideContent
+import androidx.glance.action.clickable
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.fillMaxSize
@@ -29,7 +30,7 @@ class SpaceWeatherStatusWidget : GlanceAppWidget() {
     )
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        provideContent { SpaceWeatherStatusContent(SpaceWeatherWidgetDefaults.model) }
+        provideContent { SpaceWeatherStatusContent(SpaceWeatherWidgetDefaults.model, WidgetActions.spaceWeather(context)) }
     }
 }
 
@@ -38,8 +39,8 @@ object SpaceWeatherWidgetDefaults {
 }
 
 @Composable
-internal fun SpaceWeatherStatusContent(model: SpaceWeatherWidgetModel) {
-    Column(modifier = GlanceModifier.fillMaxSize().padding(12.dp)) {
+internal fun SpaceWeatherStatusContent(model: SpaceWeatherWidgetModel, action: androidx.glance.action.Action? = null) {
+    Column(modifier = GlanceModifier.fillMaxSize().padding(12.dp).let { if (action != null) it.clickable(action) else it }) {
         Row {
             Text("SPACE WEATHER", style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold))
             Text("  " + freshnessLabel(model.freshness), style = TextStyle(fontSize = 11.sp, color = ColorProvider(Color.Gray)))

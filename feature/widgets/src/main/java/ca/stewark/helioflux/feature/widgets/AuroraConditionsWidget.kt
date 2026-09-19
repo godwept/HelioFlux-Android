@@ -10,6 +10,7 @@ import androidx.glance.GlanceModifier
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.provideContent
+import androidx.glance.action.clickable
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.fillMaxSize
@@ -25,7 +26,7 @@ class AuroraConditionsWidget : GlanceAppWidget() {
     )
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        provideContent { AuroraConditionsContent(AuroraWidgetDefaults.model) }
+        provideContent { AuroraConditionsContent(AuroraWidgetDefaults.model, WidgetActions.aurora(context)) }
     }
 }
 
@@ -34,8 +35,8 @@ object AuroraWidgetDefaults {
 }
 
 @Composable
-internal fun AuroraConditionsContent(model: AuroraConditionsWidgetModel) {
-    Column(modifier = GlanceModifier.fillMaxSize().padding(12.dp)) {
+internal fun AuroraConditionsContent(model: AuroraConditionsWidgetModel, action: androidx.glance.action.Action? = null) {
+    Column(modifier = GlanceModifier.fillMaxSize().padding(12.dp).let { if (action != null) it.clickable(action) else it }) {
         Row {
             Text("AURORA CONDITIONS", style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold))
             Text("  " + freshnessLabel(model.freshness), style = TextStyle(fontSize = 11.sp))

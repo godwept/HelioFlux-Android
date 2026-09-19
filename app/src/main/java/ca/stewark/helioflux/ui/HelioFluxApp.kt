@@ -19,7 +19,7 @@ import ca.stewark.helioflux.ui.spaceweather.*
 private const val BottomNavigationTag="helioflux-bottom-navigation"
 private const val NavigationRailTag="helioflux-navigation-rail"
 
-@Composable fun HelioFluxApp(){
+@Composable fun HelioFluxApp(initialDestination:HelioFluxDestination?=null,initialFocus:String?=null){
  val app=LocalContext.current.applicationContext as HelioFluxApplication
  val scope=rememberCoroutineScope()
  val vm=remember(app){HomeViewModel(app.container.spaceWeather,app.container.solarActivity,app.container.forecast,app.container.solarHero,scope)}
@@ -27,11 +27,11 @@ private const val NavigationRailTag="helioflux-navigation-rail"
  val spaceWeatherVm=remember(app){SpaceWeatherViewModel(app.container.spaceWeather,app.container.aurora,scope)}
  val spaceWeatherState by spaceWeatherVm.state.collectAsState()
  LaunchedEffect(vm){vm.refresh()}
- HelioFluxApp(currentWindowAdaptiveInfo().windowSizeClass,homeState,spaceWeatherState,spaceWeatherVm::selectTimeframe)
+ HelioFluxApp(currentWindowAdaptiveInfo().windowSizeClass,homeState,spaceWeatherState,spaceWeatherVm::selectTimeframe,initialDestination,initialFocus)
 }
 
-@Composable internal fun HelioFluxApp(windowSizeClass:WindowSizeClass,homeState:HomeUiState?=null,spaceWeatherState:SpaceWeatherUiState?=null,onTimeframe:(Timeframe)->Unit={}){
- var selectedRoute by rememberSaveable{mutableStateOf(HelioFluxDestination.Home.route)}
+@Composable internal fun HelioFluxApp(windowSizeClass:WindowSizeClass,homeState:HomeUiState?=null,spaceWeatherState:SpaceWeatherUiState?=null,onTimeframe:(Timeframe)->Unit={},initialDestination:HelioFluxDestination?=null,initialFocus:String?=null){
+ var selectedRoute by rememberSaveable{mutableStateOf((initialDestination?:HelioFluxDestination.Home).route)}
  val selected=HelioFluxDestination.entries.firstOrNull{it.route==selectedRoute}?:HelioFluxDestination.Home
  val expanded=windowSizeClass.isWidthAtLeastBreakpoint(840)
  val select:(HelioFluxDestination)->Unit={selectedRoute=it.route}
