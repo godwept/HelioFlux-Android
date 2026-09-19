@@ -1,5 +1,6 @@
 package ca.stewark.helioflux.core.database
 
+import ca.stewark.helioflux.core.database.dao.AuroraSnapshotWithPoints
 import ca.stewark.helioflux.core.database.entity.*
 import ca.stewark.helioflux.core.model.*
 
