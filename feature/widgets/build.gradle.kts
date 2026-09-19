@@ -17,6 +17,10 @@ android {
 kotlin { jvmToolchain(17) }
 
 dependencies {
+    implementation(project(":core:model"))
+    implementation(project(":core:data"))
+    implementation(libs.glance.appwidget)
+
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     androidTestImplementation(platform(libs.compose.bom))
