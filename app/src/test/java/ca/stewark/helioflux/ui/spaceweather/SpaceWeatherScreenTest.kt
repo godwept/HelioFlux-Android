@@ -14,7 +14,7 @@ class SpaceWeatherScreenTest {
 
  @Test fun globeReceivesNormalizedSnapshotAndCachedFreshnessOnly(){
   val snapshot=AuroraSnapshot(1L,2L,listOf(AuroraPoint(65.0,-50.0,26.0)))
-  val presentation=auroraGlobePresentation(RepositoryState.Available(DataSourceKey("ovation"),snapshot,DataFreshness.Cached))
+  val presentation=auroraGlobePresentation(RepositoryState.Available(snapshot,DataSourceKey("ovation"),DataFreshness.Cached))
   assertEquals(snapshot.points,presentation.points)
   assertEquals(DataFreshness.Cached,presentation.freshness)
  }
