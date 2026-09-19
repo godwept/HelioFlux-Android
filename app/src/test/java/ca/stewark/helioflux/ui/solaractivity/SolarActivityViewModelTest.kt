@@ -5,13 +5,14 @@ import ca.stewark.helioflux.core.model.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SolarActivityViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
-    @Test fun oneSectionFailureDoesNotMarkOtherSectionsFailed() = runTest {
+    @Test fun oneSectionFailureDoesNotMarkOtherSectionsFailed() = runTest(UnconfinedTestDispatcher()) {
         val loading = MutableStateFlow<RepositoryState<SolarImage>>(RepositoryState.Loading)
         val probability = MutableStateFlow<RepositoryState<FlareProbabilities>>(RepositoryState.Loading)
         val regions = MutableStateFlow<RepositoryState<List<ActiveRegion>>>(RepositoryState.Loading)
