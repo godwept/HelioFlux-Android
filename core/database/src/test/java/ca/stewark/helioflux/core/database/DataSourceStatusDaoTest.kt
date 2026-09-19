@@ -12,7 +12,8 @@ import org.robolectric.RobolectricTestRunner
 class DataSourceStatusDaoTest {
     @Test
     fun upsertsAndReadsStatusBySourceKey() = runBlocking {
-        inMemoryDatabase().use { database ->
+        val database = inMemoryDatabase()
+        try {
             val key = DataSourceKey("noaa-solar-wind")
             val first = DataSourceStatusEntity(key, 100, 110, 110, 110, null, null)
             val updated = first.copy(fetchedTimestampMillis = 120, lastAttemptTimestampMillis = 120)
@@ -20,6 +21,8 @@ class DataSourceStatusDaoTest {
             database.dataSourceStatusDao().upsert(updated)
 
             assertEquals(updated, database.dataSourceStatusDao().get(key))
+        } finally {
+            database.close()
         }
     }
 }

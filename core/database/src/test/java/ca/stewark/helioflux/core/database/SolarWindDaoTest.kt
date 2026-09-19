@@ -12,7 +12,8 @@ import org.robolectric.RobolectricTestRunner
 class SolarWindDaoTest {
     @Test
     fun magneticSamplesQueryAscendingAndDeleteBeforeCutoff() = runBlocking {
-        inMemoryDatabase().use { database ->
+        val database = inMemoryDatabase()
+        try {
             val dao = database.solarWindMagDao()
             dao.upsertAll(
                 listOf(
@@ -25,12 +26,15 @@ class SolarWindDaoTest {
             assertEquals(listOf(100L, 200L, 300L), dao.range(100, 300).map { it.timestampMillis })
             assertEquals(1, dao.deleteBefore(200))
             assertEquals(listOf(200L, 300L), dao.range(0, 1_000).map { it.timestampMillis })
+        } finally {
+            database.close()
         }
     }
 
     @Test
     fun plasmaSamplesQueryAscendingAndDeleteBeforeCutoff() = runBlocking {
-        inMemoryDatabase().use { database ->
+        val database = inMemoryDatabase()
+        try {
             val dao = database.solarWindPlasmaDao()
             dao.upsertAll(
                 listOf(
@@ -43,6 +47,8 @@ class SolarWindDaoTest {
             assertEquals(listOf(100L, 200L, 300L), dao.range(100, 300).map { it.timestampMillis })
             assertEquals(1, dao.deleteBefore(200))
             assertEquals(listOf(200L, 300L), dao.range(0, 1_000).map { it.timestampMillis })
+        } finally {
+            database.close()
         }
     }
 }
