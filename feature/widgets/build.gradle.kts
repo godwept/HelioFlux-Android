@@ -20,6 +20,7 @@ dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:data"))
     implementation(libs.glance.appwidget)
+    implementation(libs.work.runtime.ktx)
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
