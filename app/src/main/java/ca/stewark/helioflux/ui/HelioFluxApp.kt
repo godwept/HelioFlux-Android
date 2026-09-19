@@ -26,7 +26,6 @@ private const val NavigationRailTag="helioflux-navigation-rail"
  val homeState by vm.state.collectAsState()
  val spaceWeatherVm=remember(app){SpaceWeatherViewModel(app.container.spaceWeather,app.container.aurora,scope)}
  val spaceWeatherState by spaceWeatherVm.state.collectAsState()
- LaunchedEffect(vm){vm.refresh()}
  HelioFluxApp(currentWindowAdaptiveInfo().windowSizeClass,homeState,spaceWeatherState,spaceWeatherVm::selectTimeframe,initialDestination,initialFocus)
 }
 

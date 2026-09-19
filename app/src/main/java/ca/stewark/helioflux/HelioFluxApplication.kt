@@ -2,6 +2,7 @@ package ca.stewark.helioflux
 
 import android.app.Application
 import android.content.Context
+import ca.stewark.helioflux.data.AppRefreshCoordinator
 import ca.stewark.helioflux.feature.alerts.AlertScheduler
 import ca.stewark.helioflux.feature.alerts.AlertScheduling
 import ca.stewark.helioflux.feature.alerts.AlertWorkerDependencies
@@ -12,16 +13,21 @@ import ca.stewark.helioflux.feature.alerts.RepositoryAlertRepository
 import ca.stewark.helioflux.feature.alerts.RoomAlertStateStore
 import ca.stewark.helioflux.feature.widgets.SunWidgetDependenciesProvider
 import ca.stewark.helioflux.feature.widgets.SunWidgetRefreshScheduler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 class HelioFluxApplication : Application(), AlertWorkerDependenciesProvider, SunWidgetDependenciesProvider {
     lateinit var container: AppContainer
         private set
 
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var alertsInitialized = false
 
     override fun onCreate() {
         super.onCreate()
         container = AppContainer.create(this)
+        AppRefreshCoordinator.from(container).refreshOnce(applicationScope)
         initializeAlerts(NotificationChannels::create, AlertScheduler(this))
         SunWidgetRefreshScheduler(this).schedule()
     }
