@@ -26,7 +26,7 @@ private const val NavigationRailTag = "helioflux-navigation-rail"
 
 @Composable
 fun HelioFluxApp() {
-    HelioFluxApp(windowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass)
+    HelioFluxApp(windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass)
 }
 
 @Composable
@@ -35,7 +35,7 @@ internal fun HelioFluxApp(windowSizeClass: WindowSizeClass) {
     val selectedDestination =
         HelioFluxDestination.entries.firstOrNull { it.route == selectedRoute }
             ?: HelioFluxDestination.Home
-    val expanded = windowSizeClass.isWidthAtLeastBreakpoint(WindowWidthSizeClass.EXPANDED)
+    val expanded = windowSizeClass.isWidthAtLeastBreakpoint(WindowWidthSizeClass.EXPANDED.lowerBound)
 
     if (expanded) {
         Row(modifier = Modifier.fillMaxSize()) {
