@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "ca.stewark.helioflux"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "ca.stewark.helioflux"
