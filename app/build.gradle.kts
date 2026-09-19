@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:data"))
     implementation(project(":core:database"))
+    implementation(project(":feature:globe"))
     implementation(libs.activity.compose)
     implementation(libs.room.runtime)
     implementation(libs.coil.compose)
