@@ -3,88 +3,43 @@ package ca.stewark.helioflux.ui
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.window.core.layout.WindowSizeClass
+import ca.stewark.helioflux.HelioFluxApplication
+import ca.stewark.helioflux.ui.home.*
 import ca.stewark.helioflux.ui.navigation.HelioFluxDestination
 
-private const val BottomNavigationTag = "helioflux-bottom-navigation"
-private const val NavigationRailTag = "helioflux-navigation-rail"
+private const val BottomNavigationTag="helioflux-bottom-navigation"
+private const val NavigationRailTag="helioflux-navigation-rail"
 
-@Composable
-fun HelioFluxApp() {
-    HelioFluxApp(windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass)
+@Composable fun HelioFluxApp(){
+ val app=LocalContext.current.applicationContext as HelioFluxApplication
+ val scope=rememberCoroutineScope()
+ val vm=remember(app){HomeViewModel(app.container.spaceWeather,app.container.solarActivity,app.container.forecast,app.container.solarHero,scope)}
+ val homeState by vm.state.collectAsState()
+ LaunchedEffect(vm){vm.refresh()}
+ HelioFluxApp(currentWindowAdaptiveInfo().windowSizeClass,homeState)
 }
 
-@Composable
-internal fun HelioFluxApp(windowSizeClass: WindowSizeClass) {
-    var selectedRoute by rememberSaveable { mutableStateOf(HelioFluxDestination.Home.route) }
-    val selectedDestination =
-        HelioFluxDestination.entries.firstOrNull { it.route == selectedRoute }
-            ?: HelioFluxDestination.Home
-    val expanded = windowSizeClass.isWidthAtLeastBreakpoint(840)
-
-    if (expanded) {
-        Row(modifier = Modifier.fillMaxSize()) {
-            NavigationRail(modifier = Modifier.testTag(NavigationRailTag)) {
-                HelioFluxDestination.entries.forEach { destination ->
-                    NavigationRailItem(
-                        selected = destination == selectedDestination,
-                        onClick = { selectedRoute = destination.route },
-                        icon = { Text(destination.label.take(1)) },
-                        label = { Text(destination.label) },
-                    )
-                }
-            }
-            DestinationContent(
-                destination = selectedDestination,
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
-    } else {
-        Scaffold(
-            bottomBar = {
-                NavigationBar(modifier = Modifier.testTag(BottomNavigationTag)) {
-                    HelioFluxDestination.entries.forEach { destination ->
-                        NavigationBarItem(
-                            selected = destination == selectedDestination,
-                            onClick = { selectedRoute = destination.route },
-                            icon = { Text(destination.label.take(1)) },
-                            label = { Text(destination.label) },
-                        )
-                    }
-                }
-            },
-        ) { innerPadding ->
-            DestinationContent(
-                destination = selectedDestination,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-            )
-        }
-    }
+@Composable internal fun HelioFluxApp(windowSizeClass:WindowSizeClass,homeState:HomeUiState?=null){
+ var selectedRoute by rememberSaveable{mutableStateOf(HelioFluxDestination.Home.route)}
+ val selected=HelioFluxDestination.entries.firstOrNull{it.route==selectedRoute}?:HelioFluxDestination.Home
+ val expanded=windowSizeClass.isWidthAtLeastBreakpoint(840)
+ val select:(HelioFluxDestination)->Unit={selectedRoute=it.route}
+ if(expanded)Row(Modifier.fillMaxSize()){
+  NavigationRail(Modifier.testTag(NavigationRailTag)){HelioFluxDestination.entries.forEach{d->NavigationRailItem(d==selected,{select(d)},{Text(d.label.take(1))},{Text(d.label)})}}
+  DestinationContent(selected,expanded,homeState,select,Modifier.fillMaxSize())
+ }else Scaffold(bottomBar={NavigationBar(Modifier.testTag(BottomNavigationTag)){HelioFluxDestination.entries.forEach{d->NavigationBarItem(d==selected,{select(d)},{Text(d.label.take(1))},{Text(d.label)})}}}){pad->
+  DestinationContent(selected,false,homeState,select,Modifier.fillMaxSize().padding(pad))
+ }
 }
-
-@Composable
-private fun DestinationContent(
-    destination: HelioFluxDestination,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = destination.label,
-        modifier = modifier.testTag("destination-${destination.route}"),
-    )
+@Composable private fun DestinationContent(destination:HelioFluxDestination,expanded:Boolean,homeState:HomeUiState?,onDestination:(HelioFluxDestination)->Unit,modifier:Modifier=Modifier){
+ if(destination==HelioFluxDestination.Home&&homeState!=null)HomeScreen(homeState,expanded,onDestination,modifier)
+ else Text(destination.label,modifier.testTag("destination-"+destination.route))
 }
