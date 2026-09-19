@@ -1,4 +1,5 @@
 package ca.stewark.helioflux.core.data.repository
+
 import ca.stewark.helioflux.core.data.freshness.*
 import ca.stewark.helioflux.core.data.network.*
 import ca.stewark.helioflux.core.data.parser.*
