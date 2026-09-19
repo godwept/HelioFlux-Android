@@ -4,7 +4,9 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import ca.stewark.helioflux.core.database.dao.AceEpamDao
+import ca.stewark.helioflux.core.database.dao.CmeEventDao
 import ca.stewark.helioflux.core.database.dao.DataSourceStatusDao
+import ca.stewark.helioflux.core.database.dao.FlareEventDao
 import ca.stewark.helioflux.core.database.dao.GoesMagDao
 import ca.stewark.helioflux.core.database.dao.HemisphericPowerDao
 import ca.stewark.helioflux.core.database.dao.KpDao
@@ -12,7 +14,9 @@ import ca.stewark.helioflux.core.database.dao.XrayFluxDao
 import ca.stewark.helioflux.core.database.dao.SolarWindMagDao
 import ca.stewark.helioflux.core.database.dao.SolarWindPlasmaDao
 import ca.stewark.helioflux.core.database.entity.AceEpamEntity
+import ca.stewark.helioflux.core.database.entity.CmeEventEntity
 import ca.stewark.helioflux.core.database.entity.DataSourceStatusEntity
+import ca.stewark.helioflux.core.database.entity.FlareEventEntity
 import ca.stewark.helioflux.core.database.entity.GoesMagEntity
 import ca.stewark.helioflux.core.database.entity.HemisphericPowerEntity
 import ca.stewark.helioflux.core.database.entity.KpEntity
@@ -30,6 +34,8 @@ import ca.stewark.helioflux.core.database.entity.SolarWindPlasmaEntity
         HemisphericPowerEntity::class,
         XrayFluxEntity::class,
         AceEpamEntity::class,
+        FlareEventEntity::class,
+        CmeEventEntity::class,
     ],
     version = 1,
     exportSchema = false,
@@ -44,4 +50,6 @@ abstract class HelioFluxDatabase : RoomDatabase() {
     abstract fun hemisphericPowerDao(): HemisphericPowerDao
     abstract fun xrayFluxDao(): XrayFluxDao
     abstract fun aceEpamDao(): AceEpamDao
+    abstract fun flareEventDao(): FlareEventDao
+    abstract fun cmeEventDao(): CmeEventDao
 }
