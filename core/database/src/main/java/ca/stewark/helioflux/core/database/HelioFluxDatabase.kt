@@ -4,6 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import ca.stewark.helioflux.core.database.dao.AceEpamDao
+import ca.stewark.helioflux.core.database.dao.AlertStateDao
 import ca.stewark.helioflux.core.database.dao.ActiveRegionDao
 import ca.stewark.helioflux.core.database.dao.AuroraSnapshotDao
 import ca.stewark.helioflux.core.database.dao.CmeEventDao
@@ -20,6 +21,7 @@ import ca.stewark.helioflux.core.database.dao.SolarHeroFrameDao
 import ca.stewark.helioflux.core.database.dao.SolarWindMagDao
 import ca.stewark.helioflux.core.database.dao.SolarWindPlasmaDao
 import ca.stewark.helioflux.core.database.entity.AceEpamEntity
+import ca.stewark.helioflux.core.database.entity.AlertStateEntity
 import ca.stewark.helioflux.core.database.entity.ActiveRegionEntity
 import ca.stewark.helioflux.core.database.entity.AuroraPointEntity
 import ca.stewark.helioflux.core.database.entity.AuroraSnapshotEntity
@@ -40,6 +42,7 @@ import ca.stewark.helioflux.core.database.entity.SolarWindPlasmaEntity
 @Database(
     entities = [
         DataSourceStatusEntity::class,
+        AlertStateEntity::class,
         SolarWindMagEntity::class,
         SolarWindPlasmaEntity::class,
         KpEntity::class,
@@ -57,11 +60,12 @@ import ca.stewark.helioflux.core.database.entity.SolarWindPlasmaEntity
         ActiveRegionEntity::class,
         EnlilFrameEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 @TypeConverters(DatabaseConverters::class)
 abstract class HelioFluxDatabase : RoomDatabase() {
+    abstract fun alertStateDao(): AlertStateDao
     abstract fun dataSourceStatusDao(): DataSourceStatusDao
     abstract fun solarWindMagDao(): SolarWindMagDao
     abstract fun solarWindPlasmaDao(): SolarWindPlasmaDao
