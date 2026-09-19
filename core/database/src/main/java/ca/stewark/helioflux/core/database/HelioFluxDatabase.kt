@@ -4,6 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import ca.stewark.helioflux.core.database.dao.AceEpamDao
+import ca.stewark.helioflux.core.database.dao.AuroraSnapshotDao
 import ca.stewark.helioflux.core.database.dao.CmeEventDao
 import ca.stewark.helioflux.core.database.dao.DataSourceStatusDao
 import ca.stewark.helioflux.core.database.dao.FlareEventDao
@@ -15,6 +16,8 @@ import ca.stewark.helioflux.core.database.dao.XrayFluxDao
 import ca.stewark.helioflux.core.database.dao.SolarWindMagDao
 import ca.stewark.helioflux.core.database.dao.SolarWindPlasmaDao
 import ca.stewark.helioflux.core.database.entity.AceEpamEntity
+import ca.stewark.helioflux.core.database.entity.AuroraPointEntity
+import ca.stewark.helioflux.core.database.entity.AuroraSnapshotEntity
 import ca.stewark.helioflux.core.database.entity.CmeEventEntity
 import ca.stewark.helioflux.core.database.entity.DataSourceStatusEntity
 import ca.stewark.helioflux.core.database.entity.FlareEventEntity
@@ -39,6 +42,8 @@ import ca.stewark.helioflux.core.database.entity.SolarWindPlasmaEntity
         FlareEventEntity::class,
         CmeEventEntity::class,
         ForecastSectionEntity::class,
+        AuroraSnapshotEntity::class,
+        AuroraPointEntity::class,
     ],
     version = 1,
     exportSchema = false,
@@ -56,4 +61,5 @@ abstract class HelioFluxDatabase : RoomDatabase() {
     abstract fun flareEventDao(): FlareEventDao
     abstract fun cmeEventDao(): CmeEventDao
     abstract fun forecastSectionDao(): ForecastSectionDao
+    abstract fun auroraSnapshotDao(): AuroraSnapshotDao
 }
