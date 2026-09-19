@@ -5,7 +5,6 @@ import ca.stewark.helioflux.core.model.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.backgroundScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertTrue
 import org.junit.Test
