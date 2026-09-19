@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":core:database"))
     implementation(project(":feature:globe"))
     implementation(project(":feature:alerts"))
+    implementation(project(":feature:widgets"))
     implementation(libs.activity.compose)
     implementation(libs.room.runtime)
     implementation(libs.coil.compose)
