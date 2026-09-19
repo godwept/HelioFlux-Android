@@ -1,3 +1,4 @@
 <resources>
     <string name="space_weather_widget_description">Current Kp, solar wind, and flare conditions</string>
+    <string name="aurora_widget_description">Current aurora conditions and hemispheric power</string>
 </resources>
