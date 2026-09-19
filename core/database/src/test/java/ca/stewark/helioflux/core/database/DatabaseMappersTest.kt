@@ -1,5 +1,6 @@
 package ca.stewark.helioflux.core.database
 
+import ca.stewark.helioflux.core.database.dao.AuroraSnapshotWithPoints
 import ca.stewark.helioflux.core.model.*
 import org.junit.Assert.assertEquals
 import org.junit.Test
