@@ -32,10 +32,19 @@ fun FreshnessIndicator(
     freshness: DataFreshness,
     modifier: Modifier = Modifier,
     labelDurationMillis: Long = DefaultFreshnessLabelDurationMillis,
+    lastUpdatedContext: String? = null,
 ) {
     var showLabel by remember { mutableStateOf(true) }
     var revealToken by remember { mutableIntStateOf(0) }
     val label = freshness.name
+    val accessibilityLabel = buildString {
+        append("Data freshness: ")
+        append(label)
+        lastUpdatedContext?.takeIf { it.isNotBlank() }?.let {
+            append(". ")
+            append(it)
+        }
+    }
     val dotColor = when (freshness) {
         DataFreshness.Fresh -> Color(0xFF4CAF50)
         DataFreshness.Delayed -> Color(0xFFFFB300)
@@ -50,7 +59,7 @@ fun FreshnessIndicator(
 
     Row(
         modifier = modifier
-            .semantics { contentDescription = "Data freshness: $label" }
+            .semantics { contentDescription = accessibilityLabel }
             .clickable { revealToken++ }
             .testTag("freshness-indicator"),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
