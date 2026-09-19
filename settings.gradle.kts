@@ -15,3 +15,11 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "HelioFlux"
+
+include(":app")
+include(":core:model")
+include(":core:data")
+include(":core:database")
+include(":feature:globe")
+include(":feature:widgets")
+include(":feature:alerts")
