@@ -49,8 +49,12 @@ jobs:
         run: ./gradlew projects
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest
-      - name: Build debug APK
-        run: ./gradlew assembleDebug
+      - name: Compile instrumentation tests
+        run: ./gradlew assembleDebugAndroidTest
+      - name: Run connected instrumentation tests
+        run: ./gradlew connectedDebugAndroidTest
+      - name: Run lint and build debug APK
+        run: ./gradlew lintDebug assembleDebug
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
