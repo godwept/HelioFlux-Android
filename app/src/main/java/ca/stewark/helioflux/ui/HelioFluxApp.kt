@@ -18,7 +18,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.window.core.layout.WindowSizeClass
-import androidx.window.core.layout.WindowWidthSizeClass
 import ca.stewark.helioflux.ui.navigation.HelioFluxDestination
 
 private const val BottomNavigationTag = "helioflux-bottom-navigation"
@@ -35,7 +34,7 @@ internal fun HelioFluxApp(windowSizeClass: WindowSizeClass) {
     val selectedDestination =
         HelioFluxDestination.entries.firstOrNull { it.route == selectedRoute }
             ?: HelioFluxDestination.Home
-    val expanded = windowSizeClass.isWidthAtLeastBreakpoint(WindowWidthSizeClass.EXPANDED.lowerBound)
+    val expanded = windowSizeClass.isWidthAtLeastBreakpoint(840)
 
     if (expanded) {
         Row(modifier = Modifier.fillMaxSize()) {

@@ -7,7 +7,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.window.core.layout.WindowSizeClass
-import androidx.window.core.layout.WindowWidthSizeClass
 import org.junit.Rule
 import org.junit.Test
 
@@ -58,7 +57,7 @@ class AdaptiveNavigationTest {
 
     private fun expandedWindowSizeClass(): WindowSizeClass =
         WindowSizeClass.compute(
-            widthDp = WindowWidthSizeClass.EXPANDED.lowerBound.toFloat(),
+            widthDp = 840f,
             heightDp = 800f,
         )
 }
