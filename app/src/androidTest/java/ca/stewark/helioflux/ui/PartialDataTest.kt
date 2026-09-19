@@ -25,7 +25,7 @@ class PartialDataTest {
             SolarActivityScreen(
                 state = SolarActivityUiState(
                     probabilities = RepositoryState.Available(FlareProbabilities(25, 5, 1), fresh, DataFreshness.Fresh),
-                    flares = RepositoryState.Failure(failed, "source unavailable", listOf(FlareEvent(1, "M1.0", null, null, null)), DataFreshness.Cached),
+                    flares = RepositoryState.Failure(failed, "source unavailable", listOf(FlareEvent("flare-1", "M1.0", 1L, "GOES", null, null)), DataFreshness.Cached),
                     cmes = RepositoryState.Empty(empty, DataFreshness.Fresh),
                     epam = RepositoryState.Failure(cached, "offline", emptyList(), DataFreshness.Cached),
                 ),

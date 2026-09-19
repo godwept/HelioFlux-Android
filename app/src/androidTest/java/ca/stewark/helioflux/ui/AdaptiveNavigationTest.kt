@@ -51,13 +51,13 @@ class AdaptiveNavigationTest {
 
     private fun compactWindowSizeClass(): WindowSizeClass =
         WindowSizeClass.compute(
-            widthDp = 400f,
-            heightDp = 800f,
+            dpWidth = 400f,
+            dpHeight = 800f,
         )
 
     private fun expandedWindowSizeClass(): WindowSizeClass =
         WindowSizeClass.compute(
-            widthDp = 840f,
-            heightDp = 800f,
+            dpWidth = 840f,
+            dpHeight = 800f,
         )
 }

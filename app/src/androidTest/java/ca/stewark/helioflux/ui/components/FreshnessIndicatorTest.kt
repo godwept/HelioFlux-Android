@@ -2,9 +2,10 @@ package ca.stewark.helioflux.ui.components
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertContentDescriptionEquals
-import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import ca.stewark.helioflux.core.model.DataFreshness
@@ -35,7 +36,7 @@ class FreshnessIndicatorTest {
         composeRule.mainClock.advanceTimeBy(1_100)
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("freshness-dot").assertIsDisplayed()
-        composeRule.onNodeWithTag("freshness-label").assertDoesNotExist()
+        composeRule.onAllNodesWithTag("freshness-label").assertCountEquals(0)
 
         composeRule.onNodeWithTag("freshness-indicator").performClick()
         composeRule.mainClock.advanceTimeByFrame()

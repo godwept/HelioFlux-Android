@@ -1,6 +1,8 @@
 package ca.stewark.helioflux.ui.components
 
 import androidx.compose.material3.Text
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -22,7 +24,7 @@ class SectionStateTest {
     private fun assertState(state: SectionState, expectedTag: String) {
         composeRule.setContent {
             SectionStateContent(state = state) {
-                Text("content", modifier = androidx.compose.ui.Modifier.testTag("section-content"))
+                Text("content", modifier = Modifier.testTag("section-content"))
             }
         }
         composeRule.onNodeWithTag(expectedTag).assertIsDisplayed()
