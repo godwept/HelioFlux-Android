@@ -11,6 +11,8 @@ interface SolarHeroFrameDao {
     @Upsert suspend fun upsertAll(frames: List<SolarHeroFrameEntity>)
     @Query("SELECT * FROM solar_hero_frames ORDER BY sourceTimestampMillis ASC")
     fun observeAll(): Flow<List<SolarHeroFrameEntity>>
+    @Query("SELECT * FROM solar_hero_frames ORDER BY sourceTimestampMillis DESC LIMIT 1")
+    suspend fun latest(): SolarHeroFrameEntity?
     @Query("DELETE FROM solar_hero_frames")
     suspend fun deleteAll()
 }
