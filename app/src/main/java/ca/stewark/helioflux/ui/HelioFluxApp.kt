@@ -33,9 +33,9 @@ private const val NavigationRailTag="helioflux-navigation-rail"
  val expanded=windowSizeClass.isWidthAtLeastBreakpoint(840)
  val select:(HelioFluxDestination)->Unit={selectedRoute=it.route}
  if(expanded)Row(Modifier.fillMaxSize()){
-  NavigationRail(Modifier.testTag(NavigationRailTag)){HelioFluxDestination.entries.forEach{d->NavigationRailItem(d==selected,{select(d)},{Text(d.label.take(1))},{Text(d.label)})}}
+  NavigationRail(Modifier.testTag(NavigationRailTag)){HelioFluxDestination.entries.forEach{d->NavigationRailItem(selected=d==selected,onClick={select(d)},icon={Text(d.label.take(1))},label={Text(d.label)})}}
   DestinationContent(selected,expanded,homeState,select,Modifier.fillMaxSize())
- }else Scaffold(bottomBar={NavigationBar(Modifier.testTag(BottomNavigationTag)){HelioFluxDestination.entries.forEach{d->NavigationBarItem(d==selected,{select(d)},{Text(d.label.take(1))},{Text(d.label)})}}}){pad->
+ }else Scaffold(bottomBar={NavigationBar(Modifier.testTag(BottomNavigationTag)){HelioFluxDestination.entries.forEach{d->NavigationBarItem(selected=d==selected,onClick={select(d)},icon={Text(d.label.take(1))},label={Text(d.label)})}}}){pad->
   DestinationContent(selected,false,homeState,select,Modifier.fillMaxSize().padding(pad))
  }
 }
