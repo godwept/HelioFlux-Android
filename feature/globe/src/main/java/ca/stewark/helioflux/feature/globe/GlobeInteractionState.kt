@@ -11,7 +11,7 @@ data class GlobeInteractionState(
     val lastInteractionMillis: Long = Long.MIN_VALUE,
 ) {
     fun advance(deltaMillis: Long, nowMillis: Long): GlobeInteractionState {
-        if (isInteracting || nowMillis - lastInteractionMillis < AUTO_ROTATE_RESUME_MILLIS) return this
+        if (isInteracting || (lastInteractionMillis != Long.MIN_VALUE && nowMillis - lastInteractionMillis < AUTO_ROTATE_RESUME_MILLIS)) return this
         return copy(yawDegrees = wrapDegrees(yawDegrees + deltaMillis * AUTO_ROTATE_DEGREES_PER_MILLISECOND))
     }
 
