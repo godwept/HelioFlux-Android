@@ -211,8 +211,9 @@ class SpaceWeatherRepository(
         status: DataSourceStatusEntity?,
         source: DataSourceKey,
     ): RepositoryState<T> {
-        val latestAttemptFailed = status?.lastErrorTimestampMillis != null &&
-            (status.lastSuccessTimestampMillis == null || status.lastErrorTimestampMillis >= status.lastSuccessTimestampMillis)
+        val lastError = status?.lastErrorTimestampMillis
+        val lastSuccess = status?.lastSuccessTimestampMillis
+        val latestAttemptFailed = lastError != null && (lastSuccess == null || lastError >= lastSuccess)
         if (latestAttemptFailed) {
             return RepositoryState.Failure(
                 source = source,
