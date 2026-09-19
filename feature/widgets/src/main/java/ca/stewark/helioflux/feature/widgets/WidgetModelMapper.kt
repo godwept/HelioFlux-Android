@@ -23,7 +23,7 @@ object WidgetModelMapper {
         hemisphericPower: RepositoryState<List<HemisphericPowerSample>>,
     ) = AuroraConditionsWidgetModel(
         kp = kp.dataOrNull()?.lastOrNull()?.kp?.let { "Kp %.1f".format(it) } ?: "Kp --",
-        ovationSummary = ovation.dataOrNull()?.points?.maxOfOrNull { it.probability }?.let { "OVATION max %.0f%%".format(it) } ?: "OVATION --",
+        ovationSummary = ovation.dataOrNull()?.points?.maxOfOrNull { it.intensity }?.let { "OVATION max %.0f%%".format(it) } ?: "OVATION --",
         hemisphericPower = hemisphericPower.dataOrNull()?.lastOrNull()?.let { sample ->
             sample.north?.let { "North %.0f GW".format(it) }
         },
