@@ -10,8 +10,10 @@ import ca.stewark.helioflux.feature.alerts.AndroidAlertNotificationPoster
 import ca.stewark.helioflux.feature.alerts.NotificationChannels
 import ca.stewark.helioflux.feature.alerts.RepositoryAlertRepository
 import ca.stewark.helioflux.feature.alerts.RoomAlertStateStore
+import ca.stewark.helioflux.feature.widgets.SunWidgetDependenciesProvider
+import ca.stewark.helioflux.feature.widgets.SunWidgetRefreshScheduler
 
-class HelioFluxApplication : Application(), AlertWorkerDependenciesProvider {
+class HelioFluxApplication : Application(), AlertWorkerDependenciesProvider, SunWidgetDependenciesProvider {
     lateinit var container: AppContainer
         private set
 
@@ -21,6 +23,7 @@ class HelioFluxApplication : Application(), AlertWorkerDependenciesProvider {
         super.onCreate()
         container = AppContainer.create(this)
         initializeAlerts(NotificationChannels::create, AlertScheduler(this))
+        SunWidgetRefreshScheduler(this).schedule()
     }
 
     internal fun initializeAlerts(
@@ -32,6 +35,8 @@ class HelioFluxApplication : Application(), AlertWorkerDependenciesProvider {
         scheduler.schedule()
         alertsInitialized = true
     }
+
+    override fun solarHeroRepository() = container.solarHero
 
     override fun alertWorkerDependencies(): AlertWorkerDependencies =
         AlertWorkerDependencies(
