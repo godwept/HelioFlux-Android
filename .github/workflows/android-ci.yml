@@ -54,7 +54,8 @@ jobs:
       - name: Run connected instrumentation tests when a device is available
         shell: powershell
         run: |
-          $connected = (& adb devices) | Select-String "\tdevice$"
+          $adb = Join-Path $env:ANDROID_HOME "platform-tools\adb.exe"
+          $connected = (& $adb devices) | Select-String "\tdevice$"
           if ($connected) {
             ./gradlew connectedDebugAndroidTest
           } else {
