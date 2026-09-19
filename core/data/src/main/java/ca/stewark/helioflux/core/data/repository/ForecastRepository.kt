@@ -70,7 +70,7 @@ class ForecastRepository(
                 SOURCE,
                 status?.lastErrorMessage ?: "Refresh failed",
                 data.takeIf { it.isNotEmpty() },
-                DataFreshness.Cached.takeIf { it.isNotEmpty() },
+                DataFreshness.Cached.takeIf { data.isNotEmpty() },
             )
         }
         if (data.isEmpty() && lastSuccess == null) return RepositoryState.Loading
