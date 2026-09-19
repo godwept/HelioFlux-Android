@@ -3,7 +3,12 @@ package ca.stewark.helioflux
 import ca.stewark.helioflux.feature.alerts.AlertScheduling
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [35])
 class HelioFluxApplicationTest {
     @Test fun alertInitializationCreatesChannelAndSchedulesOnce() {
         val application = HelioFluxApplication()
