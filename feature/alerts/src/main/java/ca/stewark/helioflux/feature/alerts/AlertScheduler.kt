@@ -13,13 +13,13 @@ fun interface AlertScheduling {
     fun schedule()
 }
 
+internal val alertWorkConstraints: Constraints = Constraints.Builder()
+    .setRequiredNetworkType(NetworkType.CONNECTED)
+    .build()
+
 internal fun buildAlertWorkRequest(): PeriodicWorkRequest =
     PeriodicWorkRequestBuilder<SpaceWeatherAlertWorker>(1, TimeUnit.HOURS)
-        .setConstraints(
-            Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
-        )
+        .setConstraints(alertWorkConstraints)
         .build()
 
 class AlertScheduler(private val context: Context) : AlertScheduling {
