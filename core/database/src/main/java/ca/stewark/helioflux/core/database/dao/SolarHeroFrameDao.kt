@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class SolarHeroFrameDao {
-    @Upsert protected abstract suspend fun upsertAll(frames: List<SolarHeroFrameEntity>)
+    @Upsert abstract suspend fun upsertAll(frames: List<SolarHeroFrameEntity>)
     @Query("SELECT * FROM solar_hero_frames ORDER BY sourceTimestampMillis ASC")
     abstract fun observeAll(): Flow<List<SolarHeroFrameEntity>>
     @Query("SELECT * FROM solar_hero_frames ORDER BY sourceTimestampMillis DESC LIMIT 1")
