@@ -33,6 +33,13 @@ class SolarHeroPlaybackTest {
         assertEquals(listOf(frames[0], frames[2]), selectPlayableSolarFrames(frames, setOf("one", "three")))
     }
 
+    @Test fun spinnerStaysVisibleAcrossPosterToPlaybackTransition() {
+        assertEquals(true, shouldShowSolarSpinner(SolarHeroPhase.PosterLoading, true, false))
+        assertEquals(true, shouldShowSolarSpinner(SolarHeroPhase.Playing, true, false))
+        assertEquals(false, shouldShowSolarSpinner(SolarHeroPhase.Playing, true, true))
+        assertEquals(false, shouldShowSolarSpinner(SolarHeroPhase.StaticPoster, true, false))
+    }
+
     @Test fun blendProgressMatchesPwaFrameInterval() {
         assertEquals(0f, solarBlendProgress(0L, 200L), 0f)
         assertEquals(0.5f, solarBlendProgress(100L, 200L), 0f)

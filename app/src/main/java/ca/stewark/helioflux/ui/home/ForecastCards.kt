@@ -21,17 +21,8 @@ import ca.stewark.helioflux.ui.theme.SolarOrange
 import ca.stewark.helioflux.ui.theme.SpaceMuted
 import ca.stewark.helioflux.ui.theme.SpaceSurface
 
-internal const val FORECAST_COLLAPSED_MAX_CHARS = 220
-internal const val FORECAST_CARD_MAX_HEIGHT_DP = 260
-
-internal fun forecastNeedsExpansion(section: ForecastSection): Boolean =
-    section.forecast.trim().length > FORECAST_COLLAPSED_MAX_CHARS
-
-internal fun forecastCollapsedText(section: ForecastSection): String {
-    val text = section.forecast.trim()
-    if (!forecastNeedsExpansion(section)) return text
-    return text.take(FORECAST_COLLAPSED_MAX_CHARS).trimEnd() + "…"
-}
+internal const val FORECAST_COLLAPSED_MAX_LINES = 7
+internal const val FORECAST_CARD_HEIGHT_DP = 260
 
 @Composable
 fun ForecastCards(
@@ -57,22 +48,22 @@ fun ForecastCards(
 
 @Composable
 private fun ForecastCard(section: ForecastSection, expandedLayout: Boolean) {
-    val expandable = forecastNeedsExpansion(section)
     var expanded by rememberSaveable(section.key) { mutableStateOf(false) }
+    var forecastOverflows by remember(section.key, section.forecast) { mutableStateOf(false) }
     val accent = forecastAccent(section.key)
-    val interaction = if (expandable) Modifier.clickable { expanded = !expanded } else Modifier
+    val interaction = if (forecastOverflows || expanded) Modifier.clickable { expanded = !expanded } else Modifier
 
     Card(
         Modifier
             .width(if (expandedLayout) 320.dp else 280.dp)
-            .heightIn(min = 190.dp, max = FORECAST_CARD_MAX_HEIGHT_DP.dp)
+            .height(FORECAST_CARD_HEIGHT_DP.dp)
             .then(interaction)
             .testTag("forecast-" + section.key),
         colors = CardDefaults.cardColors(containerColor = SpaceSurface),
         border = BorderStroke(1.dp, accent.copy(alpha = 0.45f)),
     ) {
         Column(
-            Modifier.fillMaxHeight().padding(14.dp),
+            Modifier.fillMaxSize().padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(7.dp),
         ) {
             Text(
@@ -83,12 +74,16 @@ private fun ForecastCard(section: ForecastSection, expandedLayout: Boolean) {
             )
             Text(section.summary, style = MaterialTheme.typography.bodyMedium)
             Text(
-                if (expanded) section.forecast else forecastCollapsedText(section),
+                section.forecast,
                 style = MaterialTheme.typography.bodyMedium,
+                maxLines = if (expanded) Int.MAX_VALUE else FORECAST_COLLAPSED_MAX_LINES,
+                onTextLayout = { result ->
+                    if (!expanded) forecastOverflows = result.hasVisualOverflow
+                },
             )
             Spacer(Modifier.weight(1f))
             section.issueTime?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = SpaceMuted) }
-            if (expandable) {
+            if (forecastOverflows || expanded) {
                 Text(
                     if (expanded) "TAP TO COLLAPSE" else "TAP FOR FULL FORECAST",
                     style = MaterialTheme.typography.labelSmall,

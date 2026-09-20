@@ -46,6 +46,17 @@ internal fun solarHeroPhase(
 
 internal fun selectSolarPoster(frames: List<SolarImage>): SolarImage? = frames.firstOrNull()
 
+internal fun frameIdentityFor(frames: List<SolarImage>): List<String> = frames.map { it.url }
+
+internal fun shouldShowSolarSpinner(
+    phase: SolarHeroPhase,
+    posterLoaded: Boolean,
+    playbackLayerReady: Boolean,
+): Boolean = phase == SolarHeroPhase.InitialLoading ||
+    phase == SolarHeroPhase.PosterLoading ||
+    (phase == SolarHeroPhase.Playing && !playbackLayerReady) ||
+    (phase == SolarHeroPhase.StaticPoster && !posterLoaded)
+
 internal fun solarBlendProgress(elapsedMillis: Long, cadenceMillis: Long): Float =
     if (cadenceMillis <= 0L) 1f else (elapsedMillis.toFloat() / cadenceMillis).coerceIn(0f, 1f)
 
@@ -91,7 +102,7 @@ fun SolarHero(
 
     val phase = solarHeroPhase(frames, preloadedUrls, preloadComplete)
     val playableFrames = selectPlayableSolarFrames(frames, preloadedUrls)
-    val frameIdentity = frames.map { it.url }
+    val frameIdentity = frameIdentityFor(frames)
     var frameIndex by remember(frameIdentity) { mutableIntStateOf(0) }
     var blend by remember(frameIdentity) { mutableFloatStateOf(0f) }
 
@@ -143,25 +154,35 @@ fun SolarHero(
                 },
             contentAlignment = Alignment.Center,
         ) {
-            when (phase) {
-                SolarHeroPhase.InitialLoading -> Unit
-                SolarHeroPhase.PosterLoading,
-                SolarHeroPhase.StaticPoster -> selectSolarPoster(frames)?.let {
-                    AsyncImage(it.url, "AIA 304 Sun", imageTransform.testTag("solar-poster"))
-                }
-                SolarHeroPhase.Playing -> {
-                    val current = frameIndex.coerceAtMost(playableFrames.lastIndex)
-                    val next = (current + 1) % playableFrames.size
-                    AsyncImage(playableFrames[current].url, "Animated AIA 304 Sun", imageTransform.testTag("solar-frame-" + current))
-                    AsyncImage(
-                        playableFrames[next].url,
-                        "Animated AIA 304 next frame",
-                        imageTransform.graphicsLayer(alpha = blend),
-                    )
-                }
+            // Keep the poster mounted beneath playback. Removing it at the phase
+            // transition can expose a blank frame while Coil attaches cached images.
+            selectSolarPoster(frames)?.let {
+                AsyncImage(
+                    it.url,
+                    "AIA 304 Sun",
+                    imageTransform.testTag("solar-poster"),
+                    onSuccess = { posterLoaded = true },
+                )
             }
 
-            if (phase == SolarHeroPhase.InitialLoading || phase == SolarHeroPhase.PosterLoading) {
+            if (phase == SolarHeroPhase.Playing) {
+                val current = frameIndex.coerceAtMost(playableFrames.lastIndex)
+                val next = (current + 1) % playableFrames.size
+                AsyncImage(
+                    playableFrames[current].url,
+                    "Animated AIA 304 Sun",
+                    imageTransform.testTag("solar-frame-" + current),
+                    onSuccess = { playbackLayerReady = true },
+                )
+                AsyncImage(
+                    playableFrames[next].url,
+                    "Animated AIA 304 next frame",
+                    imageTransform.graphicsLayer(alpha = blend),
+                )
+            }
+
+            val showSpinner = shouldShowSolarSpinner(phase, posterLoaded, playbackLayerReady)
+            if (showSpinner) {
                 CircularProgressIndicator(Modifier.testTag("solar-hero-loading"))
             }
             if (state is RepositoryState.Failure) {
