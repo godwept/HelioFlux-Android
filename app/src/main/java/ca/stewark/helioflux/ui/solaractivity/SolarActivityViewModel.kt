@@ -4,12 +4,19 @@ import ca.stewark.helioflux.core.data.repository.RepositoryState
 import ca.stewark.helioflux.core.data.repository.SolarActivityRepository
 import ca.stewark.helioflux.core.data.repository.SolarImageryRepository
 import ca.stewark.helioflux.core.model.*
+import ca.stewark.helioflux.ui.components.ChartDomain
+import ca.stewark.helioflux.ui.components.chartDomain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+
+internal const val SolarActivityWindowMillis = 72L * 60L * 60L * 1_000L
+
+fun solarActivityChartDomain(now: Long): ChartDomain =
+    chartDomain(now, SolarActivityWindowMillis)
 
 data class SolarActivityUiState(
     val probabilities: RepositoryState<FlareProbabilities> = RepositoryState.Loading,
@@ -38,7 +45,16 @@ class SolarActivityViewModel private constructor(
     scope: CoroutineScope,
 ) {
     val state: StateFlow<SolarActivityUiState> = combine(
-        probabilities, magnetogram, lascoC2, lascoC3, activeRegions, enlil, xray, flares, cmes, epam,
+        probabilities,
+        magnetogram,
+        lascoC2,
+        lascoC3,
+        activeRegions,
+        enlil,
+        xray,
+        flares,
+        cmes,
+        epam,
     ) { values ->
         @Suppress("UNCHECKED_CAST")
         SolarActivityUiState(
@@ -67,16 +83,14 @@ class SolarActivityViewModel private constructor(
         imagery.image(SolarImageType.LascoC3),
         imagery.regions(),
         imagery.enlil(),
-        activity.xray(nowMillis() - WINDOW, nowMillis()),
+        activity.xray(nowMillis() - SolarActivityWindowMillis, nowMillis()),
         activity.flares(),
         activity.cmes(),
-        activity.aceEpam(nowMillis() - WINDOW, nowMillis()),
+        activity.aceEpam(nowMillis() - SolarActivityWindowMillis, nowMillis()),
         scope,
     )
 
     companion object {
-        private const val WINDOW = 72L * 60L * 60L * 1000L
-
         internal fun forTest(
             probabilities: Flow<RepositoryState<FlareProbabilities>>,
             magnetogram: Flow<RepositoryState<SolarImage>>,
@@ -90,8 +104,17 @@ class SolarActivityViewModel private constructor(
             epam: Flow<RepositoryState<List<AceEpamSample>>>,
             scope: CoroutineScope,
         ) = SolarActivityViewModel(
-            probabilities, magnetogram, lascoC2, lascoC3, activeRegions, enlil,
-            xray, flares, cmes, epam, scope,
+            probabilities,
+            magnetogram,
+            lascoC2,
+            lascoC3,
+            activeRegions,
+            enlil,
+            xray,
+            flares,
+            cmes,
+            epam,
+            scope,
         )
     }
 }
