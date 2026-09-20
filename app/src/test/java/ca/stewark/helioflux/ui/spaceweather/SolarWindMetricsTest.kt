@@ -1,6 +1,7 @@
 package ca.stewark.helioflux.ui.spaceweather
 import ca.stewark.helioflux.core.model.*
 import ca.stewark.helioflux.ui.theme.*
+import java.io.File
 import org.junit.Assert.*
 import org.junit.Test
 class SolarWindMetricsTest{
@@ -15,5 +16,11 @@ class SolarWindMetricsTest{
  @Test fun pillAccentsMatchHomeConditionPillLanguage(){
   val p=solarWindMetricPresentation(SolarWindMetricValues(null,null,null))
   assertEquals(listOf(DataCyan,FreshGreen,SolarOrange),p.map{it.accent})
+ }
+ @Test fun metricPillCentersLabelAndValueGroup(){
+  val source=File("src/main/java/ca/stewark/helioflux/ui/spaceweather/SolarWindMetrics.kt").readText()
+  val metric=source.substringAfter("private fun MetricPill(")
+  assertTrue(metric.contains("Modifier.fillMaxWidth().padding(horizontal=10.dp,vertical=6.dp)"))
+  assertTrue(metric.contains("horizontalArrangement=Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally)"))
  }
 }
