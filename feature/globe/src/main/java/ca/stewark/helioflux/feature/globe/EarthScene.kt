@@ -3,7 +3,6 @@ package ca.stewark.helioflux.feature.globe
 import android.os.SystemClock
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -108,7 +107,7 @@ fun EarthScene(
 
         Box(
             modifier = Modifier
-                .matchParentSize()
+                .fillMaxSize()
                 .zIndex(1f)
                 .pointerInput(touchSlop) {
                     awaitPointerEventScope {
