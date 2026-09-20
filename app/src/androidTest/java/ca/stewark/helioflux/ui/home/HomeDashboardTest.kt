@@ -66,7 +66,7 @@ class HomeDashboardTest {
         compose.onNodeWithTag("forecast-track").assertExists()
         compose.onNodeWithText("Summary").assertExists()
         compose.onNodeWithText("Forecast detail").assertExists()
-        compose.onNodeWithText("TAP FOR FULL FORECAST").assertDoesNotExist()
+        compose.onNodeWithText("TAP TO EXPAND").assertIsDisplayed()
         compose.onNodeWithText("Issued now").assertExists()
     }
 
@@ -75,7 +75,7 @@ class HomeDashboardTest {
         val section = ForecastSection("solar", "Solar Activity", "Summary", longForecast, "Issued now")
         val state = HomeUiState(forecast = RepositoryState.Available(listOf(section), source, DataFreshness.Fresh))
         compose.setContent { HomeScreen(state, false, {}) }
-        compose.onNodeWithText("TAP FOR FULL FORECAST").assertIsDisplayed()
+        compose.onNodeWithText("TAP TO EXPAND").assertIsDisplayed()
         compose.onNodeWithText("Issued now").assertIsDisplayed()
         val collapsedHeight = compose.onNodeWithTag("forecast-solar").fetchSemanticsNode().boundsInRoot.height
         compose.onNodeWithTag("forecast-solar").performClick()
