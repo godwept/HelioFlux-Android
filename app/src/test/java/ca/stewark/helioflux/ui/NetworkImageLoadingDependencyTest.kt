@@ -10,5 +10,7 @@ class NetworkImageLoadingDependencyTest {
         val build = File("build.gradle.kts").readText()
         assertTrue(catalog.contains("io.coil-kt.coil3:coil-network-okhttp"))
         assertTrue(build.contains("implementation(libs.coil.network.okhttp)"))
+        assertTrue(catalog.contains("io.coil-kt.coil3:coil-gif"))
+        assertTrue(build.contains("implementation(libs.coil.gif)"))
     }
 }
