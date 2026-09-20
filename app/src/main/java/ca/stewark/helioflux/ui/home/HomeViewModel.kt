@@ -23,5 +23,6 @@ class HomeViewModel(private val spaceWeather:SpaceWeatherRepository,private val 
  val state:StateFlow<HomeUiState> = combine(solarHero.frames(),spaceWeather.magnetic(start,end),spaceWeather.plasma(start,end),spaceWeather.kp(start,end),solarActivity.flareProbabilities(),forecastRepository.sections()){v->
   @Suppress("UNCHECKED_CAST") HomeUiState(v[0] as RepositoryState<List<SolarImage>>,v[1] as RepositoryState<List<SolarWindMag>>,v[2] as RepositoryState<List<SolarWindPlasma>>,v[3] as RepositoryState<List<KpSample>>,v[4] as RepositoryState<FlareProbabilities>,v[5] as RepositoryState<List<ForecastSection>>)
  }.stateIn(scope,SharingStarted.Eagerly,HomeUiState())
+ init { scope.launch { solarHero.refreshIfStale() } }
  fun refresh(){scope.launch{solarHero.refresh()};scope.launch{spaceWeather.refreshMagnetic()};scope.launch{spaceWeather.refreshPlasma()};scope.launch{spaceWeather.refreshKp()};scope.launch{solarActivity.refreshFlareProbabilities()};scope.launch{forecastRepository.refresh()}}
 }
