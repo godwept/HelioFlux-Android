@@ -17,6 +17,11 @@ class SolarHeroPlaybackTest {
         assertEquals(false, solarHeroLoading(frames, true))
     }
 
+
+    @Test fun heroDoesNotLeaveLoadingWithOnlyOnePlayableFrame() {
+        assertEquals(true, solarHeroLoading(listOf(frames[0]), true))
+    }
+
     @Test fun playbackUsesOnlySuccessfullyPreloadedFrames() {
         assertEquals(emptyList<SolarImage>(), selectPlayableSolarFrames(frames, emptySet()))
         assertEquals(listOf(frames[0], frames[2]), selectPlayableSolarFrames(frames, setOf("one", "three")))

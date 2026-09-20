@@ -31,7 +31,7 @@ import kotlinx.coroutines.isActive
 import kotlin.math.roundToInt
 
 internal fun solarHeroLoading(frames: List<SolarImage>, preloadComplete: Boolean) =
-    frames.isEmpty() || !preloadComplete
+    !solarHeroCanAnimate(frames) || !preloadComplete
 
 internal fun solarHeroCanAnimate(frames: List<SolarImage>) = frames.map { it.url }.distinct().size > 1
 
@@ -78,7 +78,7 @@ fun SolarHero(
     }
 
     val playableFrames = selectPlayableSolarFrames(frames, preloadedUrls)
-    val loading = solarHeroLoading(frames, preloadComplete)
+    val loading = solarHeroLoading(playableFrames, preloadComplete)
     var frameIndex by remember(frames) { mutableIntStateOf(0) }
     var blend by remember(frames) { mutableFloatStateOf(0f) }
 

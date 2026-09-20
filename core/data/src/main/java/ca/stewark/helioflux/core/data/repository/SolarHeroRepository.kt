@@ -13,10 +13,11 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 
 class SolarHeroRepository(private val frameDao:SolarHeroFrameDao,private val statusDao:DataSourceStatusDao,private val api:HelioviewerApi,private val nowMillis:()->Long=System::currentTimeMillis){
  fun frames():Flow<RepositoryState<List<SolarImage>>> = combine(frameDao.observeAll(),statusDao.observe(SOURCE)){rows,status->state(rows.map{SolarImage(SolarImageType.Aia304,it.sourceTimestampMillis,it.url)},status)}
- suspend fun refreshIfStale(){val fetched=statusDao.get(SOURCE)?.fetchedTimestampMillis;if(fetched!=null&&nowMillis()-fetched<CACHE_TTL_MILLIS)return;refresh()}
+ suspend fun refreshIfStale(){val fetched=statusDao.get(SOURCE)?.fetchedTimestampMillis;val hasAnimationCache=frameDao.observeAll().first().map{it.url}.distinct().size>1;if(fetched!=null&&nowMillis()-fetched<CACHE_TTL_MILLIS&&hasAnimationCache)return;refresh()}
  suspend fun refreshLatest():SolarImage? {
   val now=nowMillis();attempt(now)
   return try {
