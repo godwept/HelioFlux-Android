@@ -81,7 +81,7 @@ private val NavAnimation=tween<androidx.compose.ui.unit.Dp>(durationMillis=225,e
   Box(Modifier.offset(x=indicatorOffset).width(32.dp).height(3.dp).background(NavActive,CircleShape).testTag("helioflux-bottom-indicator"))
   Row(Modifier.fillMaxWidth().height(76.dp),verticalAlignment=Alignment.CenterVertically){
    destinations.forEach{destination->
-    NavItem(destination,destination==selected,onSelect,Modifier.weight(1f))
+    NavItem(destination,destination==selected,onSelect,Modifier.weight(1f).fillMaxHeight().padding(top=5.dp))
    }
   }
  }
