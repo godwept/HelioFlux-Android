@@ -2,7 +2,6 @@ package ca.stewark.helioflux.feature.globe
 
 import android.os.SystemClock
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -19,7 +18,6 @@ import io.github.sceneview.rememberCameraNode
 import io.github.sceneview.rememberEngine
 import io.github.sceneview.rememberMaterialLoader
 import io.github.sceneview.rememberOnGestureListener
-import io.github.sceneview.safeDestroyTexture
 import io.github.sceneview.texture.ImageTexture
 import kotlin.math.cos
 import kotlin.math.sin
@@ -40,9 +38,6 @@ fun EarthScene(
 
     val earthTexture = remember(engine) {
         ImageTexture.Builder().bitmap(context.assets, EARTH_TEXTURE_ASSET).build(engine)
-    }
-    DisposableEffect(engine, earthTexture) {
-        onDispose { engine.safeDestroyTexture(earthTexture) }
     }
     val earthMaterial = remember(materialLoader, earthTexture) {
         materialLoader.createTextureInstance(
