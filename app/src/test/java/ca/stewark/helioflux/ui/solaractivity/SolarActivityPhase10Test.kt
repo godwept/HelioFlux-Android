@@ -11,7 +11,7 @@ class SolarActivityPhase10Test {
     @Test
     fun enlilPlayerWrapsAndHandlesNoFrames() {
         var count = 2
-        val state = EnlilPlayerState { count }
+        val state = EnlilPlayerState({ count })
 
         state.advance()
         assertEquals(1, state.index)
