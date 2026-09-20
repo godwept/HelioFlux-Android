@@ -110,42 +110,38 @@ private val NavAnimation=tween<androidx.compose.ui.unit.Dp>(durationMillis=225,e
   horizontalAlignment=Alignment.CenterHorizontally,
   verticalArrangement=Arrangement.Center,
  ){
-  IconButton(onClick={onSelect(destination)}){
-   Icon(destinationIconModifier(destination,selected),contentDescription=null,tint=contentColor)
-  }
+  DestinationIcon(destination,selected,contentColor)
+  Spacer(Modifier.height(4.dp))
   Text(destination.label,color=contentColor,fontSize=11.sp,maxLines=1)
  }
 }
 
-private fun destinationIconModifier(destination:HelioFluxDestination,selected:Boolean):Modifier =
- Modifier.size(25.dp).drawBehind{
+@Composable private fun DestinationIcon(destination:HelioFluxDestination,selected:Boolean,color:Color){
+ Box(Modifier.size(25.dp).drawBehind{
+  if(selected)drawCircle(NavActive.copy(alpha=.14f),radius=size.minDimension*.72f)
   val stroke=Stroke(width=if(selected)2.2f else 1.8f)
-  val c=Color.White
   when(destination){
    HelioFluxDestination.Home->{
     val p=Path().apply{moveTo(size.width*.16f,size.height*.48f);lineTo(size.width*.5f,size.height*.18f);lineTo(size.width*.84f,size.height*.48f);lineTo(size.width*.78f,size.height*.48f);lineTo(size.width*.78f,size.height*.82f);lineTo(size.width*.22f,size.height*.82f);lineTo(size.width*.22f,size.height*.48f);close()}
-    drawPath(p,c,style=stroke)
+    drawPath(p,color,style=stroke)
    }
    HelioFluxDestination.SpaceWeather->{
-    drawCircle(c,size.minDimension*.34f,style=stroke)
-    drawOval(c,topLeft=Offset(size.width*.34f,size.height*.16f),size=androidx.compose.ui.geometry.Size(size.width*.32f,size.height*.68f),style=stroke)
-    drawLine(c,Offset(size.width*.18f,size.height*.5f),Offset(size.width*.82f,size.height*.5f),stroke.width)
+    drawCircle(color,size.minDimension*.34f,style=stroke)
+    drawOval(color,topLeft=Offset(size.width*.34f,size.height*.16f),size=androidx.compose.ui.geometry.Size(size.width*.32f,size.height*.68f),style=stroke)
+    drawLine(color,Offset(size.width*.18f,size.height*.5f),Offset(size.width*.82f,size.height*.5f),stroke.width)
    }
    HelioFluxDestination.SolarActivity->{
-    drawCircle(c,size.minDimension*.2f,style=stroke)
+    drawCircle(color,size.minDimension*.2f,style=stroke)
     repeat(8){i->
      val a=Math.toRadians((i*45).toDouble())
      val center=Offset(size.width/2,size.height/2)
-     val r1=size.minDimension*.31f; val r2=size.minDimension*.43f
-     drawLine(c,Offset(center.x+(kotlin.math.cos(a)*r1).toFloat(),center.y+(kotlin.math.sin(a)*r1).toFloat()),Offset(center.x+(kotlin.math.cos(a)*r2).toFloat(),center.y+(kotlin.math.sin(a)*r2).toFloat()),stroke.width)
+     val r1=size.minDimension*.31f
+     val r2=size.minDimension*.43f
+     drawLine(color,Offset(center.x+(kotlin.math.cos(a)*r1).toFloat(),center.y+(kotlin.math.sin(a)*r1).toFloat()),Offset(center.x+(kotlin.math.cos(a)*r2).toFloat(),center.y+(kotlin.math.sin(a)*r2).toFloat()),stroke.width)
     }
    }
   }
- }
-@Composable private fun Icon(modifier:Modifier,contentDescription:String?,tint:Color){
- Box(modifier.drawBehind{
-  if(tint==NavActive)drawCircle(NavActive.copy(alpha=.14f),radius=size.minDimension*.72f)
- }.then(Modifier))
+ })
 }
 
 @Composable private fun DestinationContent(destination:HelioFluxDestination,expanded:Boolean,homeState:HomeUiState?,spaceWeatherState:SpaceWeatherUiState?,solarActivityState:SolarActivityUiState?,onTimeframe:(Timeframe)->Unit,onDestination:(HelioFluxDestination)->Unit,modifier:Modifier=Modifier){
