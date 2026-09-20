@@ -42,7 +42,7 @@ fun auroraGlobePresentation(state: RepositoryState<AuroraSnapshot>): AuroraGlobe
   item{TimeframeSelector(state.timeframe,onTimeframe)}
   item{SolarWindMetrics(latestSolarWindMetrics(magnetic,plasma))}
   item{Card(Modifier.fillMaxWidth().height(240.dp).testTag("aurora-globe-slot")){Box(Modifier.fillMaxSize()){AuroraGlobe(modifier=Modifier.fillMaxSize(),points=aurora.points);aurora.freshness?.let{Box(Modifier.align(Alignment.TopEnd).padding(8.dp)){FreshnessIndicator(it)}}}}}
-  if(expanded){items((charts.size+1)/2){row->Row(Modifier.fillMaxWidth().testTag("space-weather-expanded"),horizontalArrangement=Arrangement.spacedBy(12.dp)){charts[row*2]( );if(row*2+1<charts.size)Box(Modifier.weight(1f)){charts[row*2+1]()} ; Spacer(Modifier.weight(if(row*2+1<charts.size)0f else 1f))}}}
+  if(expanded){items((charts.size+1)/2){row->Row(Modifier.fillMaxWidth().testTag("space-weather-expanded"),horizontalArrangement=Arrangement.spacedBy(12.dp)){charts[row*2]( );if(row*2+1<charts.size)Box(Modifier.weight(1f)){charts[row*2+1]()} else Spacer(Modifier.weight(1f))}}}
   else charts.forEach{chart->item{Box(Modifier.fillMaxWidth().testTag("space-weather-compact")){chart()}}}
  }
 }
