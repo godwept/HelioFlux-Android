@@ -20,7 +20,6 @@ dependencies {
     implementation(project(":core:model"))
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
-    implementation("androidx.compose.foundation:foundation")
     implementation(libs.sceneview)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)

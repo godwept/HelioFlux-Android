@@ -1,8 +1,6 @@
 package ca.stewark.helioflux.feature.globe
 
 import android.os.SystemClock
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -17,7 +15,6 @@ import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.zIndex
 import ca.stewark.helioflux.core.model.AuroraPoint
 import io.github.sceneview.SceneView
 import io.github.sceneview.math.Position
@@ -83,131 +80,125 @@ fun EarthScene(
         cameraNode.lookAt(Position(x = 0f, y = 0f, z = 0f))
     }
 
-    Box(modifier = modifier) {
-        SceneView(
-            modifier = Modifier.fillMaxSize(),
-            engine = engine,
-            materialLoader = materialLoader,
-            cameraNode = cameraNode,
-            cameraManipulator = null,
-            onGestureListener = null,
-            autoCenterContent = false,
-            mainLightNode = null,
-            fillLightNode = null,
-        ) {
-            SphereNode(
-                radius = EARTH_RADIUS,
-                stacks = 48,
-                slices = 96,
-                materialInstance = earthMaterial,
-            )
-            AuroraLayer(points = points, materialLoader = materialLoader)
-            AtmosphereLayer(materialLoader = materialLoader)
-        }
+    SceneView(
+        // Keep gesture interception on the AndroidView modifier chain. AndroidView appends its
+        // interop touch filter after caller modifiers, so this handler sees move events before
+        // the SurfaceView consumes them. A sibling Compose overlay does not share that stream.
+        modifier = modifier.pointerInput(touchSlop) {
+            awaitPointerEventScope {
+                while (true) {
+                    var event = awaitPointerEvent()
+                    while (event.changes.none { it.pressed }) {
+                        event = awaitPointerEvent()
+                    }
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .zIndex(1f)
-                .pointerInput(touchSlop) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            var event = awaitPointerEvent()
-                            while (event.changes.none { it.pressed }) {
-                                event = awaitPointerEvent()
+                    var intent = GlobeGestureIntent.Undecided
+                    var totalDelta = Offset.Zero
+                    var interactionActive = false
+                    var previousSpan: Float? = null
+
+                    while (true) {
+                        val pressed = event.changes.filter { it.pressed }
+                        if (pressed.isEmpty()) {
+                            if (interactionActive) {
+                                interaction = interaction.endInteraction(SystemClock.uptimeMillis())
+                            }
+                            break
+                        }
+
+                        val nowMillis = SystemClock.uptimeMillis()
+                        if (intent == GlobeGestureIntent.Undecided) {
+                            if (pressed.size == 1) {
+                                val change = pressed.first()
+                                totalDelta += change.position - change.previousPosition
                             }
 
-                            var intent = GlobeGestureIntent.Undecided
-                            var totalDelta = Offset.Zero
-                            var interactionActive = false
-                            var previousSpan: Float? = null
+                            intent = globeGestureIntent(
+                                current = intent,
+                                totalDeltaX = totalDelta.x,
+                                totalDeltaY = totalDelta.y,
+                                pointerCount = pressed.size,
+                                touchSlop = touchSlop,
+                            )
 
-                            while (true) {
-                                val pressed = event.changes.filter { it.pressed }
-                                if (pressed.isEmpty()) {
-                                    if (interactionActive) {
-                                        interaction = interaction.endInteraction(SystemClock.uptimeMillis())
-                                    }
-                                    break
+                            when (intent) {
+                                GlobeGestureIntent.GlobeDrag -> {
+                                    interaction = interaction
+                                        .beginInteraction(nowMillis)
+                                        .drag(
+                                            deltaX = -totalDelta.x,
+                                            deltaY = -totalDelta.y,
+                                            nowMillis = nowMillis,
+                                        )
+                                    interactionActive = true
+                                    pressed.forEach { it.consume() }
                                 }
 
-                                val nowMillis = SystemClock.uptimeMillis()
-                                if (intent == GlobeGestureIntent.Undecided) {
-                                    if (pressed.size == 1) {
-                                        val change = pressed.first()
-                                        totalDelta += change.position - change.previousPosition
-                                    }
+                                GlobeGestureIntent.GlobeTransform -> {
+                                    interaction = interaction.beginInteraction(nowMillis)
+                                    interactionActive = true
+                                    previousSpan = pointerSpan(pressed)
+                                    pressed.forEach { it.consume() }
+                                }
 
-                                    intent = globeGestureIntent(
-                                        current = intent,
-                                        totalDeltaX = totalDelta.x,
-                                        totalDeltaY = totalDelta.y,
-                                        pointerCount = pressed.size,
-                                        touchSlop = touchSlop,
+                                GlobeGestureIntent.Undecided,
+                                GlobeGestureIntent.ParentScroll,
+                                -> Unit
+                            }
+                        } else {
+                            when (intent) {
+                                GlobeGestureIntent.GlobeDrag -> {
+                                    val change = pressed.first()
+                                    val delta = change.position - change.previousPosition
+                                    interaction = interaction.drag(
+                                        deltaX = -delta.x,
+                                        deltaY = -delta.y,
+                                        nowMillis = nowMillis,
                                     )
-
-                                    when (intent) {
-                                        GlobeGestureIntent.GlobeDrag -> {
-                                            interaction = interaction
-                                                .beginInteraction(nowMillis)
-                                                .drag(
-                                                    deltaX = -totalDelta.x,
-                                                    deltaY = -totalDelta.y,
-                                                    nowMillis = nowMillis,
-                                                )
-                                            interactionActive = true
-                                            pressed.forEach { it.consume() }
-                                        }
-
-                                        GlobeGestureIntent.GlobeTransform -> {
-                                            interaction = interaction.beginInteraction(nowMillis)
-                                            interactionActive = true
-                                            previousSpan = pointerSpan(pressed)
-                                            pressed.forEach { it.consume() }
-                                        }
-
-                                        GlobeGestureIntent.Undecided,
-                                        GlobeGestureIntent.ParentScroll,
-                                        -> Unit
-                                    }
-                                } else {
-                                    when (intent) {
-                                        GlobeGestureIntent.GlobeDrag -> {
-                                            val change = pressed.first()
-                                            val delta = change.position - change.previousPosition
-                                            interaction = interaction.drag(
-                                                deltaX = -delta.x,
-                                                deltaY = -delta.y,
-                                                nowMillis = nowMillis,
-                                            )
-                                            pressed.forEach { it.consume() }
-                                        }
-
-                                        GlobeGestureIntent.GlobeTransform -> {
-                                            val currentSpan = pointerSpan(pressed)
-                                            val priorSpan = previousSpan
-                                            if (currentSpan != null && priorSpan != null && priorSpan > 0f) {
-                                                interaction = interaction.scale(
-                                                    scaleFactor = currentSpan / priorSpan,
-                                                    nowMillis = nowMillis,
-                                                )
-                                            }
-                                            previousSpan = currentSpan ?: previousSpan
-                                            pressed.forEach { it.consume() }
-                                        }
-
-                                        GlobeGestureIntent.Undecided,
-                                        GlobeGestureIntent.ParentScroll,
-                                        -> Unit
-                                    }
+                                    pressed.forEach { it.consume() }
                                 }
 
-                                event = awaitPointerEvent()
+                                GlobeGestureIntent.GlobeTransform -> {
+                                    val currentSpan = pointerSpan(pressed)
+                                    val priorSpan = previousSpan
+                                    if (currentSpan != null && priorSpan != null && priorSpan > 0f) {
+                                        interaction = interaction.scale(
+                                            scaleFactor = currentSpan / priorSpan,
+                                            nowMillis = nowMillis,
+                                        )
+                                    }
+                                    previousSpan = currentSpan ?: previousSpan
+                                    pressed.forEach { it.consume() }
+                                }
+
+                                GlobeGestureIntent.Undecided,
+                                GlobeGestureIntent.ParentScroll,
+                                -> Unit
                             }
                         }
+
+                        event = awaitPointerEvent()
                     }
-                },
+                }
+            }
+        },
+        engine = engine,
+        materialLoader = materialLoader,
+        cameraNode = cameraNode,
+        cameraManipulator = null,
+        onGestureListener = null,
+        autoCenterContent = false,
+        mainLightNode = null,
+        fillLightNode = null,
+    ) {
+        SphereNode(
+            radius = EARTH_RADIUS,
+            stacks = 48,
+            slices = 96,
+            materialInstance = earthMaterial,
         )
+        AuroraLayer(points = points, materialLoader = materialLoader)
+        AtmosphereLayer(materialLoader = materialLoader)
     }
 }
 
