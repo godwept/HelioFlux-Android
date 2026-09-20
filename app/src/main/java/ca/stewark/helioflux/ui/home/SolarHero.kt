@@ -38,7 +38,6 @@ internal fun solarHeroPhase(
     preloadComplete: Boolean,
 ): SolarHeroPhase = when {
     frames.isEmpty() -> SolarHeroPhase.InitialLoading
-    frames.size == 1 -> SolarHeroPhase.StaticPoster
     !preloadComplete -> SolarHeroPhase.PosterLoading
     frames.count { it.url in preloadedUrls } > 1 -> SolarHeroPhase.Playing
     else -> SolarHeroPhase.StaticPoster
@@ -48,14 +47,8 @@ internal fun selectSolarPoster(frames: List<SolarImage>): SolarImage? = frames.f
 
 internal fun frameIdentityFor(frames: List<SolarImage>): List<String> = frames.map { it.url }
 
-internal fun shouldShowSolarSpinner(
-    phase: SolarHeroPhase,
-    posterLoaded: Boolean,
-    playbackLayerReady: Boolean,
-): Boolean = phase == SolarHeroPhase.InitialLoading ||
-    phase == SolarHeroPhase.PosterLoading ||
-    (phase == SolarHeroPhase.Playing && !playbackLayerReady) ||
-    (phase == SolarHeroPhase.StaticPoster && !posterLoaded)
+internal fun shouldShowSolarSpinner(phase: SolarHeroPhase): Boolean =
+    phase == SolarHeroPhase.InitialLoading || phase == SolarHeroPhase.PosterLoading
 
 internal fun solarBlendProgress(elapsedMillis: Long, cadenceMillis: Long): Float =
     if (cadenceMillis <= 0L) 1f else (elapsedMillis.toFloat() / cadenceMillis).coerceIn(0f, 1f)
@@ -66,14 +59,22 @@ internal fun selectPlayableSolarFrames(frames: List<SolarImage>, preloadedUrls: 
     return preloaded.ifEmpty { listOf(frames.first()) }
 }
 
-private suspend fun preloadSolarFrames(context: android.content.Context, frames: List<SolarImage>): Set<String> = coroutineScope {
+private fun solarFrameRequest(context: android.content.Context, url: String): ImageRequest =
+    ImageRequest.Builder(context).data(url).size(512).build()
+
+private suspend fun preloadSolarFrames(
+    context: android.content.Context,
+    frames: List<SolarImage>,
+    onFrameReady: (String) -> Unit,
+) = coroutineScope {
     val imageLoader = SingletonImageLoader.get(context)
     frames.map { frame ->
         async {
-            val request = ImageRequest.Builder(context).data(frame.url).size(512).build()
-            frame.url.takeIf { imageLoader.execute(request) is SuccessResult }
+            if (imageLoader.execute(solarFrameRequest(context, frame.url)) is SuccessResult) {
+                onFrameReady(frame.url)
+            }
         }
-    }.awaitAll().filterNotNull().toSet()
+    }.awaitAll()
 }
 
 @Composable
@@ -89,13 +90,13 @@ fun SolarHero(
     }
     val context = LocalContext.current
     var preloadedUrls by remember(frames) { mutableStateOf<Set<String>>(emptySet()) }
-    var preloadComplete by remember(frames) { mutableStateOf(frames.size <= 1) }
+    var preloadComplete by remember(frames) { mutableStateOf(false) }
 
     LaunchedEffect(frames) {
         preloadedUrls = emptySet()
-        preloadComplete = frames.size <= 1
+        preloadComplete = false
         if (frames.isNotEmpty()) {
-            preloadedUrls = if (frames.size > 1) preloadSolarFrames(context, frames) else setOf(frames.first().url)
+            preloadSolarFrames(context, frames) { url -> preloadedUrls = preloadedUrls + url }
             preloadComplete = true
         }
     }
@@ -103,8 +104,6 @@ fun SolarHero(
     val phase = solarHeroPhase(frames, preloadedUrls, preloadComplete)
     val playableFrames = selectPlayableSolarFrames(frames, preloadedUrls)
     val frameIdentity = frameIdentityFor(frames)
-    var posterLoaded by remember(frameIdentity) { mutableStateOf(false) }
-    var playbackLayerReady by remember(frameIdentity) { mutableStateOf(false) }
     var frameIndex by remember(frameIdentity) { mutableIntStateOf(0) }
     var blend by remember(frameIdentity) { mutableFloatStateOf(0f) }
 
@@ -160,10 +159,9 @@ fun SolarHero(
             // transition can expose a blank frame while Coil attaches cached images.
             selectSolarPoster(frames)?.let {
                 AsyncImage(
-                    it.url,
+                    solarFrameRequest(context, it.url),
                     "AIA 304 Sun",
                     imageTransform.testTag("solar-poster"),
-                    onSuccess = { posterLoaded = true },
                 )
             }
 
@@ -171,19 +169,18 @@ fun SolarHero(
                 val current = frameIndex.coerceAtMost(playableFrames.lastIndex)
                 val next = (current + 1) % playableFrames.size
                 AsyncImage(
-                    playableFrames[current].url,
+                    solarFrameRequest(context, playableFrames[current].url),
                     "Animated AIA 304 Sun",
                     imageTransform.testTag("solar-frame-" + current),
-                    onSuccess = { playbackLayerReady = true },
                 )
                 AsyncImage(
-                    playableFrames[next].url,
+                    solarFrameRequest(context, playableFrames[next].url),
                     "Animated AIA 304 next frame",
                     imageTransform.graphicsLayer(alpha = blend),
                 )
             }
 
-            val showSpinner = shouldShowSolarSpinner(phase, posterLoaded, playbackLayerReady)
+            val showSpinner = shouldShowSolarSpinner(phase)
             if (showSpinner) {
                 CircularProgressIndicator(Modifier.testTag("solar-hero-loading"))
             }
