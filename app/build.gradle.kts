@@ -37,7 +37,7 @@ dependencies {
     implementation(libs.activity.compose)
     implementation(libs.room.runtime)
     implementation(libs.coil.compose)
-    implementation(libs.coil.network.okhttp)
+    implementation(libs.coil.network.okhttp)\n    implementation(libs.coil.gif)
     implementation(libs.vico.compose.m3)
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
