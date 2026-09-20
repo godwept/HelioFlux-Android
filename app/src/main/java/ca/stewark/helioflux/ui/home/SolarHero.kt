@@ -12,6 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -120,6 +121,7 @@ fun SolarHero(
             Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f)
+                .clipToBounds()
                 .background(Color.Black)
                 .testTag("solar-hero-stage")
                 .transformable(transform)
