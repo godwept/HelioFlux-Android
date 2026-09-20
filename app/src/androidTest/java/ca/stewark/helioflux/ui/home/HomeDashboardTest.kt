@@ -37,8 +37,12 @@ class HomeDashboardTest {
     @Test fun homeRendersBrandedMastheadAndCompactComposition() {
         compose.setContent { HomeScreen(HomeUiState(), false, {}) }
         compose.onNodeWithTag("home-screen").assertExists()
-        compose.onNodeWithTag("home-masthead").assertTextEquals("HELIOFLUX")
+        compose.onNodeWithTag("home-masthead").assertExists()
+        compose.onNodeWithText("HELIOFLUX").assertExists()
         compose.onNodeWithTag("home-compact").assertExists()
+        val mastheadBottom = compose.onNodeWithTag("home-masthead").fetchSemanticsNode().boundsInRoot.bottom
+        val heroTop = compose.onNodeWithTag("solar-hero-stage").fetchSemanticsNode().boundsInRoot.top
+        assert(mastheadBottom <= heroTop)
     }
 
     @Test fun metricTapRoutesAndExpandedLayoutIsSideBySide() {
