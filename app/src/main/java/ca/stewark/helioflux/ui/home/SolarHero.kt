@@ -103,6 +103,8 @@ fun SolarHero(
     val phase = solarHeroPhase(frames, preloadedUrls, preloadComplete)
     val playableFrames = selectPlayableSolarFrames(frames, preloadedUrls)
     val frameIdentity = frameIdentityFor(frames)
+    var posterLoaded by remember(frameIdentity) { mutableStateOf(false) }
+    var playbackLayerReady by remember(frameIdentity) { mutableStateOf(false) }
     var frameIndex by remember(frameIdentity) { mutableIntStateOf(0) }
     var blend by remember(frameIdentity) { mutableFloatStateOf(0f) }
 
