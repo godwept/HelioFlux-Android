@@ -43,6 +43,7 @@ val bzBtChartMeta =
 val densityChartMeta = ChartCardMeta("Solar Wind", "Density (p/cm³)")
 val speedChartMeta = ChartCardMeta("Solar Wind", "Speed (km/s)")
 val temperatureChartMeta = ChartCardMeta("Solar Wind", "Temperature (K)")
+val SpaceWeatherChartHeight = 240.dp
 
 fun goesChartMeta(primary: String?, secondary: String?) =
     ChartCardMeta(
@@ -149,7 +150,7 @@ fun SpaceWeatherLineCard(
             }
             HelioFluxLineChart(
                 series = series,
-                modifier = Modifier.fillMaxWidth().height(180.dp),
+                modifier = Modifier.fillMaxWidth().height(SpaceWeatherChartHeight),
                 referenceLines = referenceLines,
                 domain = domain,
             )

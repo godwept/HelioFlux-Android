@@ -191,7 +191,7 @@ fun HelioFluxLineChart(
 
     val guideline =
         rememberAxisGuidelineComponent(
-            fill = Fill(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.18f)),
+            fill = Fill(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f)),
         )
     val yFormatter =
         remember(yAxisFormat) {
@@ -242,7 +242,7 @@ fun HelioFluxLineChart(
                     style =
                         TextStyle(
                             color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 11.sp,
+                            fontSize = 10.sp,
                         ),
                 ),
             valueFormatter = markerFormatter,

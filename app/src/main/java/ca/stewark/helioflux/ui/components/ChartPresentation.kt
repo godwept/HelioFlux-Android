@@ -86,7 +86,7 @@ fun chartXStepMillis(domain: ChartDomain): Long {
         duration <= HourMillis -> 15L * 60L * 1_000L
         duration <= 3L * HourMillis -> 30L * 60L * 1_000L
         duration <= 12L * HourMillis -> 2L * HourMillis
-        duration <= 48L * HourMillis -> 6L * HourMillis
+        duration <= 48L * HourMillis -> 12L * HourMillis
         else -> 12L * HourMillis
     }
 }

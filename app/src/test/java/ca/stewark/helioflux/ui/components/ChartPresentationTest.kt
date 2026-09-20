@@ -53,7 +53,7 @@ class ChartPresentationTest {
         assertEquals(15L * 60L * 1_000L, chartXStepMillis(ChartDomain(0.0, hour.toDouble())))
         assertEquals(30L * 60L * 1_000L, chartXStepMillis(ChartDomain(0.0, (3L * hour).toDouble())))
         assertEquals(2L * hour, chartXStepMillis(ChartDomain(0.0, (12L * hour).toDouble())))
-        assertEquals(6L * hour, chartXStepMillis(ChartDomain(0.0, (48L * hour).toDouble())))
+        assertEquals(12L * hour, chartXStepMillis(ChartDomain(0.0, (48L * hour).toDouble())))
         assertEquals(12L * hour, chartXStepMillis(ChartDomain(0.0, (72L * hour).toDouble())))
     }
 

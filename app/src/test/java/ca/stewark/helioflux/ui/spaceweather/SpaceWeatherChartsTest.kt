@@ -2,6 +2,7 @@ package ca.stewark.helioflux.ui.spaceweather
 
 import ca.stewark.helioflux.core.data.repository.GoesMagnetometerSeries
 import ca.stewark.helioflux.core.model.*
+import androidx.compose.ui.unit.dp
 import ca.stewark.helioflux.ui.components.*
 import org.junit.Assert.*
 import org.junit.Test
@@ -18,6 +19,11 @@ class SpaceWeatherChartsTest {
             ),
             spaceWeatherChartDomain(Timeframe.TwoDays, now),
         )
+    }
+
+    @Test
+    fun spaceWeatherChartHeightMatchesApprovedPixelPresentation() {
+        assertEquals(240.dp, SpaceWeatherChartHeight)
     }
 
     @Test
