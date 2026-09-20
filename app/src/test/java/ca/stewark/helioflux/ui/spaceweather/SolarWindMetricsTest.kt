@@ -8,7 +8,7 @@ class SolarWindMetricsTest{
  @Test fun missingValuesStayNullForPlaceholderRendering(){assertEquals(SolarWindMetricValues(null,null,null),latestSolarWindMetrics(emptyList(),emptyList()))}
  @Test fun presentationHasStableOrderUnitsAndPlaceholders(){
   val p=solarWindMetricPresentation(SolarWindMetricValues(-4.25,455.0,7.25))
-  assertEquals(listOf("Bz","Speed","Density"),p.map{it.label})
+  assertEquals(listOf("Bz","SPD","DEN"),p.map{it.label})
   assertEquals(listOf("-4.3 nT","455 km/s","7.3 p/cm³"),p.map{it.value})
   assertEquals(listOf("—","—","—"),solarWindMetricPresentation(SolarWindMetricValues(null,null,null)).map{it.value})
  }
