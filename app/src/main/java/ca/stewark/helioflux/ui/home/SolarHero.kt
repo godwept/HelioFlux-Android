@@ -33,6 +33,8 @@ import kotlin.math.roundToInt
 internal fun solarHeroLoading(frames: List<SolarImage>, preloadComplete: Boolean) =
     frames.isEmpty() || !preloadComplete
 
+internal fun solarHeroCanAnimate(frames: List<SolarImage>) = frames.map { it.url }.distinct().size > 1
+
 internal fun solarBlendProgress(elapsedMillis: Long, cadenceMillis: Long): Float =
     if (cadenceMillis <= 0L) 1f else (elapsedMillis.toFloat() / cadenceMillis).coerceIn(0f, 1f)
 
@@ -83,7 +85,7 @@ fun SolarHero(
     LaunchedEffect(playing, loading, playableFrames) {
         frameIndex = 0
         blend = 0f
-        if (playing && !loading && playableFrames.size > 1) {
+        if (playing && !loading && solarHeroCanAnimate(playableFrames)) {
             while (isActive && playing) {
                 val started = withFrameNanos { it }
                 var elapsed = 0L
@@ -138,7 +140,7 @@ fun SolarHero(
                     "Animated AIA 304 Sun",
                     imageTransform.testTag("solar-frame-$current"),
                 )
-                if (playableFrames.size > 1) {
+                if (solarHeroCanAnimate(playableFrames)) {
                     AsyncImage(
                         solarFrameRequest(context, playableFrames[next].url),
                         "Animated AIA 304 next frame",
