@@ -1,5 +1,6 @@
 package ca.stewark.helioflux.data
 
+import ca.stewark.helioflux.RepositoryProvider
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -44,5 +45,9 @@ class AppRefreshCoordinatorTest {
 
         assertTrue("NOAA refresh should survive an isolated failure", "noaa" in completed)
         assertTrue("Chart refresh should survive an isolated failure", "charts" in completed)
+    }
+
+    @Test fun startupRefreshLeavesSolarHeroToItsCacheAwareViewModelRefresh() {
+        assertFalse(AppRefreshCoordinator.startupRefreshIncludesSolarHero)
     }
 }
