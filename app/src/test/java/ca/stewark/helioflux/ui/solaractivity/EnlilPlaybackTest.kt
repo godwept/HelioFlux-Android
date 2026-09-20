@@ -9,4 +9,9 @@ class EnlilPlaybackTest {
   assertEquals(listOf("one"),selectPlayableEnlilFrames(urls,emptySet()))
   assertEquals(listOf("one","three"),selectPlayableEnlilFrames(urls,setOf("one","three")))
  }
+ @Test fun blendProgressRunsContinuouslyAcrossFrameInterval(){
+  assertEquals(0f,enlilBlendProgress(0L,200L),0f)
+  assertEquals(0.5f,enlilBlendProgress(100L,200L),0f)
+  assertEquals(1f,enlilBlendProgress(200L,200L),0f)
+ }
 }
