@@ -10,7 +10,7 @@ data class SpaceWeatherUiState(
  val goesMagnetometer:RepositoryState<GoesMagnetometerSeries> = RepositoryState.Loading,
  val hemisphericPower:RepositoryState<List<HemisphericPowerSample>> = RepositoryState.Loading,
  val aurora:RepositoryState<AuroraSnapshot> = RepositoryState.Loading,
- val timeframe:Timeframe = Timeframe.ThreeHours,
+ val timeframe:Timeframe = Timeframe.TwelveHours,
 ){
  val currentBz get()=magnetic.dataOrNull()?.lastOrNull{it.bz!=null}?.bz
  val currentSpeed get()=plasma.dataOrNull()?.lastOrNull{it.speed!=null}?.speed
@@ -23,7 +23,7 @@ class SpaceWeatherViewModel private constructor(
  magnetic:Flow<RepositoryState<List<SolarWindMag>>>,plasma:Flow<RepositoryState<List<SolarWindPlasma>>>,kp:Flow<RepositoryState<List<KpSample>>>,
  goes:Flow<RepositoryState<GoesMagnetometerSeries>>,hemisphericPower:Flow<RepositoryState<List<HemisphericPowerSample>>>,aurora:Flow<RepositoryState<AuroraSnapshot>>,scope:CoroutineScope,
 ){
- private val selectedTimeframe=MutableStateFlow(Timeframe.ThreeHours)
+ private val selectedTimeframe=MutableStateFlow(Timeframe.TwelveHours)
  val state:StateFlow<SpaceWeatherUiState> = combine(magnetic,plasma,kp,goes,hemisphericPower,aurora,selectedTimeframe){v->
   @Suppress("UNCHECKED_CAST") SpaceWeatherUiState(v[0] as RepositoryState<List<SolarWindMag>>,v[1] as RepositoryState<List<SolarWindPlasma>>,v[2] as RepositoryState<List<KpSample>>,v[3] as RepositoryState<GoesMagnetometerSeries>,v[4] as RepositoryState<List<HemisphericPowerSample>>,v[5] as RepositoryState<AuroraSnapshot>,v[6] as Timeframe)
  }.stateIn(scope,SharingStarted.Eagerly,SpaceWeatherUiState())
