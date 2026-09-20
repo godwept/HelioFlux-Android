@@ -47,14 +47,15 @@ class HomeDashboardTest {
         compose.runOnIdle { assert(target == HelioFluxDestination.SpaceWeather) }
     }
 
-    @Test fun allConditionMetricsRemainInteractive() {
+    @Test fun compactConditionPillsKeepOnlySpaceWeatherMetrics() {
         var target: HelioFluxDestination? = null
         compose.setContent { HomeScreen(HomeUiState(), false, { target = it }) }
+        compose.onNodeWithTag("condition-metrics").assertExists()
         compose.onNodeWithTag("metric-kp").assertExists().performClick()
         compose.runOnIdle { assert(target == HelioFluxDestination.SpaceWeather) }
         compose.onNodeWithTag("metric-bz").assertExists()
         compose.onNodeWithTag("metric-wind").assertExists()
-        compose.onNodeWithTag("metric-flare").assertExists()
+        compose.onNodeWithTag("metric-flare").assertDoesNotExist()
     }
 
     @Test fun forecastsExpandAndShowIssueText() {
@@ -76,6 +77,6 @@ class HomeDashboardTest {
         compose.onNodeWithTag("solar-hero").assertExists()
         compose.onNodeWithTag("current-conditions").assertExists()
         compose.onNodeWithTag("forecast-section").assertExists()
-        compose.onAllNodesWithText("—").assertCountEquals(4)
+        compose.onAllNodesWithText("—").assertCountEquals(3)
     }
 }

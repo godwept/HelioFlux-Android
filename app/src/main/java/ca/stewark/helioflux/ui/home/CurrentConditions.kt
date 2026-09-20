@@ -1,7 +1,9 @@
 package ca.stewark.helioflux.ui.home
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -10,7 +12,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ca.stewark.helioflux.ui.navigation.HelioFluxDestination
-import ca.stewark.helioflux.ui.theme.AlertRed
 import ca.stewark.helioflux.ui.theme.DataCyan
 import ca.stewark.helioflux.ui.theme.FreshGreen
 import ca.stewark.helioflux.ui.theme.SolarOrange
@@ -26,24 +27,21 @@ fun CurrentConditions(
 ) {
     Column(
         modifier.testTag("current-conditions"),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text("Current Conditions", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            Modifier.fillMaxWidth().testTag("condition-metrics"),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
             Metric("Kp", conditions.kp?.oneDecimal() ?: "—", SolarOrange, Modifier.weight(1f)) {
                 onDestination(HelioFluxDestination.SpaceWeather)
             }
             Metric("Bz", conditions.bz?.let { it.oneDecimal() + " nT" } ?: "—", DataCyan, Modifier.weight(1f)) {
                 onDestination(HelioFluxDestination.SpaceWeather)
             }
-        }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Metric("Wind", conditions.speed?.let { it.oneDecimal() + " km/s" } ?: "—", FreshGreen, Modifier.weight(1f)) {
                 onDestination(HelioFluxDestination.SpaceWeather)
-            }
-            val flare = conditions.flare
-            Metric("Flare", flare?.let { "M " + it.m + "% · X " + it.x + "%" } ?: "—", AlertRed, Modifier.weight(1f)) {
-                onDestination(HelioFluxDestination.SolarActivity)
             }
         }
         val kp = conditions.kp
@@ -68,11 +66,15 @@ private fun Metric(
     Surface(
         modifier.clickable(onClick = onClick).testTag("metric-" + label.lowercase()),
         color = SpaceSurface,
-        shape = MaterialTheme.shapes.medium,
+        shape = RoundedCornerShape(50),
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.32f)),
     ) {
-        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+        Row(
+            Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
             Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = accent)
-            Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(value, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
     }
 }
