@@ -58,17 +58,26 @@ class HomeDashboardTest {
         compose.onNodeWithTag("metric-flare").assertDoesNotExist()
     }
 
-    @Test fun forecastsExpandAndShowIssueText() {
+    @Test fun shortForecastUsesAvailableCardRoomWithoutExpandAffordance() {
         val section = ForecastSection("solar", "Solar Activity", "Summary", "Forecast detail", "Issued now")
         val state = HomeUiState(forecast = RepositoryState.Available(listOf(section), source, DataFreshness.Fresh))
         compose.setContent { HomeScreen(state, false, {}) }
         compose.onNodeWithTag("forecast-section").assertExists()
         compose.onNodeWithTag("forecast-track").assertExists()
         compose.onNodeWithText("Summary").assertExists()
-        compose.onNodeWithText("Forecast detail").assertDoesNotExist()
-        compose.onNodeWithTag("forecast-solar").performClick()
         compose.onNodeWithText("Forecast detail").assertExists()
+        compose.onNodeWithText("TAP FOR FULL FORECAST").assertDoesNotExist()
         compose.onNodeWithText("Issued now").assertExists()
+    }
+
+    @Test fun longForecastOffersExpansion() {
+        val longForecast = buildString { repeat(30) { append("Extended solar activity forecast. ") } }
+        val section = ForecastSection("solar", "Solar Activity", "Summary", longForecast, "Issued now")
+        val state = HomeUiState(forecast = RepositoryState.Available(listOf(section), source, DataFreshness.Fresh))
+        compose.setContent { HomeScreen(state, false, {}) }
+        compose.onNodeWithText("TAP FOR FULL FORECAST").assertExists()
+        compose.onNodeWithTag("forecast-solar").performClick()
+        compose.onNodeWithText("TAP TO COLLAPSE").assertExists()
     }
 
     @Test fun emptyForecastAndMissingConditionsKeepHomeStructure() {

@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -63,11 +64,20 @@ private fun Metric(
     modifier: Modifier,
     onClick: () -> Unit,
 ) {
+    val shape = RoundedCornerShape(50)
     Surface(
-        modifier.clickable(onClick = onClick).testTag("metric-" + label.lowercase()),
+        modifier
+            .shadow(
+                elevation = 5.dp,
+                shape = shape,
+                ambientColor = accent.copy(alpha = 0.28f),
+                spotColor = accent.copy(alpha = 0.38f),
+            )
+            .clickable(onClick = onClick)
+            .testTag("metric-" + label.lowercase()),
         color = SpaceSurface,
-        shape = RoundedCornerShape(50),
-        border = BorderStroke(1.dp, accent.copy(alpha = 0.32f)),
+        shape = shape,
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.52f)),
     ) {
         Row(
             Modifier.padding(horizontal = 10.dp, vertical = 6.dp),

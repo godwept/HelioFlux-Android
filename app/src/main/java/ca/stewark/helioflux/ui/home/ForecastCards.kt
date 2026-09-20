@@ -21,6 +21,18 @@ import ca.stewark.helioflux.ui.theme.SolarOrange
 import ca.stewark.helioflux.ui.theme.SpaceMuted
 import ca.stewark.helioflux.ui.theme.SpaceSurface
 
+internal const val FORECAST_COLLAPSED_MAX_CHARS = 220
+internal const val FORECAST_CARD_MAX_HEIGHT_DP = 260
+
+internal fun forecastNeedsExpansion(section: ForecastSection): Boolean =
+    section.forecast.trim().length > FORECAST_COLLAPSED_MAX_CHARS
+
+internal fun forecastCollapsedText(section: ForecastSection): String {
+    val text = section.forecast.trim()
+    if (!forecastNeedsExpansion(section)) return text
+    return text.take(FORECAST_COLLAPSED_MAX_CHARS).trimEnd() + "…"
+}
+
 @Composable
 fun ForecastCards(
     sections: List<ForecastSection>,
@@ -45,17 +57,24 @@ fun ForecastCards(
 
 @Composable
 private fun ForecastCard(section: ForecastSection, expandedLayout: Boolean) {
+    val expandable = forecastNeedsExpansion(section)
     var expanded by rememberSaveable(section.key) { mutableStateOf(false) }
     val accent = forecastAccent(section.key)
+    val interaction = if (expandable) Modifier.clickable { expanded = !expanded } else Modifier
+
     Card(
         Modifier
             .width(if (expandedLayout) 320.dp else 280.dp)
-            .clickable { expanded = !expanded }
+            .heightIn(min = 190.dp, max = FORECAST_CARD_MAX_HEIGHT_DP.dp)
+            .then(interaction)
             .testTag("forecast-" + section.key),
         colors = CardDefaults.cardColors(containerColor = SpaceSurface),
         border = BorderStroke(1.dp, accent.copy(alpha = 0.45f)),
     ) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+        Column(
+            Modifier.fillMaxHeight().padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(7.dp),
+        ) {
             Text(
                 section.title.uppercase(),
                 style = MaterialTheme.typography.labelMedium,
@@ -63,13 +82,19 @@ private fun ForecastCard(section: ForecastSection, expandedLayout: Boolean) {
                 fontWeight = FontWeight.SemiBold,
             )
             Text(section.summary, style = MaterialTheme.typography.bodyMedium)
-            if (expanded) Text(section.forecast, style = MaterialTheme.typography.bodyMedium)
-            section.issueTime?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = SpaceMuted) }
             Text(
-                if (expanded) "TAP TO COLLAPSE" else "TAP FOR FORECAST",
-                style = MaterialTheme.typography.labelSmall,
-                color = SpaceMuted,
+                if (expanded) section.forecast else forecastCollapsedText(section),
+                style = MaterialTheme.typography.bodyMedium,
             )
+            Spacer(Modifier.weight(1f))
+            section.issueTime?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = SpaceMuted) }
+            if (expandable) {
+                Text(
+                    if (expanded) "TAP TO COLLAPSE" else "TAP FOR FULL FORECAST",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = SpaceMuted,
+                )
+            }
         }
     }
 }
