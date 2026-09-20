@@ -33,7 +33,7 @@ class SolarHeroPlaybackTest {
         assertEquals(listOf(frames[0], frames[2]), selectPlayableSolarFrames(frames, setOf("one", "three")))
     }
 
-    @Test fun spinnerStaysVisibleAcrossPosterToPlaybackTransition() {
+    // Regression: cached playback layers can still take a composition frame to become visible.\n    @Test fun spinnerStaysVisibleAcrossPosterToPlaybackTransition() {
         assertEquals(true, shouldShowSolarSpinner(SolarHeroPhase.PosterLoading, true, false))
         assertEquals(true, shouldShowSolarSpinner(SolarHeroPhase.Playing, true, false))
         assertEquals(false, shouldShowSolarSpinner(SolarHeroPhase.Playing, true, true))
