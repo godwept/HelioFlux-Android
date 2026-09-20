@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -38,7 +39,7 @@ fun solarWindMetricPresentation(values:SolarWindMetricValues)=listOf(
   shape=shape,
   border=BorderStroke(1.dp,item.accent.copy(alpha=.52f)),
  ){
-  Row(Modifier.padding(horizontal=10.dp,vertical=6.dp),horizontalArrangement=Arrangement.spacedBy(5.dp)){
+  Row(Modifier.fillMaxWidth().padding(horizontal=10.dp,vertical=6.dp),horizontalArrangement=Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally)){
    Text(item.label.uppercase(),style=MaterialTheme.typography.labelSmall,color=item.accent)
    Text(item.value,style=MaterialTheme.typography.labelMedium,fontWeight=FontWeight.SemiBold,maxLines=1)
   }
