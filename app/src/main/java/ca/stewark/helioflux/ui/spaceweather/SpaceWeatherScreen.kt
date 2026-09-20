@@ -1,4 +1,5 @@
 package ca.stewark.helioflux.ui.spaceweather
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,6 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import ca.stewark.helioflux.core.data.repository.*
@@ -44,7 +46,7 @@ fun spaceWeatherBlocks(expanded:Boolean):List<List<SpaceWeatherBlock>>{
 }
 @Composable private fun SpaceWeatherBlockContent(block:SpaceWeatherBlock,state:SpaceWeatherUiState,magnetic:List<SolarWindMag>,plasma:List<SolarWindPlasma>,kp:List<KpSample>,goes:GoesMagnetometerSeries?,hp:List<HemisphericPowerSample>,aurora:AuroraGlobePresentation,onTimeframe:(Timeframe)->Unit,nowMillis:Long,onGlobeTouchActiveChanged:(Boolean)->Unit){
  when(block){
-  SpaceWeatherBlock.AuroraHero->Card(Modifier.fillMaxWidth().height(340.dp).clip(RoundedCornerShape(16.dp)).testTag("aurora-globe-slot")){Box(Modifier.fillMaxSize()){AuroraGlobe(modifier=Modifier.fillMaxSize(),points=aurora.points,onTouchActiveChanged = onGlobeTouchActiveChanged);aurora.freshness?.let{Box(Modifier.align(Alignment.TopEnd).padding(10.dp)){FreshnessIndicator(it)}}}}
+  SpaceWeatherBlock.AuroraHero->Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(16.dp)).background(Color.Black).testTag("aurora-globe-slot")){AuroraGlobe(modifier=Modifier.fillMaxSize(),points=aurora.points,onTouchActiveChanged = onGlobeTouchActiveChanged);aurora.freshness?.let{Box(Modifier.align(Alignment.TopEnd).padding(10.dp)){FreshnessIndicator(it)}}}
   SpaceWeatherBlock.SolarWindHeading->SectionHeading("Solar Wind")
   SpaceWeatherBlock.Metrics->SolarWindMetrics(latestSolarWindMetrics(magnetic,plasma))
   SpaceWeatherBlock.Timeframe->TimeframeSelector(state.timeframe,onTimeframe)

@@ -16,7 +16,7 @@ import io.github.sceneview.texture.ImageTexture
 
 internal const val EARTH_TEXTURE_ASSET = "textures/earth_night.jpg"
 internal const val EARTH_RADIUS = 1.0f
-private const val GLOBE_CAMERA_DISTANCE = 4.25f
+private const val GLOBE_CAMERA_DISTANCE = 3.0f
 
 @Composable
 fun EarthScene(
