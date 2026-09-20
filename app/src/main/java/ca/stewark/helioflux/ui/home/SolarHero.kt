@@ -103,6 +103,7 @@ fun SolarHero(
     val phase = solarHeroPhase(frames, preloadedUrls, preloadComplete)
     val playableFrames = selectPlayableSolarFrames(frames, preloadedUrls)
     val frameIdentity = frameIdentityFor(frames)
+    // Readiness is visual, not just cache/preload completion.
     var posterLoaded by remember(frameIdentity) { mutableStateOf(false) }
     var playbackLayerReady by remember(frameIdentity) { mutableStateOf(false) }
     var frameIndex by remember(frameIdentity) { mutableIntStateOf(0) }
