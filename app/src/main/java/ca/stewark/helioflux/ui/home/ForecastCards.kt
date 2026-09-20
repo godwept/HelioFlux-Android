@@ -76,15 +76,16 @@ private fun ForecastCard(section: ForecastSection, expandedLayout: Boolean) {
                 fontWeight = FontWeight.SemiBold,
             )
             Text(section.summary, style = MaterialTheme.typography.bodyMedium)
-            Text(
-                section.forecast,
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = if (expanded) Int.MAX_VALUE else FORECAST_COLLAPSED_MAX_LINES,
-                onTextLayout = { result ->
-                    if (!expanded) forecastOverflows = result.hasVisualOverflow
-                },
-            )
-            if (!expanded) Spacer(Modifier.weight(1f))
+            Box(if (expanded) Modifier else Modifier.weight(1f)) {
+                Text(
+                    section.forecast,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = if (expanded) Int.MAX_VALUE else FORECAST_COLLAPSED_MAX_LINES,
+                    onTextLayout = { result ->
+                        if (!expanded) forecastOverflows = result.hasVisualOverflow
+                    },
+                )
+            }
             section.issueTime?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = SpaceMuted) }
             if (forecastOverflows || expanded) {
                 Text(
