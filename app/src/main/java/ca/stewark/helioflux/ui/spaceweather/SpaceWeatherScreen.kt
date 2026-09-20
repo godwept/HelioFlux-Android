@@ -4,6 +4,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,17 +31,20 @@ fun spaceWeatherBlocks(expanded:Boolean):List<List<SpaceWeatherBlock>>{
 }
 
 @Composable fun SpaceWeatherScreen(state:SpaceWeatherUiState,expanded:Boolean,onTimeframe:(Timeframe)->Unit,modifier:Modifier=Modifier,nowMillis:Long=System.currentTimeMillis()){
+ var globeTouchActive by remember { mutableStateOf(false) }
  val magnetic=state.magnetic.screenData().orEmpty();val plasma=state.plasma.screenData().orEmpty();val kp=state.kp.screenData().orEmpty();val goes=state.goesMagnetometer.screenData();val hp=state.hemisphericPower.screenData().orEmpty();val aurora=auroraGlobePresentation(state.aurora)
- LazyColumn(modifier.testTag("space-weather-screen").padding(horizontal=16.dp,vertical=12.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
+ // SceneView's AndroidView is cancelled if this LazyColumn consumes MOVE events mid-gesture.
+ // Disable list scrolling for the lifetime of a globe touch stream so orbit/pinch remains intact.
+ LazyColumn(modifier.testTag("space-weather-screen").padding(horizontal=16.dp,vertical=12.dp),userScrollEnabled = !globeTouchActive,verticalArrangement=Arrangement.spacedBy(14.dp)){
   spaceWeatherBlocks(expanded).forEach{row->item{
-   if(row.size==1)Box(Modifier.fillMaxWidth().testTag(if(expanded)"space-weather-expanded" else "space-weather-compact")){SpaceWeatherBlockContent(row.first(),state,magnetic,plasma,kp,goes,hp,aurora,onTimeframe,nowMillis)}
-   else Row(Modifier.fillMaxWidth().testTag("space-weather-expanded"),horizontalArrangement=Arrangement.spacedBy(12.dp)){row.forEach{block->Box(Modifier.weight(1f)){SpaceWeatherBlockContent(block,state,magnetic,plasma,kp,goes,hp,aurora,onTimeframe,nowMillis)}}}
+   if(row.size==1)Box(Modifier.fillMaxWidth().testTag(if(expanded)"space-weather-expanded" else "space-weather-compact")){SpaceWeatherBlockContent(row.first(),state,magnetic,plasma,kp,goes,hp,aurora,onTimeframe,nowMillis){ globeTouchActive = it }}
+   else Row(Modifier.fillMaxWidth().testTag("space-weather-expanded"),horizontalArrangement=Arrangement.spacedBy(12.dp)){row.forEach{block->Box(Modifier.weight(1f)){SpaceWeatherBlockContent(block,state,magnetic,plasma,kp,goes,hp,aurora,onTimeframe,nowMillis){ globeTouchActive = it }}}}
   }}
  }
 }
-@Composable private fun SpaceWeatherBlockContent(block:SpaceWeatherBlock,state:SpaceWeatherUiState,magnetic:List<SolarWindMag>,plasma:List<SolarWindPlasma>,kp:List<KpSample>,goes:GoesMagnetometerSeries?,hp:List<HemisphericPowerSample>,aurora:AuroraGlobePresentation,onTimeframe:(Timeframe)->Unit,nowMillis:Long){
+@Composable private fun SpaceWeatherBlockContent(block:SpaceWeatherBlock,state:SpaceWeatherUiState,magnetic:List<SolarWindMag>,plasma:List<SolarWindPlasma>,kp:List<KpSample>,goes:GoesMagnetometerSeries?,hp:List<HemisphericPowerSample>,aurora:AuroraGlobePresentation,onTimeframe:(Timeframe)->Unit,nowMillis:Long,onGlobeTouchActiveChanged:(Boolean)->Unit){
  when(block){
-  SpaceWeatherBlock.AuroraHero->Card(Modifier.fillMaxWidth().height(340.dp).clip(RoundedCornerShape(16.dp)).testTag("aurora-globe-slot")){Box(Modifier.fillMaxSize()){AuroraGlobe(modifier=Modifier.fillMaxSize(),points=aurora.points);aurora.freshness?.let{Box(Modifier.align(Alignment.TopEnd).padding(10.dp)){FreshnessIndicator(it)}}}}
+  SpaceWeatherBlock.AuroraHero->Card(Modifier.fillMaxWidth().height(340.dp).clip(RoundedCornerShape(16.dp)).testTag("aurora-globe-slot")){Box(Modifier.fillMaxSize()){AuroraGlobe(modifier=Modifier.fillMaxSize(),points=aurora.points,onTouchActiveChanged = onGlobeTouchActiveChanged);aurora.freshness?.let{Box(Modifier.align(Alignment.TopEnd).padding(10.dp)){FreshnessIndicator(it)}}}}
   SpaceWeatherBlock.SolarWindHeading->SectionHeading("Solar Wind")
   SpaceWeatherBlock.Metrics->SolarWindMetrics(latestSolarWindMetrics(magnetic,plasma))
   SpaceWeatherBlock.Timeframe->TimeframeSelector(state.timeframe,onTimeframe)

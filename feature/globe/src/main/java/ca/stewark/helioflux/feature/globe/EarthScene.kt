@@ -22,6 +22,7 @@ private const val GLOBE_CAMERA_DISTANCE = 4.25f
 fun EarthScene(
     points: List<AuroraPoint> = emptyList(),
     modifier: Modifier = Modifier,
+    onTouchActiveChanged: (Boolean) -> Unit = {},
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val engine = rememberEngine()
@@ -53,10 +54,16 @@ fun EarthScene(
         fillLightNode = null,
         onTouchEvent = { event, _ ->
             when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> autoRotation.onTouchDown()
+                MotionEvent.ACTION_DOWN -> {
+                    autoRotation.onTouchDown()
+                    onTouchActiveChanged(true)
+                }
                 MotionEvent.ACTION_UP,
                 MotionEvent.ACTION_CANCEL,
-                -> autoRotation.onTouchEnd(SystemClock.uptimeMillis())
+                -> {
+                    autoRotation.onTouchEnd(SystemClock.uptimeMillis())
+                    onTouchActiveChanged(false)
+                }
             }
             // Returning false keeps SceneView's native orbit/pinch camera detector active.
             false

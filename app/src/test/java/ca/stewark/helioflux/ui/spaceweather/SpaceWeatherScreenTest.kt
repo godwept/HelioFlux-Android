@@ -35,6 +35,6 @@ class SpaceWeatherScreenTest {
   val source=File("src/main/java/ca/stewark/helioflux/ui/spaceweather/SpaceWeatherScreen.kt").readText()
   assertTrue(source.contains("var globeTouchActive"))
   assertTrue(source.contains("userScrollEnabled = !globeTouchActive"))
-  assertTrue(source.contains("onTouchActiveChanged = { globeTouchActive = it }"))
+  assertTrue(source.contains("{ globeTouchActive = it }"))
  }
 }

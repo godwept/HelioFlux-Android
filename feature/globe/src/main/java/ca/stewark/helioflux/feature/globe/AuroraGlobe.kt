@@ -12,6 +12,7 @@ fun AuroraGlobe(
     modifier: Modifier = Modifier,
     points: List<AuroraPoint> = emptyList(),
     onRendererUnavailable: () -> Unit = {},
+    onTouchActiveChanged: (Boolean) -> Unit = {},
 ) {
     val context = LocalContext.current
     val textureAvailable = remember(context) {
@@ -25,5 +26,9 @@ fun AuroraGlobe(
         return
     }
 
-    EarthScene(points = points, modifier = modifier)
+    EarthScene(
+        points = points,
+        modifier = modifier,
+        onTouchActiveChanged = onTouchActiveChanged,
+    )
 }
