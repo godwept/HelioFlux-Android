@@ -22,6 +22,10 @@ class AdaptiveNavigationTest {
         }
 
         composeRule.onNodeWithTag("helioflux-bottom-navigation").assertIsDisplayed()
+        composeRule.onNodeWithTag("nav-item-home").assertIsDisplayed()
+        composeRule.onNodeWithTag("nav-item-space-weather").assertIsDisplayed()
+        composeRule.onNodeWithTag("nav-item-solar-activity").assertIsDisplayed()
+        composeRule.onNodeWithTag("helioflux-bottom-indicator").assertIsDisplayed()
         composeRule.onNodeWithTag("helioflux-navigation-rail").assertDoesNotExist()
     }
 
@@ -32,6 +36,10 @@ class AdaptiveNavigationTest {
         }
 
         composeRule.onNodeWithTag("helioflux-navigation-rail").assertIsDisplayed()
+        composeRule.onNodeWithTag("nav-item-home").assertIsDisplayed()
+        composeRule.onNodeWithTag("nav-item-space-weather").assertIsDisplayed()
+        composeRule.onNodeWithTag("nav-item-solar-activity").assertIsDisplayed()
+        composeRule.onNodeWithTag("helioflux-rail-indicator").assertIsDisplayed()
         composeRule.onNodeWithTag("helioflux-bottom-navigation").assertDoesNotExist()
     }
 
