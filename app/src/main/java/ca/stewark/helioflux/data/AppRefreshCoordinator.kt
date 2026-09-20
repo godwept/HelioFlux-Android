@@ -20,6 +20,8 @@ class AppRefreshCoordinator(
     }
 
     companion object {
+        internal const val startupRefreshIncludesSolarHero = false
+
         fun from(repositories: RepositoryProvider): AppRefreshCoordinator =
             AppRefreshCoordinator(
                 listOf(
@@ -36,7 +38,6 @@ class AppRefreshCoordinator(
                     repositories.solarActivity::refreshCmes,
                     repositories.solarActivity::refreshAceEpam,
                     repositories.solarImagery::refreshAll,
-                    repositories.solarHero::refresh,
                 )
             )
     }
