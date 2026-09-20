@@ -21,8 +21,8 @@ data class SolarWindMetricPresentation(val label:String,val value:String,val tag
 fun latestSolarWindMetrics(magnetic:List<SolarWindMag>,plasma:List<SolarWindPlasma>)=SolarWindMetricValues(magnetic.lastOrNull{it.bz!=null}?.bz,plasma.lastOrNull{it.speed!=null}?.speed,plasma.lastOrNull{it.density!=null}?.density)
 fun solarWindMetricPresentation(values:SolarWindMetricValues)=listOf(
  SolarWindMetricPresentation("Bz",values.bz?.let{String.format(Locale.US,"%.1f nT",it)}?:"—","metric-bz",DataCyan),
- SolarWindMetricPresentation("Speed",values.speed?.let{String.format(Locale.US,"%.0f km/s",it)}?:"—","metric-speed",FreshGreen),
- SolarWindMetricPresentation("Density",values.density?.let{String.format(Locale.US,"%.1f p/cm³",it)}?:"—","metric-density",SolarOrange),
+ SolarWindMetricPresentation("SPD",values.speed?.let{String.format(Locale.US,"%.0f km/s",it)}?:"—","metric-speed",FreshGreen),
+ SolarWindMetricPresentation("DEN",values.density?.let{String.format(Locale.US,"%.1f p/cm³",it)}?:"—","metric-density",SolarOrange),
 )
 
 @Composable fun SolarWindMetrics(values:SolarWindMetricValues,modifier:Modifier=Modifier){
