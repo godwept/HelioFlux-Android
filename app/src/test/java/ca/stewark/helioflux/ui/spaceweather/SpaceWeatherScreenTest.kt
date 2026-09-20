@@ -4,6 +4,7 @@ import ca.stewark.helioflux.core.data.repository.RepositoryState
 import ca.stewark.helioflux.core.model.*
 import java.io.File
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -36,5 +37,14 @@ class SpaceWeatherScreenTest {
   assertTrue(source.contains("var globeTouchActive"))
   assertTrue(source.contains("userScrollEnabled = !globeTouchActive"))
   assertTrue(source.contains("{ globeTouchActive = it }"))
+ }
+
+ @Test fun auroraHeroUsesBlackSquareStage(){
+  val source=File("src/main/java/ca/stewark/helioflux/ui/spaceweather/SpaceWeatherScreen.kt").readText()
+  val hero=source.substringAfter("SpaceWeatherBlock.AuroraHero->").substringBefore("SpaceWeatherBlock.SolarWindHeading->")
+  assertTrue(hero.contains(".fillMaxWidth().aspectRatio(1f)"))
+  assertTrue(hero.contains(".background(Color.Black)"))
+  assertTrue(hero.contains(".clip(RoundedCornerShape(16.dp))"))
+  assertFalse(hero.contains(".height(340.dp)"))
  }
 }

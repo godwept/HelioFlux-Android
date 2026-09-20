@@ -32,4 +32,9 @@ class EarthSceneControlWiringTest {
         assertTrue(source.contains("MotionEvent.ACTION_CANCEL"))
         assertTrue(source.contains("onTouchActiveChanged(false)"))
     }
+
+    @Test
+    fun initialCameraFramingMaximizesGlobeInHero() {
+        assertTrue(source.contains("GLOBE_CAMERA_DISTANCE = 3.0f"))
+    }
 }
