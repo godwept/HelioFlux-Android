@@ -25,11 +25,13 @@ class HomeDashboardTest {
         compose.onNodeWithText("5.0").assertExists()
     }
 
-    @Test fun loadingHeroExposesLoadingIndicatorAndBlackStage() {
+    @Test fun loadingHeroShowsOnlySpinnerAndLoadingText() {
         compose.setContent { HomeScreen(HomeUiState(frames = RepositoryState.Loading), false, {}) }
         compose.onNodeWithTag("solar-hero").assertExists()
         compose.onNodeWithTag("solar-hero-stage").assertExists()
         compose.onNodeWithTag("solar-hero-loading").assertExists()
+        compose.onNodeWithText("Loading...").assertIsDisplayed()
+        compose.onAllNodes(hasTestTag("solar-frame-0"), useUnmergedTree = true).assertCountEquals(0)
     }
 
     @Test fun homeRendersBrandedMastheadAndCompactComposition() {
