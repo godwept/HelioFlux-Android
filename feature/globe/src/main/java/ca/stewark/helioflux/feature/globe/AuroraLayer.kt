@@ -6,7 +6,6 @@ import androidx.compose.runtime.remember
 import ca.stewark.helioflux.core.model.AuroraPoint
 import io.github.sceneview.SceneScope
 import io.github.sceneview.loaders.MaterialLoader
-import io.github.sceneview.safeDestroyTexture
 import io.github.sceneview.texture.ImageTexture
 
 internal const val AURORA_RADIUS = 1.012f
@@ -22,9 +21,8 @@ internal fun SceneScope.AuroraLayer(
     val texture = remember(engine, overlay) {
         ImageTexture.Builder().bitmap(overlay).build(engine)
     }
-    DisposableEffect(engine, texture, overlay) {
+    DisposableEffect(overlay) {
         onDispose {
-            engine.safeDestroyTexture(texture)
             overlay.recycle()
         }
     }
