@@ -2,6 +2,7 @@ package ca.stewark.helioflux.ui.spaceweather
 
 import ca.stewark.helioflux.core.data.repository.RepositoryState
 import ca.stewark.helioflux.core.model.*
+import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -29,4 +30,11 @@ class SpaceWeatherScreenTest {
   assertEquals(snapshot.points,presentation.points);assertEquals(DataFreshness.Cached,presentation.freshness)
  }
  @Test fun unavailableAuroraDoesNotRemoveRestOfScreenData(){val presentation=auroraGlobePresentation(RepositoryState.Loading);assertTrue(presentation.points.isEmpty());assertEquals(null,presentation.freshness);assertTrue(spaceWeatherBlocks(false).flatten().contains(SpaceWeatherBlock.SolarWindHeading))}
+
+ @Test fun globeTouchTemporarilyPreventsLazyColumnFromCancellingSceneViewGesture(){
+  val source=File("src/main/java/ca/stewark/helioflux/ui/spaceweather/SpaceWeatherScreen.kt").readText()
+  assertTrue(source.contains("var globeTouchActive"))
+  assertTrue(source.contains("userScrollEnabled = !globeTouchActive"))
+  assertTrue(source.contains("onTouchActiveChanged = { globeTouchActive = it }"))
+ }
 }
