@@ -148,7 +148,14 @@ fun SolarHero(
             }
 
             if (loading) {
-                CircularProgressIndicator(Modifier.testTag("solar-hero-loading"))
+                Column(
+                    Modifier.testTag("solar-hero-loading"),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    CircularProgressIndicator()
+                    Text("Loading...")
+                }
             }
             if (state is RepositoryState.Failure) {
                 Text("Using cached solar imagery", Modifier.align(Alignment.BottomCenter).padding(12.dp))
