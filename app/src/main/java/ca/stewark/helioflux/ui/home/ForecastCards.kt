@@ -56,7 +56,10 @@ private fun ForecastCard(section: ForecastSection, expandedLayout: Boolean) {
     Card(
         Modifier
             .width(if (expandedLayout) 320.dp else 280.dp)
-            .height(FORECAST_CARD_HEIGHT_DP.dp)
+            .then(
+                if (expanded) Modifier.heightIn(min = FORECAST_CARD_HEIGHT_DP.dp)
+                else Modifier.height(FORECAST_CARD_HEIGHT_DP.dp),
+            )
             .then(interaction)
             .testTag("forecast-" + section.key),
         colors = CardDefaults.cardColors(containerColor = SpaceSurface),
@@ -81,7 +84,7 @@ private fun ForecastCard(section: ForecastSection, expandedLayout: Boolean) {
                     if (!expanded) forecastOverflows = result.hasVisualOverflow
                 },
             )
-            Spacer(Modifier.weight(1f))
+            if (!expanded) Spacer(Modifier.weight(1f))
             section.issueTime?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = SpaceMuted) }
             if (forecastOverflows || expanded) {
                 Text(
