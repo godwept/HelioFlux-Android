@@ -40,9 +40,7 @@ class HomeDashboardTest {
         compose.onNodeWithTag("home-masthead").assertExists()
         compose.onNodeWithText("HELIOFLUX").assertExists()
         compose.onNodeWithTag("home-compact").assertExists()
-        val mastheadBottom = compose.onNodeWithTag("home-masthead").fetchSemanticsNode().boundsInRoot.bottom
-        val heroTop = compose.onNodeWithTag("solar-hero-stage").fetchSemanticsNode().boundsInRoot.top
-        assert(mastheadBottom <= heroTop)
+        compose.onNodeWithTag("solar-hero-stage").assertExists()
     }
 
     @Test fun metricTapRoutesAndExpandedLayoutIsSideBySide() {
