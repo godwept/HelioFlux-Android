@@ -11,12 +11,12 @@ class EarthSceneGestureWiringTest {
             "src/main/java/ca/stewark/helioflux/feature/globe/EarthScene.kt",
         ).readText()
         val sceneViewStart = source.indexOf("SceneView(")
-        val sceneViewBodyStart = source.indexOf(") {", startIndex = sceneViewStart)
-        val sceneViewCall = source.substring(sceneViewStart, sceneViewBodyStart)
+        val engineArgument = source.indexOf("engine = engine", startIndex = sceneViewStart)
+        val sceneViewModifierArguments = source.substring(sceneViewStart, engineArgument)
 
         assertTrue(
             "SceneView must receive pointerInput on its own modifier chain so AndroidView interop can yield/claim gestures correctly",
-            sceneViewCall.contains(".pointerInput(touchSlop)"),
+            sceneViewModifierArguments.contains(".pointerInput(touchSlop)"),
         )
     }
 }
