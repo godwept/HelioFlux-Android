@@ -1,5 +1,6 @@
 package ca.stewark.helioflux.ui.spaceweather
 import ca.stewark.helioflux.core.model.*
+import ca.stewark.helioflux.ui.theme.*
 import org.junit.Assert.*
 import org.junit.Test
 class SolarWindMetricsTest{
@@ -10,5 +11,9 @@ class SolarWindMetricsTest{
   assertEquals(listOf("Bz","Speed","Density"),p.map{it.label})
   assertEquals(listOf("-4.3 nT","455 km/s","7.3 p/cm³"),p.map{it.value})
   assertEquals(listOf("—","—","—"),solarWindMetricPresentation(SolarWindMetricValues(null,null,null)).map{it.value})
+ }
+ @Test fun pillAccentsMatchHomeConditionPillLanguage(){
+  val p=solarWindMetricPresentation(SolarWindMetricValues(null,null,null))
+  assertEquals(listOf(DataCyan,FreshGreen,SolarOrange),p.map{it.accent})
  }
 }
