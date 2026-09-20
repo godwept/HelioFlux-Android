@@ -5,6 +5,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
@@ -105,7 +106,7 @@ private val NavAnimation=tween<androidx.compose.ui.unit.Dp>(durationMillis=225,e
 @Composable private fun NavItem(destination:HelioFluxDestination,selected:Boolean,onSelect:(HelioFluxDestination)->Unit,modifier:Modifier){
  val contentColor by animateColorAsState(if(selected)NavActive else NavInactive,tween(225),label="nav-color")
  Column(
-  modifier.semantics(mergeDescendants=true){this.selected=selected}.testTag("nav-item-"+destination.route),
+  modifier.clickable(role=Role.Tab,onClick={onSelect(destination)}).semantics(mergeDescendants=true){this.selected=selected}.testTag("nav-item-"+destination.route),
   horizontalAlignment=Alignment.CenterHorizontally,
   verticalArrangement=Arrangement.Center,
  ){
