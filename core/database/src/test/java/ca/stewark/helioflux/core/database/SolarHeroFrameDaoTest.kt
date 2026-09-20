@@ -1,12 +1,10 @@
 package ca.stewark.helioflux.core.database
 
 import ca.stewark.helioflux.core.database.entity.SolarHeroFrameEntity
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -17,8 +15,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
 class SolarHeroFrameDaoTest {
-    @OptIn(ExperimentalCoroutinesApi::class)
-    @Test fun replaceAllNeverPublishesAnEmptyIntermediateFrameSet() = runTest {
+    @Test fun replaceAllNeverPublishesAnEmptyIntermediateFrameSet() = runBlocking {
         val db = inMemoryDatabase()
         try {
             val dao = db.solarHeroFrameDao()
