@@ -57,6 +57,36 @@ class SolarActivityScreenSourceTest {
     }
 
     @Test
+    fun xraySectionOwnsFlareProbabilityBadges() {
+        assertTrue(
+            source.contains(
+                "probabilities: RepositoryState<FlareProbabilities>",
+            ),
+        )
+        assertTrue(source.contains("FlareProbabilityBadges(probabilities)"))
+
+        val xraySectionStart = source.indexOf("private fun XrayActivitySection(")
+        val heading =
+            source.indexOf(
+                "HelioFluxSectionHeading(\"X-Ray Activity\", topSpacing = 0.dp)",
+                xraySectionStart,
+            )
+        val badges = source.indexOf("FlareProbabilityBadges(probabilities)", xraySectionStart)
+        val chart = source.indexOf("XraySection(state, chartDomain)", xraySectionStart)
+
+        assertTrue(heading < badges)
+        assertTrue(badges < chart)
+    }
+
+    @Test
+    fun flareProbabilityBadgesAreRenderedOnlyInsideXraySection() {
+        assertEquals(
+            1,
+            Regex("FlareProbabilityBadges\\(").findAll(source).count(),
+        )
+    }
+
+    @Test
     fun recentEventsUseOnePairedCardRow() {
         assertTrue(source.contains("fun SolarEventCards("))
         assertTrue(source.contains("testTag(\"recent-events-row\")"))

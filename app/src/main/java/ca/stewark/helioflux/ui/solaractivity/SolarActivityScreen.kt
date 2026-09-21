@@ -187,9 +187,6 @@ private fun CompactSolarActivityLayout(
                 }
             }
             item {
-                FlareProbabilityBadges(state.probabilities)
-            }
-            item {
                 HelioFluxSectionHeading("Solar Imagery", topSpacing = 0.dp)
             }
             item {
@@ -286,9 +283,6 @@ private fun ExpandedSolarActivityLayout(
                         }
                     }
                 }
-                item {
-                    FlareProbabilityBadges(state.probabilities)
-                }
                 solarActivityScienceItems(
                     state = state,
                     chartDomain = chartDomain,
@@ -305,7 +299,11 @@ private fun LazyListScope.solarActivityScienceItems(
     onCmeDetails: (CmeEvent) -> Unit,
 ) {
     item {
-        XrayActivitySection(state.xray, chartDomain)
+        XrayActivitySection(
+            state = state.xray,
+            probabilities = state.probabilities,
+            chartDomain = chartDomain,
+        )
     }
     item {
         SolarEventCards(
@@ -325,10 +323,12 @@ private fun LazyListScope.solarActivityScienceItems(
 @Composable
 private fun XrayActivitySection(
     state: RepositoryState<List<XrayFluxSample>>,
+    probabilities: RepositoryState<FlareProbabilities>,
     chartDomain: ChartDomain,
 ) {
     Column {
         HelioFluxSectionHeading("X-Ray Activity", topSpacing = 0.dp)
+        FlareProbabilityBadges(probabilities)
         XraySection(state, chartDomain)
     }
 }

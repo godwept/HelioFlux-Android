@@ -46,6 +46,9 @@ class PartialDataTest {
         }
 
         rule.onNodeWithText("Solar Imagery").assertIsDisplayed()
+        rule.onNodeWithTag("solar-activity-compact")
+            .performScrollToNode(hasTestTag("flare-probability-strip"))
+        rule.onNodeWithTag("flare-probability-strip").assertExists()
         rule.onNodeWithText("25%").assertIsDisplayed()
         rule.onNodeWithTag("solar-activity-compact")
             .performScrollToNode(hasTestTag("recent-events-row"))

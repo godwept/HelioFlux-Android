@@ -248,6 +248,7 @@ fun HelioFluxLineChart(
                     lineCount = chartMarkerLineCount(preparedSeries.size),
                 ),
             valueFormatter = markerFormatter,
+            labelPosition = DefaultCartesianMarker.LabelPosition.AroundPoint,
             guideline =
                 rememberAxisGuidelineComponent(
                     fill = Fill(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)),

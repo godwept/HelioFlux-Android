@@ -14,6 +14,12 @@ class SolarActivityUiTest {
 
     private fun populatedImageryState(): SolarActivityUiState =
         SolarActivityUiState(
+            probabilities =
+                RepositoryState.Available(
+                    FlareProbabilities(25, 5, 1),
+                    source,
+                    DataFreshness.Fresh,
+                ),
             magnetogram =
                 RepositoryState.Available(
                     SolarImage(SolarImageType.Magnetogram, 1789907640000L, "https://example.test/hmi.jpg"),
@@ -120,6 +126,30 @@ class SolarActivityUiTest {
         compose.onNodeWithTag("solar-activity-expanded-scroll").assertExists()
         compose.onNodeWithTag("solar-activity-expanded-scroll").performScrollToNode(hasText("Particle Environment"))
         compose.onNodeWithTag("solar-activity-expanded-imagery").assertExists()
+    }
+
+    @Test
+    fun compactXraySectionContainsProbabilityStrip() {
+        compose.setContent { SolarActivityScreen(populatedImageryState(), expanded = false) }
+
+        compose.onNodeWithTag("solar-activity-compact")
+            .performScrollToNode(hasText("X-Ray Activity"))
+
+        compose.onNodeWithText("X-Ray Activity").assertExists()
+        compose.onNodeWithTag("flare-probability-strip").assertExists()
+        compose.onNodeWithText("25%").assertExists()
+    }
+
+    @Test
+    fun expandedXraySectionContainsProbabilityStrip() {
+        compose.setContent { SolarActivityScreen(populatedImageryState(), expanded = true) }
+
+        compose.onNodeWithTag("solar-activity-expanded-scroll")
+            .performScrollToNode(hasText("X-Ray Activity"))
+
+        compose.onNodeWithText("X-Ray Activity").assertExists()
+        compose.onNodeWithTag("flare-probability-strip").assertExists()
+        compose.onNodeWithText("25%").assertExists()
     }
 
     @Test

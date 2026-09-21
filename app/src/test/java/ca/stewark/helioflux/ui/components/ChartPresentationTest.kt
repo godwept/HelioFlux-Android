@@ -59,6 +59,22 @@ class ChartPresentationTest {
     }
 
     @Test
+    fun markerInspectionFloatsAroundSelectedPoint() {
+        val source =
+            File("src/main/java/ca/stewark/helioflux/ui/components/HelioFluxLineChart.kt")
+                .readText()
+
+        assertTrue(
+            source.contains(
+                "labelPosition = DefaultCartesianMarker.LabelPosition.AroundPoint",
+            ),
+        )
+        assertTrue(source.contains("lineCount = chartMarkerLineCount(preparedSeries.size)"))
+        assertTrue(source.contains("valueFormatter = markerFormatter"))
+        assertTrue(source.contains("guideline ="))
+    }
+
+    @Test
     fun xrayFormatterConvertsLogValueBackToFlux() {
         assertEquals("1e-06", formatChartValue(-6.0, ChartValueFormat.XrayFlux))
     }
