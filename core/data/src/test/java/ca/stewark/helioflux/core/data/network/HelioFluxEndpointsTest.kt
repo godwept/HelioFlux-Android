@@ -18,6 +18,14 @@ class HelioFluxEndpointsTest {
     }
 
     @Test
+    fun `ace epam uses historical five minute json feed`() {
+        assertEquals(
+            "https://services.swpc.noaa.gov/json/ace/epam/ace_epam_5m.json",
+            HelioFluxEndpoints.aceEpam,
+        )
+    }
+
+    @Test
     fun `protected endpoints use existing worker host`() {
         listOf(
             HelioFluxEndpoints.donki, HelioFluxEndpoints.helioviewer, HelioFluxEndpoints.hek,

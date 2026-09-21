@@ -10,6 +10,9 @@ class SolarActivityScreenSourceTest {
     private val source =
         File("src/main/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityScreen.kt")
             .readText()
+    private val appSource =
+        File("src/main/java/ca/stewark/helioflux/ui/HelioFluxApp.kt")
+            .readText()
 
     @Test
     fun solarActivityUsesSharedSectionHeadingsAndNoGenericPageTitle() {
@@ -44,8 +47,19 @@ class SolarActivityScreenSourceTest {
             "windowInsetsPadding(WindowInsets.statusBars.only(WindowInsetsSides.Top))"
 
         assertEquals(
-            2,
+            1,
             source.windowed(insetCall.length).count { it == insetCall },
+        )
+    }
+
+    @Test
+    fun compactSolarActivityHonorsScaffoldContentModifier() {
+        assertTrue(source.contains("modifier: Modifier = Modifier"))
+        assertTrue(source.contains("modifier = modifier"))
+        assertTrue(
+            appSource.contains(
+                "SolarActivityScreen(solarActivityState,expanded,modifier=modifier",
+            ),
         )
     }
 

@@ -1,21 +1,40 @@
 package ca.stewark.helioflux.core.data.parser
 
 import ca.stewark.helioflux.core.model.AceEpamSample
-import java.time.LocalDateTime
-import java.time.ZoneOffset
+import kotlinx.serialization.json.*
 
 object AceEpamParser {
-    fun parse(text:String):List<AceEpamSample> = text.lineSequence()
-        .filter { it.isNotBlank() && !it.startsWith("#") }
-        .map { it.trim().split(Regex("""\s+""")) }
-        .filter { it.size >= 16 }
-        .mapNotNull { p ->
-            val hhmm=p[3].padStart(4,'0')
-            val ts=try { LocalDateTime.of(p[0].toInt(),p[1].toInt(),p[2].toInt(),hhmm.take(2).toInt(),hhmm.takeLast(2).toInt()).toInstant(ZoneOffset.UTC).toEpochMilli() } catch(_:Exception){ return@mapNotNull null }
-            fun value(index:Int)=p[index].toDoubleOrNull()?.takeIf { it > -1.0e5 }
-            AceEpamSample(ts,value(7),value(8),value(10),value(11),value(12))
-        }.toList()
+    fun parse(json: String): List<AceEpamSample> =
+        Json.parseToJsonElement(json)
+            .jsonArray
+            .mapNotNull { element ->
+                val values = element.jsonObject
+                val timestamp =
+                    timestampMillis(
+                        values["time_tag"]?.jsonPrimitive?.content ?: return@mapNotNull null,
+                    ) ?: return@mapNotNull null
 
-    fun last72Hours(samples:List<AceEpamSample>, nowMillis:Long):List<AceEpamSample> =
-        samples.filter { it.timestampMillis >= nowMillis - 72L*60*60*1000 }.sortedBy { it.timestampMillis }
+                fun value(vararg keys: String): Double? =
+                    keys.firstNotNullOfOrNull { key ->
+                        values[key]
+                            ?.jsonPrimitive
+                            ?.doubleOrNull
+                            ?.takeIf { it.isFinite() && it > -9.0e4 }
+                    }
+
+                AceEpamSample(
+                    timestampMillis = timestamp,
+                    electronLow = value("de1"),
+                    electronHigh = value("de4"),
+                    protonLow = value("p1"),
+                    protonMid = value("p3"),
+                    protonHigh = value("p5"),
+                )
+            }
+            .sortedBy(AceEpamSample::timestampMillis)
+
+    fun last72Hours(samples: List<AceEpamSample>, nowMillis: Long): List<AceEpamSample> =
+        samples
+            .filter { it.timestampMillis >= nowMillis - 72L * 60L * 60L * 1_000L }
+            .sortedBy(AceEpamSample::timestampMillis)
 }

@@ -14,7 +14,7 @@ object HelioFluxEndpoints {
     val goesSecondaryXray = "$NOAA/json/goes/secondary/xrays-3-day.json"
     val ovation = "$NOAA/json/ovation_aurora_latest.json"
     val hemisphericPower = "$NOAA/text/aurora-nowcast-hemi-power.txt"
-    val aceEpam = "$NOAA/text/ace-epam.txt"
+    val aceEpam = "$NOAA/json/ace/epam/ace_epam_5m.json"
     val forecastDiscussion = "$NOAA/text/discussion.txt"
     val flareProbabilities = "$NOAA/text/3-day-solar-geomag-predictions.txt"
 

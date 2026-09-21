@@ -52,6 +52,7 @@ fun SolarActivityScreen(
     nowMillis: Long = System.currentTimeMillis(),
     isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
+    modifier: Modifier = Modifier,
 ) {
     var selectedImagery by remember { mutableStateOf(DefaultSolarGalleryItem) }
     var viewer by remember { mutableStateOf<SolarGalleryItem?>(null) }
@@ -79,6 +80,7 @@ fun SolarActivityScreen(
             freshness = freshness,
             isRefreshing = isRefreshing,
             onRefresh = onRefresh,
+            modifier = modifier,
         )
     } else {
         CompactSolarActivityLayout(
@@ -92,6 +94,7 @@ fun SolarActivityScreen(
             freshness = freshness,
             isRefreshing = isRefreshing,
             onRefresh = onRefresh,
+            modifier = modifier,
         )
     }
 
@@ -159,12 +162,13 @@ private fun CompactSolarActivityLayout(
     freshness: DataFreshness?,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
+    modifier: Modifier,
 ) {
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,
         modifier =
-            Modifier
+            modifier
                 .fillMaxSize()
                 .background(Color.Black)
                 .testTag("solar-activity-pull-refresh"),
@@ -173,7 +177,6 @@ private fun CompactSolarActivityLayout(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.statusBars.only(WindowInsetsSides.Top))
                     .background(Color.Black)
                     .testTag("solar-activity-compact"),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
@@ -223,9 +226,10 @@ private fun ExpandedSolarActivityLayout(
     freshness: DataFreshness?,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
+    modifier: Modifier,
 ) {
     Row(
-        Modifier
+        modifier
             .fillMaxSize()
             .background(Color.Black)
             .testTag("solar-activity-expanded"),
