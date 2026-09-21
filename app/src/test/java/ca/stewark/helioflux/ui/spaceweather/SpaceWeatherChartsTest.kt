@@ -29,7 +29,8 @@ class SpaceWeatherChartsTest {
     @Test
     fun chartRefreshControlUsesApprovedPixelDimensions() {
         assertEquals(48.dp, ChartRefreshTouchTarget)
-        assertEquals(36.dp, ChartRefreshVisibleSize)
+        assertEquals(40.dp, ChartRefreshVisibleSize)
+        assertEquals(28.dp, ChartRefreshIconSize)
     }
 
     @Test

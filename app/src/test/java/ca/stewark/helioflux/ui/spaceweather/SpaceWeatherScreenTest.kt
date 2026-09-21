@@ -31,14 +31,28 @@ class SpaceWeatherScreenTest {
     }
 
     @Test
-    fun expandedGroupsChartsWithinSectionsOnly() {
+    fun expandedRightPaneExcludesGlobeAndKeepsSingleColumnOrder() {
         val rows = spaceWeatherBlocks(true)
-        assertEquals(listOf(SpaceWeatherBlock.AuroraHero), rows[0])
-        assertTrue(rows.contains(listOf(SpaceWeatherBlock.BzBt, SpaceWeatherBlock.Density)))
-        assertTrue(rows.contains(listOf(SpaceWeatherBlock.Speed, SpaceWeatherBlock.Temperature)))
-        assertTrue(rows.contains(listOf(SpaceWeatherBlock.Goes)))
-        assertTrue(rows.contains(listOf(SpaceWeatherBlock.Kp, SpaceWeatherBlock.HemisphericPower)))
-        assertTrue(rows.none { it.contains(SpaceWeatherBlock.Goes) && it.contains(SpaceWeatherBlock.Kp) })
+        val flattened = rows.flatten()
+
+        assertFalse(flattened.contains(SpaceWeatherBlock.AuroraHero))
+        assertEquals(
+            listOf(
+                SpaceWeatherBlock.SolarWindHeading,
+                SpaceWeatherBlock.Metrics,
+                SpaceWeatherBlock.Timeframe,
+                SpaceWeatherBlock.BzBt,
+                SpaceWeatherBlock.Density,
+                SpaceWeatherBlock.Speed,
+                SpaceWeatherBlock.Temperature,
+                SpaceWeatherBlock.Goes,
+                SpaceWeatherBlock.GeomagneticHeading,
+                SpaceWeatherBlock.Kp,
+                SpaceWeatherBlock.HemisphericPower,
+            ),
+            flattened,
+        )
+        assertTrue(rows.all { it.size == 1 })
     }
 
     @Test
@@ -87,14 +101,28 @@ class SpaceWeatherScreenTest {
     }
 
     @Test
-    fun globeTouchTemporarilyPreventsLazyColumnFromCancellingSceneViewGesture() {
+    fun compactGlobeTouchStillPreventsLazyColumnFromCancellingSceneViewGesture() {
         val source = File(
             "src/main/java/ca/stewark/helioflux/ui/spaceweather/SpaceWeatherScreen.kt",
         ).readText()
 
+        assertTrue(source.contains("CompactSpaceWeatherLayout"))
         assertTrue(source.contains("var globeTouchActive"))
         assertTrue(source.contains("userScrollEnabled = !globeTouchActive"))
         assertTrue(source.contains("{ globeTouchActive = it }"))
+    }
+
+    @Test
+    fun expandedLayoutPinsGlobeLeftAndScrollsContentOnRight() {
+        val source = File(
+            "src/main/java/ca/stewark/helioflux/ui/spaceweather/SpaceWeatherScreen.kt",
+        ).readText()
+
+        assertTrue(source.contains("ExpandedSpaceWeatherLayout"))
+        assertTrue(source.contains("ExpandedGlobeWeight"))
+        assertTrue(source.contains("ExpandedContentWeight"))
+        assertTrue(source.contains("spaceWeatherBlocks(true)"))
+        assertTrue(source.contains("onGlobeTouchActiveChanged = {}"))
     }
 
     @Test

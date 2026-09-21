@@ -22,6 +22,25 @@ import ca.stewark.helioflux.core.model.*
 import ca.stewark.helioflux.feature.globe.AuroraGlobe
 import ca.stewark.helioflux.ui.components.*
 
+private const val ExpandedGlobeWeight = 0.43f
+private const val ExpandedContentWeight = 0.57f
+
+private val OrderedSpaceWeatherBlocks =
+    listOf(
+        SpaceWeatherBlock.AuroraHero,
+        SpaceWeatherBlock.SolarWindHeading,
+        SpaceWeatherBlock.Metrics,
+        SpaceWeatherBlock.Timeframe,
+        SpaceWeatherBlock.BzBt,
+        SpaceWeatherBlock.Density,
+        SpaceWeatherBlock.Speed,
+        SpaceWeatherBlock.Temperature,
+        SpaceWeatherBlock.Goes,
+        SpaceWeatherBlock.GeomagneticHeading,
+        SpaceWeatherBlock.Kp,
+        SpaceWeatherBlock.HemisphericPower,
+    )
+
 private fun <T> RepositoryState<T>.screenData(): T? =
     when (this) {
         is RepositoryState.Available -> data
@@ -74,37 +93,13 @@ fun refreshSourceForBlock(block: SpaceWeatherBlock): SpaceWeatherRefreshSource? 
     }
 
 fun spaceWeatherBlocks(expanded: Boolean): List<List<SpaceWeatherBlock>> {
-    val head =
-        listOf(
-            listOf(SpaceWeatherBlock.AuroraHero),
-            listOf(SpaceWeatherBlock.SolarWindHeading),
-            listOf(SpaceWeatherBlock.Metrics),
-            listOf(SpaceWeatherBlock.Timeframe),
-        )
-    val solar =
+    val blocks =
         if (expanded) {
-            listOf(
-                listOf(SpaceWeatherBlock.BzBt, SpaceWeatherBlock.Density),
-                listOf(SpaceWeatherBlock.Speed, SpaceWeatherBlock.Temperature),
-                listOf(SpaceWeatherBlock.Goes),
-            )
+            OrderedSpaceWeatherBlocks.drop(1)
         } else {
-            listOf(
-                SpaceWeatherBlock.BzBt,
-                SpaceWeatherBlock.Density,
-                SpaceWeatherBlock.Speed,
-                SpaceWeatherBlock.Temperature,
-                SpaceWeatherBlock.Goes,
-            ).map { listOf(it) }
+            OrderedSpaceWeatherBlocks
         }
-    val geo =
-        listOf(listOf(SpaceWeatherBlock.GeomagneticHeading)) +
-            if (expanded) {
-                listOf(listOf(SpaceWeatherBlock.Kp, SpaceWeatherBlock.HemisphericPower))
-            } else {
-                listOf(listOf(SpaceWeatherBlock.Kp), listOf(SpaceWeatherBlock.HemisphericPower))
-            }
-    return head + solar + geo
+    return blocks.map(::listOf)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -119,7 +114,6 @@ fun SpaceWeatherScreen(
     onRefresh: () -> Unit = {},
     onRefreshSource: ((SpaceWeatherRefreshSource) -> Unit)? = null,
 ) {
-    var globeTouchActive by remember { mutableStateOf(false) }
     val magnetic = state.magnetic.screenData().orEmpty()
     val plasma = state.plasma.screenData().orEmpty()
     val kp = state.kp.screenData().orEmpty()
@@ -128,70 +122,209 @@ fun SpaceWeatherScreen(
     val aurora = auroraGlobePresentation(state.aurora)
     val chartDomain = spaceWeatherChartDomain(state.timeframe, nowMillis)
 
+    if (expanded) {
+        ExpandedSpaceWeatherLayout(
+            state = state,
+            magnetic = magnetic,
+            plasma = plasma,
+            kp = kp,
+            goes = goes,
+            hp = hp,
+            aurora = aurora,
+            onTimeframe = onTimeframe,
+            nowMillis = nowMillis,
+            chartDomain = chartDomain,
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            onRefreshSource = onRefreshSource,
+            modifier = modifier,
+        )
+    } else {
+        CompactSpaceWeatherLayout(
+            state = state,
+            magnetic = magnetic,
+            plasma = plasma,
+            kp = kp,
+            goes = goes,
+            hp = hp,
+            aurora = aurora,
+            onTimeframe = onTimeframe,
+            nowMillis = nowMillis,
+            chartDomain = chartDomain,
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            onRefreshSource = onRefreshSource,
+            modifier = modifier,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CompactSpaceWeatherLayout(
+    state: SpaceWeatherUiState,
+    magnetic: List<SolarWindMag>,
+    plasma: List<SolarWindPlasma>,
+    kp: List<KpSample>,
+    goes: GoesMagnetometerSeries?,
+    hp: List<HemisphericPowerSample>,
+    aurora: AuroraGlobePresentation,
+    onTimeframe: (Timeframe) -> Unit,
+    nowMillis: Long,
+    chartDomain: ChartDomain,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
+    onRefreshSource: ((SpaceWeatherRefreshSource) -> Unit)?,
+    modifier: Modifier,
+) {
+    var globeTouchActive by remember { mutableStateOf(false) }
+
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,
         modifier = modifier.fillMaxSize().testTag("space-weather-pull-refresh"),
     ) {
-        // SceneView's AndroidView is cancelled if this LazyColumn consumes MOVE events mid-gesture.
-        // Disable list scrolling for the lifetime of a globe touch stream so orbit/pinch remains intact.
-        LazyColumn(
-            Modifier
-                .fillMaxSize()
+        SpaceWeatherBlockList(
+            rows = spaceWeatherBlocks(false),
+            state = state,
+            magnetic = magnetic,
+            plasma = plasma,
+            kp = kp,
+            goes = goes,
+            hp = hp,
+            aurora = aurora,
+            onTimeframe = onTimeframe,
+            nowMillis = nowMillis,
+            chartDomain = chartDomain,
+            onRefreshSource = onRefreshSource,
+            userScrollEnabled = !globeTouchActive,
+            onGlobeTouchActiveChanged = { globeTouchActive = it },
+            modifier = Modifier.fillMaxSize().testTag("space-weather-compact"),
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ExpandedSpaceWeatherLayout(
+    state: SpaceWeatherUiState,
+    magnetic: List<SolarWindMag>,
+    plasma: List<SolarWindPlasma>,
+    kp: List<KpSample>,
+    goes: GoesMagnetometerSeries?,
+    hp: List<HemisphericPowerSample>,
+    aurora: AuroraGlobePresentation,
+    onTimeframe: (Timeframe) -> Unit,
+    nowMillis: Long,
+    chartDomain: ChartDomain,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
+    onRefreshSource: ((SpaceWeatherRefreshSource) -> Unit)?,
+    modifier: Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxSize().testTag("space-weather-expanded"),
+    ) {
+        Box(
+            modifier =
+                Modifier
+                    .weight(ExpandedGlobeWeight)
+                    .fillMaxHeight()
+                    .padding(start = 16.dp, top = 12.dp, end = 8.dp, bottom = 12.dp)
+                    .testTag("space-weather-expanded-globe"),
+            contentAlignment = Alignment.TopCenter,
+        ) {
+            SpaceWeatherBlockContent(
+                block = SpaceWeatherBlock.AuroraHero,
+                state = state,
+                magnetic = magnetic,
+                plasma = plasma,
+                kp = kp,
+                goes = goes,
+                hp = hp,
+                aurora = aurora,
+                onTimeframe = onTimeframe,
+                nowMillis = nowMillis,
+                chartDomain = chartDomain,
+                onRefreshSource = onRefreshSource,
+                onGlobeTouchActiveChanged = {},
+            )
+        }
+
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier =
+                Modifier
+                    .weight(ExpandedContentWeight)
+                    .fillMaxHeight()
+                    .testTag("space-weather-expanded-content"),
+        ) {
+            SpaceWeatherBlockList(
+                rows = spaceWeatherBlocks(true),
+                state = state,
+                magnetic = magnetic,
+                plasma = plasma,
+                kp = kp,
+                goes = goes,
+                hp = hp,
+                aurora = aurora,
+                onTimeframe = onTimeframe,
+                nowMillis = nowMillis,
+                chartDomain = chartDomain,
+                onRefreshSource = onRefreshSource,
+                userScrollEnabled = true,
+                onGlobeTouchActiveChanged = {},
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun SpaceWeatherBlockList(
+    rows: List<List<SpaceWeatherBlock>>,
+    state: SpaceWeatherUiState,
+    magnetic: List<SolarWindMag>,
+    plasma: List<SolarWindPlasma>,
+    kp: List<KpSample>,
+    goes: GoesMagnetometerSeries?,
+    hp: List<HemisphericPowerSample>,
+    aurora: AuroraGlobePresentation,
+    onTimeframe: (Timeframe) -> Unit,
+    nowMillis: Long,
+    chartDomain: ChartDomain,
+    onRefreshSource: ((SpaceWeatherRefreshSource) -> Unit)?,
+    userScrollEnabled: Boolean,
+    onGlobeTouchActiveChanged: (Boolean) -> Unit,
+    modifier: Modifier,
+) {
+    LazyColumn(
+        modifier =
+            modifier
                 .testTag("space-weather-screen")
                 .padding(horizontal = 16.dp, vertical = 12.dp),
-            userScrollEnabled = !globeTouchActive,
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            spaceWeatherBlocks(expanded).forEach { row ->
-                item {
-                    if (row.size == 1) {
-                        Box(
-                            Modifier
-                                .fillMaxWidth()
-                                .testTag(if (expanded) "space-weather-expanded" else "space-weather-compact")
-                        ) {
-                            SpaceWeatherBlockContent(
-                                row.first(),
-                                state,
-                                magnetic,
-                                plasma,
-                                kp,
-                                goes,
-                                hp,
-                                aurora,
-                                onTimeframe,
-                                nowMillis,
-                                chartDomain,
-                                onRefreshSource,
-                            ) { globeTouchActive = it }
-                        }
-                    } else {
-                        Row(
-                            Modifier.fillMaxWidth().testTag("space-weather-expanded"),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            row.forEach { block ->
-                                Box(Modifier.weight(1f)) {
-                                    SpaceWeatherBlockContent(
-                                        block,
-                                        state,
-                                        magnetic,
-                                        plasma,
-                                        kp,
-                                        goes,
-                                        hp,
-                                        aurora,
-                                        onTimeframe,
-                                        nowMillis,
-                                        chartDomain,
-                                        onRefreshSource,
-                                    ) { globeTouchActive = it }
-                                }
-                            }
-                        }
-                    }
-                }
+        userScrollEnabled = userScrollEnabled,
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        rows.forEach { row ->
+            item {
+                val block = row.single()
+                SpaceWeatherBlockContent(
+                    block = block,
+                    state = state,
+                    magnetic = magnetic,
+                    plasma = plasma,
+                    kp = kp,
+                    goes = goes,
+                    hp = hp,
+                    aurora = aurora,
+                    onTimeframe = onTimeframe,
+                    nowMillis = nowMillis,
+                    chartDomain = chartDomain,
+                    onRefreshSource = onRefreshSource,
+                    onGlobeTouchActiveChanged = onGlobeTouchActiveChanged,
+                )
             }
         }
     }
