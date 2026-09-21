@@ -44,6 +44,22 @@ class SpaceWeatherChartsTest {
     }
 
     @Test
+    fun plasmaMetricsCanUseDistinctSemanticStyles() {
+        val samples = listOf(SolarWindPlasma(now - 1, 5.0, 400.0, 90_000.0))
+        assertEquals(ChartSeriesStyle.Warning, plasmaSeries(samples, Timeframe.OneHour, now, "Density", ChartSeriesStyle.Warning) { it.density }.single().style)
+        assertEquals(ChartSeriesStyle.Success, plasmaSeries(samples, Timeframe.OneHour, now, "Speed", ChartSeriesStyle.Success) { it.speed }.single().style)
+        assertEquals(ChartSeriesStyle.Primary, plasmaSeries(samples, Timeframe.OneHour, now, "Temperature", ChartSeriesStyle.Primary) { it.temperature }.single().style)
+    }
+
+    @Test
+    fun hemisphericPowerIsNotFilteredBySolarWindTimeframe() {
+        val sample = HemisphericPowerSample(now - 2 * 60 * 60 * 1000L, 40.0, 30.0)
+        val out = hemisphericPowerSeries(listOf(sample))
+        assertEquals(40.0, out[0].points.single().y!!, 0.0)
+        assertEquals(30.0, out[1].points.single().y!!, 0.0)
+    }
+
+    @Test
     fun plasmaFieldsKeepMissingValuesNull() {
         val samples = listOf(SolarWindPlasma(now - 1, 5.0, null, 90000.0))
 
@@ -118,8 +134,6 @@ class SpaceWeatherChartsTest {
     fun hemisphericPowerHasNorthAndSouthRawSeries() {
         val out = hemisphericPowerSeries(
             listOf(HemisphericPowerSample(now - 1, 40.0, 30.0)),
-            Timeframe.OneHour,
-            now,
         )
 
         assertEquals(40.0, out[0].points.single().y!!, 0.0)

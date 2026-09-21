@@ -18,6 +18,7 @@ import ca.stewark.helioflux.core.model.KpStatus
 import ca.stewark.helioflux.core.model.kpStatus
 import ca.stewark.helioflux.ui.components.ChartDomain
 import ca.stewark.helioflux.ui.components.ChartYDomain
+import ca.stewark.helioflux.ui.components.chartDomain
 import ca.stewark.helioflux.ui.components.HelioFluxBarChart
 
 data class KpPresentation(
@@ -32,32 +33,21 @@ fun kpStatusLabel(status: KpStatus?) = status?.name ?: "No current Kp"
 
 fun kpPresentation(
     samples: List<KpSample>,
-    timeframe: Timeframe,
     now: Long,
 ): KpPresentation {
     val available =
         samples.mapNotNull { sample ->
             sample.kp?.let { value -> sample.timestampMillis.toDouble() to value }
         }
-    val filtered = available.filter { it.first >= now - timeframe.durationMillis }
-    val visible = if (filtered.isNotEmpty()) filtered else available.takeLast(1)
+    val visible = available.filter { it.first >= now - Timeframe.TwoDays.durationMillis && it.first <= now }
     return KpPresentation(
         values = visible,
         currentStatus = available.lastOrNull()?.second?.let(::kpStatus),
     )
 }
 
-private fun kpDisplayDomain(
-    presentation: KpPresentation,
-    selectedDomain: ChartDomain,
-): ChartDomain {
-    val oldestVisible = presentation.values.minOfOrNull { it.first } ?: return selectedDomain
-    return if (oldestVisible < selectedDomain.minX) {
-        selectedDomain.copy(minX = oldestVisible)
-    } else {
-        selectedDomain
-    }
-}
+fun kpChartDomain(now: Long): ChartDomain =
+    chartDomain(now, Timeframe.TwoDays.durationMillis)
 
 @Composable
 fun KpChart(
@@ -91,7 +81,7 @@ fun KpChart(
             )
             HelioFluxBarChart(
                 values = presentation.values,
-                domain = kpDisplayDomain(presentation, domain),
+                domain = domain,
                 fixedYDomain = KpYDomain,
                 modifier = Modifier.fillMaxWidth().height(180.dp),
             )

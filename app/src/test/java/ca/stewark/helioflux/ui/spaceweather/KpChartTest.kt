@@ -20,7 +20,6 @@ class KpChartTest {
         val now = 10_000L
         val presentation = kpPresentation(
             listOf(KpSample(now - 2, 4.0), KpSample(now - 1, 6.0)),
-            Timeframe.OneHour,
             now,
         )
 
@@ -28,13 +27,19 @@ class KpChartTest {
     }
 
     @Test
-    fun shortTimeframesStillShowLatestKpBucket() {
-        val now = 10_000_000L
-        val latest = KpSample(now - (2 * 60 * 60 * 1000L), 4.0)
-        val presentation = kpPresentation(listOf(latest), Timeframe.OneHour, now)
-
-        assertEquals(1, presentation.values.size)
-        assertEquals(4.0, presentation.values.single().second, 0.0)
+    fun kpAlwaysUsesRollingTwoDayWindow() {
+        val now = 300_000_000L
+        val inside = KpSample(now - 36 * 60 * 60 * 1000L, 4.0)
+        val outside = KpSample(now - 60 * 60 * 60 * 1000L, 7.0)
+        val presentation = kpPresentation(listOf(outside, inside), now)
+        assertEquals(listOf(4.0), presentation.values.map { it.second })
+        assertEquals(
+            ca.stewark.helioflux.ui.components.ChartDomain(
+                (now - Timeframe.TwoDays.durationMillis).toDouble(),
+                now.toDouble(),
+            ),
+            kpChartDomain(now),
+        )
     }
 
     @Test

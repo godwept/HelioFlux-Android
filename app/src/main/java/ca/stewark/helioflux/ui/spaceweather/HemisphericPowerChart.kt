@@ -28,13 +28,17 @@ val hemisphericPowerMeta =
         listOf("North", "South"),
     )
 const val hemisphericPowerEmptyMessage = "No hemispheric power data"
+private const val DayMillis = 24L * 60L * 60L * 1_000L
+
+fun hemisphericPowerChartDomain(now: Long): ChartDomain {
+    val utcDayStart = now - Math.floorMod(now, DayMillis)
+    return ChartDomain(utcDayStart.toDouble(), (utcDayStart + DayMillis).toDouble())
+}
 
 fun hemisphericPowerSeries(
     samples: List<HemisphericPowerSample>,
-    timeframe: Timeframe,
-    now: Long,
 ): List<LineChartSeries> =
-    filterByTimeframe(samples, timeframe, now) { it.timestampMillis }.let { filtered ->
+    samples.let { filtered ->
         listOf(
             LineChartSeries(
                 points = filtered.map { ChartPoint(it.timestampMillis.toDouble(), it.north) },

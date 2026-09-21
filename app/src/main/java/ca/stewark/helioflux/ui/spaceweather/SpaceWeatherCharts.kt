@@ -80,6 +80,7 @@ fun plasmaSeries(
     timeframe: Timeframe,
     now: Long,
     label: String = "",
+    style: ChartSeriesStyle = ChartSeriesStyle.Default,
     field: (SolarWindPlasma) -> Double?,
 ): List<LineChartSeries> =
     listOf(
@@ -87,6 +88,7 @@ fun plasmaSeries(
             points =
                 filterByTimeframe(samples, timeframe, now) { it.timestampMillis }
                     .map { ChartPoint(it.timestampMillis.toDouble(), field(it)) },
+            style = style,
             label = label,
         ),
     )

@@ -52,13 +52,13 @@ fun spaceWeatherBlocks(expanded:Boolean):List<List<SpaceWeatherBlock>>{
   SpaceWeatherBlock.Metrics->SolarWindMetrics(latestSolarWindMetrics(magnetic,plasma))
   SpaceWeatherBlock.Timeframe->TimeframeSelector(state.timeframe,onTimeframe)
   SpaceWeatherBlock.BzBt->SpaceWeatherLineCard(bzBtChartMeta,bzBtSeries(magnetic,state.timeframe,nowMillis),chartDomain,referenceLines=listOf(ChartReferenceLine(0.0,style=ChartReferenceStyle.Neutral)))
-  SpaceWeatherBlock.Density->SpaceWeatherLineCard(densityChartMeta,plasmaSeries(plasma,state.timeframe,nowMillis,label="Density"){it.density},chartDomain)
-  SpaceWeatherBlock.Speed->SpaceWeatherLineCard(speedChartMeta,plasmaSeries(plasma,state.timeframe,nowMillis,label="Speed"){it.speed},chartDomain)
-  SpaceWeatherBlock.Temperature->SpaceWeatherLineCard(temperatureChartMeta,plasmaSeries(plasma,state.timeframe,nowMillis,label="Temperature"){it.temperature},chartDomain)
+  SpaceWeatherBlock.Density->SpaceWeatherLineCard(densityChartMeta,plasmaSeries(plasma,state.timeframe,nowMillis,label="Density",style=ChartSeriesStyle.Warning){it.density},chartDomain)
+  SpaceWeatherBlock.Speed->SpaceWeatherLineCard(speedChartMeta,plasmaSeries(plasma,state.timeframe,nowMillis,label="Speed",style=ChartSeriesStyle.Success){it.speed},chartDomain)
+  SpaceWeatherBlock.Temperature->SpaceWeatherLineCard(temperatureChartMeta,plasmaSeries(plasma,state.timeframe,nowMillis,label="Temperature",style=ChartSeriesStyle.Primary){it.temperature},chartDomain)
   SpaceWeatherBlock.Goes->SpaceWeatherLineCard(goesChartMeta(goes?.primaryLabel,goes?.secondaryLabel),goesSeriesOrEmpty(goes,state.timeframe,nowMillis),chartDomain)
   SpaceWeatherBlock.GeomagneticHeading->SectionHeading("Geomagnetic Activity")
-  SpaceWeatherBlock.Kp->KpChart(kpPresentation(kp,state.timeframe,nowMillis),chartDomain)
-  SpaceWeatherBlock.HemisphericPower->HemisphericPowerChart(hemisphericPowerSeries(hp,state.timeframe,nowMillis),chartDomain)
+  SpaceWeatherBlock.Kp->KpChart(kpPresentation(kp,nowMillis),kpChartDomain(nowMillis))
+  SpaceWeatherBlock.HemisphericPower->HemisphericPowerChart(hemisphericPowerSeries(hp),hemisphericPowerChartDomain(nowMillis))
  }
 }
 @Composable private fun SectionHeading(text:String){Text(text,style=MaterialTheme.typography.headlineSmall,color=MaterialTheme.colorScheme.onBackground,modifier=Modifier.padding(top=8.dp,bottom=2.dp))}
