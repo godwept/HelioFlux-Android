@@ -13,12 +13,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import ca.stewark.helioflux.ui.components.HelioFluxSectionHeading
 import ca.stewark.helioflux.ui.navigation.HelioFluxDestination
 import ca.stewark.helioflux.ui.theme.DataCyan
 import ca.stewark.helioflux.ui.theme.FreshGreen
 import ca.stewark.helioflux.ui.theme.SolarOrange
-import ca.stewark.helioflux.ui.theme.SpaceMuted
 import ca.stewark.helioflux.ui.theme.SpaceSurface
 import java.util.Locale
 
@@ -29,9 +27,11 @@ fun CurrentConditions(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier.testTag("current-conditions")) {
-        HelioFluxSectionHeading("Current Conditions", topSpacing = 0.dp)
         Row(
-            Modifier.fillMaxWidth().testTag("condition-metrics"),
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp)
+                .testTag("condition-metrics"),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Metric("Kp", conditions.kp?.oneDecimal() ?: "—", SolarOrange, Modifier.weight(1f)) {
@@ -44,15 +44,6 @@ fun CurrentConditions(
                 onDestination(HelioFluxDestination.SpaceWeather)
             }
         }
-        Spacer(Modifier.height(8.dp))
-        val kp = conditions.kp
-        Text(
-            if (kp == null) "Aurora / geomagnetic status unavailable"
-            else if (kp >= 5) "Geomagnetic storm conditions"
-            else "Geomagnetic conditions below storm level",
-            color = SpaceMuted,
-            style = MaterialTheme.typography.bodySmall,
-        )
     }
 }
 

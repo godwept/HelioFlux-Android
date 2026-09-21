@@ -23,9 +23,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ca.stewark.helioflux.R
 import ca.stewark.helioflux.core.data.repository.RepositoryState
+import ca.stewark.helioflux.core.model.ForecastSection
 import ca.stewark.helioflux.ui.navigation.HelioFluxDestination
 
 private val Orbitron = FontFamily(Font(R.font.orbitron_bold, FontWeight.Bold))
+internal const val ExpandedHomeHeroWeight = 0.43f
+internal const val ExpandedHomeContentWeight = 0.57f
 
 @Composable
 private fun HelioFluxMasthead() {
@@ -62,7 +65,6 @@ private fun HelioFluxMasthead() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     state: HomeUiState,
@@ -78,49 +80,154 @@ fun HomeScreen(
         else -> emptyList()
     }
 
+    if (expanded) {
+        ExpandedHomeLayout(
+            state = state,
+            forecasts = forecasts,
+            onDestination = onDestination,
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = modifier,
+        )
+    } else {
+        CompactHomeLayout(
+            state = state,
+            forecasts = forecasts,
+            onDestination = onDestination,
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = modifier,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CompactHomeLayout(
+    state: HomeUiState,
+    forecasts: List<ForecastSection>,
+    onDestination: (HelioFluxDestination) -> Unit,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
+    modifier: Modifier,
+) {
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.Black)
-            .testTag("home-pull-refresh"),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .testTag("home-pull-refresh"),
     ) {
-            LazyColumn(
-                Modifier
-                    .fillMaxSize()
-                    .testTag("home-screen")
-                    .padding(horizontal = 16.dp),
+        LazyColumn(
+            Modifier
+                .fillMaxSize()
+                .testTag("home-screen")
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { HelioFluxMasthead() }
             item {
-                if (expanded) {
-                    Row(
-                        Modifier.fillMaxWidth().testTag("home-expanded"),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        SolarHero(state.frames, Modifier.weight(1f))
-                        CurrentConditions(state.conditions, onDestination, Modifier.weight(1f))
-                    }
-                } else {
-                    Column(
-                        Modifier.fillMaxWidth().testTag("home-compact"),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        SolarHero(state.frames, Modifier.fillMaxWidth())
-                        CurrentConditions(state.conditions, onDestination, Modifier.fillMaxWidth())
-                    }
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .testTag("home-compact"),
+                ) {
+                    SolarHero(state.frames, Modifier.fillMaxWidth())
+                    CurrentConditions(state.conditions, onDestination, Modifier.fillMaxWidth())
+                    ForecastCards(
+                        sections = forecasts,
+                        expandedLayout = false,
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                    )
                 }
             }
-            item {
-                ForecastCards(
-                    sections = forecasts,
-                    expandedLayout = expanded,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ExpandedHomeLayout(
+    state: HomeUiState,
+    forecasts: List<ForecastSection>,
+    onDestination: (HelioFluxDestination) -> Unit,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
+    modifier: Modifier,
+) {
+    Column(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .testTag("home-screen"),
+    ) {
+        HelioFluxMasthead()
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .testTag("home-expanded"),
+        ) {
+            Box(
+                modifier =
+                    Modifier
+                        .weight(ExpandedHomeHeroWeight)
+                        .fillMaxHeight()
+                        .padding(start = 16.dp, top = 12.dp, end = 8.dp, bottom = 12.dp)
+                        .testTag("home-expanded-hero"),
+                contentAlignment = Alignment.TopCenter,
+            ) {
+                SolarHero(state.frames, Modifier.fillMaxWidth())
+            }
+
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = onRefresh,
+                modifier =
+                    Modifier
+                        .weight(ExpandedHomeContentWeight)
+                        .fillMaxHeight()
+                        .testTag("home-expanded-content"),
+            ) {
+                ExpandedHomeRightContent(
+                    state = state,
+                    forecasts = forecasts,
+                    onDestination = onDestination,
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun ExpandedHomeRightContent(
+    state: HomeUiState,
+    forecasts: List<ForecastSection>,
+    onDestination: (HelioFluxDestination) -> Unit,
+) {
+    LazyColumn(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(start = 8.dp, end = 16.dp)
+                .testTag("home-expanded-scroll"),
+    ) {
+        item {
+            CurrentConditions(
+                state.conditions,
+                onDestination,
+                Modifier.fillMaxWidth(),
+            )
+        }
+        item {
+            ForecastCards(
+                sections = forecasts,
+                expandedLayout = true,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+            )
         }
     }
 }

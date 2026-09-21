@@ -7,7 +7,7 @@ import org.junit.Test
 
 class HomeSectionHeadingSourceTest {
     @Test
-    fun homeSectionsUseSharedHeadingWithoutDuplicateTopSpacing() {
+    fun homeForecastKeepsSharedHeadingAfterCurrentConditionsTitleRemoval() {
         val current = File(
             "src/main/java/ca/stewark/helioflux/ui/home/CurrentConditions.kt",
         ).readText()
@@ -15,11 +15,7 @@ class HomeSectionHeadingSourceTest {
             "src/main/java/ca/stewark/helioflux/ui/home/ForecastCards.kt",
         ).readText()
 
-        assertTrue(
-            current.contains(
-                "HelioFluxSectionHeading(\"Current Conditions\", topSpacing = 0.dp)",
-            ),
-        )
+        assertFalse(current.contains("HelioFluxSectionHeading("))
         assertTrue(
             forecast.contains(
                 "HelioFluxSectionHeading(\"NOAA Forecast\", topSpacing = 0.dp)",

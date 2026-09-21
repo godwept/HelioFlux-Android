@@ -41,9 +41,11 @@ class HomeDashboardTest {
         compose.onNodeWithText("HELIOFLUX").assertExists()
         compose.onNodeWithTag("home-compact").assertExists()
         compose.onNodeWithTag("solar-hero-stage").assertExists()
+        compose.onNodeWithTag("condition-metrics").assertExists()
+        compose.onNodeWithTag("forecast-section").assertExists()
     }
 
-    @Test fun metricTapRoutesAndExpandedLayoutIsSideBySide() {
+    @Test fun metricTapRoutesFromExpandedRightPane() {
         var target: HelioFluxDestination? = null
         compose.setContent { HomeScreen(HomeUiState(), true, { target = it }) }
         compose.onNodeWithTag("home-expanded").assertExists()
@@ -60,6 +62,33 @@ class HomeDashboardTest {
         compose.onNodeWithTag("metric-bz").assertExists()
         compose.onNodeWithTag("metric-wind").assertExists()
         compose.onNodeWithTag("metric-flare").assertDoesNotExist()
+    }
+
+    @Test fun currentConditionsRendersOnlyMetricPills() {
+        compose.setContent { HomeScreen(HomeUiState(), false, {}) }
+
+        compose.onNodeWithTag("condition-metrics").assertExists()
+        compose.onNodeWithTag("metric-kp").assertExists()
+        compose.onNodeWithTag("metric-bz").assertExists()
+        compose.onNodeWithTag("metric-wind").assertExists()
+        compose.onNodeWithText("Current Conditions").assertDoesNotExist()
+        compose.onNodeWithText("Aurora / geomagnetic status unavailable").assertDoesNotExist()
+        compose.onNodeWithText("Geomagnetic storm conditions").assertDoesNotExist()
+        compose.onNodeWithText("Geomagnetic conditions below storm level").assertDoesNotExist()
+    }
+
+    @Test fun expandedHomePinsHeroAndScrollsRightContent() {
+        compose.setContent { HomeScreen(HomeUiState(), true, {}) }
+
+        compose.onNodeWithTag("home-screen").assertExists()
+        compose.onNodeWithTag("home-masthead").assertExists()
+        compose.onNodeWithTag("home-expanded").assertExists()
+        compose.onNodeWithTag("home-expanded-hero").assertExists()
+        compose.onNodeWithTag("home-expanded-content").assertExists()
+        compose.onNodeWithTag("home-expanded-scroll").assertExists()
+        compose.onNodeWithTag("condition-metrics").assertExists()
+        compose.onNodeWithTag("home-expanded-scroll").performScrollToNode(hasTestTag("forecast-section"))
+        compose.onNodeWithTag("forecast-section").assertExists()
     }
 
     @Test fun shortForecastUsesAvailableCardRoomWithoutExpandAffordance() {

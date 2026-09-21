@@ -1,6 +1,7 @@
 package ca.stewark.helioflux.ui.home
 
 import java.io.File
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -22,5 +23,21 @@ class CurrentConditionsSourceTest {
                 "horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally)",
             ),
         )
+    }
+
+    @Test
+    fun currentConditionsShowsOnlyPillsWithApprovedVerticalPadding() {
+        val source = File(
+            "src/main/java/ca/stewark/helioflux/ui/home/CurrentConditions.kt",
+        ).readText()
+
+        assertTrue(source.contains(".padding(vertical = 12.dp)"))
+        assertFalse(source.contains("HelioFluxSectionHeading(\"Current Conditions\""))
+        assertFalse(source.contains("Aurora / geomagnetic status unavailable"))
+        assertFalse(source.contains("Geomagnetic storm conditions"))
+        assertFalse(source.contains("Geomagnetic conditions below storm level"))
+        assertTrue(source.contains("Metric(\"Kp\""))
+        assertTrue(source.contains("Metric(\"Bz\""))
+        assertTrue(source.contains("Metric(\"Wind\""))
     }
 }
