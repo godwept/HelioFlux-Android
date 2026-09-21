@@ -73,6 +73,9 @@ fun goesChartMeta(primary: String?, secondary: String?) =
 fun spaceWeatherChartDomain(timeframe: Timeframe, now: Long): ChartDomain =
     chartDomain(now, timeframe.durationMillis)
 
+fun goesChartDomain(now: Long): ChartDomain =
+    chartDomain(now, Timeframe.TwoDays.durationMillis)
+
 fun bzBtSeries(
     samples: List<SolarWindMag>,
     timeframe: Timeframe,
@@ -113,10 +116,9 @@ fun plasmaSeries(
 
 fun goesSeries(
     series: GoesMagnetometerSeries,
-    timeframe: Timeframe,
     now: Long,
 ): List<LineChartSeries> =
-    filterByTimeframe(series.samples, timeframe, now) { it.timestampMillis }.let { filtered ->
+    filterByTimeframe(series.samples, Timeframe.TwoDays, now) { it.timestampMillis }.let { filtered ->
         listOf(
             LineChartSeries(
                 points = filtered.map { ChartPoint(it.timestampMillis.toDouble(), it.primary) },
@@ -133,12 +135,12 @@ fun goesSeries(
 
 fun goesSeriesOrEmpty(
     series: GoesMagnetometerSeries?,
-    timeframe: Timeframe,
     now: Long,
 ): List<LineChartSeries> =
-    series?.let { goesSeries(it, timeframe, now) }.orEmpty()
+    series?.let { goesSeries(it, now) }.orEmpty()
 
 @Composable
+fun SpaceWeatherLineCard(@Composable
 fun SpaceWeatherLineCard(
     meta: ChartCardMeta,
     series: List<LineChartSeries>,

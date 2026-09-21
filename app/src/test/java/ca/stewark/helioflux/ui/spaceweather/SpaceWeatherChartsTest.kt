@@ -22,6 +22,40 @@ class SpaceWeatherChartsTest {
     }
 
     @Test
+    fun goesUsesFixedTwoDayWindow() {
+        val tooOld =
+            GoesMagSample(
+                now - Timeframe.TwoDays.durationMillis - 1,
+                1.0,
+                2.0,
+            )
+        val recent = GoesMagSample(now - 1_000, 3.0, 4.0)
+        val goes = GoesMagnetometerSeries(listOf(tooOld, recent), "P", "S")
+
+        val out = goesSeries(goes, now)
+
+        assertEquals(
+            listOf(recent.timestampMillis.toDouble()),
+            out[0].points.map { it.x },
+        )
+        assertEquals(
+            listOf(recent.timestampMillis.toDouble()),
+            out[1].points.map { it.x },
+        )
+    }
+
+    @Test
+    fun goesDomainIsAlwaysTwoDays() {
+        assertEquals(
+            ChartDomain(
+                minX = (now - Timeframe.TwoDays.durationMillis).toDouble(),
+                maxX = now.toDouble(),
+            ),
+            goesChartDomain(now),
+        )
+    }
+
+    @Test
     fun spaceWeatherChartHeightMatchesApprovedPixelPresentation() {
         assertEquals(240.dp, SpaceWeatherChartHeight)
     }
@@ -110,7 +144,7 @@ class SpaceWeatherChartsTest {
             "P",
             "S",
         )
-        val out = goesSeries(goes, Timeframe.OneHour, now)
+        val out = goesSeries(goes, now)
 
         assertEquals(listOf("P", "S"), out.map { it.label })
         assertEquals(
@@ -158,7 +192,7 @@ class SpaceWeatherChartsTest {
 
     @Test
     fun missingGoesDoesNotFabricateSeries() {
-        assertTrue(goesSeriesOrEmpty(null, Timeframe.OneHour, now).isEmpty())
+        assertTrue(goesSeriesOrEmpty(null, now).isEmpty())
     }
 
     @Test

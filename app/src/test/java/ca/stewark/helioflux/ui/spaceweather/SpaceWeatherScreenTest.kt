@@ -1,6 +1,7 @@
 package ca.stewark.helioflux.ui.spaceweather
 
 import ca.stewark.helioflux.core.data.repository.RepositoryState
+import androidx.compose.ui.unit.dp
 import ca.stewark.helioflux.core.model.*
 import java.io.File
 import org.junit.Assert.assertEquals
@@ -21,10 +22,10 @@ class SpaceWeatherScreenTest {
                 SpaceWeatherBlock.Density,
                 SpaceWeatherBlock.Speed,
                 SpaceWeatherBlock.Temperature,
-                SpaceWeatherBlock.Goes,
                 SpaceWeatherBlock.GeomagneticHeading,
                 SpaceWeatherBlock.Kp,
                 SpaceWeatherBlock.HemisphericPower,
+                SpaceWeatherBlock.Goes,
             ),
             spaceWeatherBlocks(false).flatten(),
         )
@@ -45,10 +46,10 @@ class SpaceWeatherScreenTest {
                 SpaceWeatherBlock.Density,
                 SpaceWeatherBlock.Speed,
                 SpaceWeatherBlock.Temperature,
-                SpaceWeatherBlock.Goes,
                 SpaceWeatherBlock.GeomagneticHeading,
                 SpaceWeatherBlock.Kp,
                 SpaceWeatherBlock.HemisphericPower,
+                SpaceWeatherBlock.Goes,
             ),
             flattened,
         )
@@ -83,7 +84,7 @@ class SpaceWeatherScreenTest {
     }
 
     @Test
-    fun screenComputesOneSelectedDomainForAllCharts() {
+    fun selectedDomainIsSolarWindOnlyAndGoesUsesFixedDomain() {
         val source = File(
             "src/main/java/ca/stewark/helioflux/ui/spaceweather/SpaceWeatherScreen.kt",
         ).readText()
@@ -94,13 +95,80 @@ class SpaceWeatherScreenTest {
                 .findAll(source)
                 .count(),
         )
-        assertTrue(Regex("""val\s+chartDomain\s*=\s*spaceWeatherChartDomain""").containsMatchIn(source))
-        assertTrue(source.contains("SpaceWeatherLineCard("))
-        assertTrue(source.contains("KpChart("))
-        assertTrue(source.contains("HemisphericPowerChart("))
+        assertTrue(
+            Regex("""val\s+chartDomain\s*=\s*spaceWeatherChartDomain""")
+                .containsMatchIn(source),
+        )
+
+        val goesBlock =
+            source.substringAfter("SpaceWeatherBlock.Goes ->")
+                .substringBefore("SpaceWeatherBlock.GeomagneticHeading ->")
+
+        assertTrue(goesBlock.contains("goesSeriesOrEmpty(goes, nowMillis)"))
+        assertTrue(goesBlock.contains("goesChartDomain(nowMillis)"))
+        assertFalse(goesBlock.contains("state.timeframe"))
     }
 
     @Test
+    fun sectionBoundariesUseApprovedSpacingWithoutChangingNormalCardSpacing() {
+        assertEquals(0.dp, spaceWeatherBlockSpacingBefore(null, SpaceWeatherBlock.AuroraHero))
+        assertEquals(
+            0.dp,
+            spaceWeatherBlockSpacingBefore(
+                SpaceWeatherBlock.AuroraHero,
+                SpaceWeatherBlock.SolarWindHeading,
+            ),
+        )
+        assertEquals(
+            0.dp,
+            spaceWeatherBlockSpacingBefore(
+                SpaceWeatherBlock.SolarWindHeading,
+                SpaceWeatherBlock.Metrics,
+            ),
+        )
+        assertEquals(
+            14.dp,
+            spaceWeatherBlockSpacingBefore(
+                SpaceWeatherBlock.Metrics,
+                SpaceWeatherBlock.Timeframe,
+            ),
+        )
+        assertEquals(
+            0.dp,
+            spaceWeatherBlockSpacingBefore(
+                SpaceWeatherBlock.Temperature,
+                SpaceWeatherBlock.GeomagneticHeading,
+            ),
+        )
+        assertEquals(
+            0.dp,
+            spaceWeatherBlockSpacingBefore(
+                SpaceWeatherBlock.GeomagneticHeading,
+                SpaceWeatherBlock.Kp,
+            ),
+        )
+        assertEquals(
+            14.dp,
+            spaceWeatherBlockSpacingBefore(
+                SpaceWeatherBlock.HemisphericPower,
+                SpaceWeatherBlock.Goes,
+            ),
+        )
+    }
+
+    @Test
+    fun spaceWeatherUsesSharedSectionHeading() {
+        val source = File(
+            "src/main/java/ca/stewark/helioflux/ui/spaceweather/SpaceWeatherScreen.kt",
+        ).readText()
+
+        assertTrue(source.contains("HelioFluxSectionHeading(\"Solar Wind\""))
+        assertTrue(source.contains("HelioFluxSectionHeading(\"Geomagnetic Activity\""))
+        assertFalse(source.contains("private fun SectionHeading("))
+    }
+
+    @Test
+    fun fixedBlockListUsesEagerScrollableColumnToKeepChartsComposedDuringScroll() {    @Test
     fun fixedBlockListUsesEagerScrollableColumnToKeepChartsComposedDuringScroll() {
         val source = File(
             "src/main/java/ca/stewark/helioflux/ui/spaceweather/SpaceWeatherScreen.kt",

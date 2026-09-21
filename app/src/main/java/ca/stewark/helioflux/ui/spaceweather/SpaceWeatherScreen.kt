@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ca.stewark.helioflux.core.data.repository.*
 import ca.stewark.helioflux.core.model.*
@@ -25,6 +26,7 @@ import ca.stewark.helioflux.ui.components.*
 
 private const val ExpandedGlobeWeight = 0.43f
 private const val ExpandedContentWeight = 0.57f
+internal val SpaceWeatherDefaultBlockSpacing = 14.dp
 
 private val OrderedSpaceWeatherBlocks =
     listOf(
@@ -36,10 +38,10 @@ private val OrderedSpaceWeatherBlocks =
         SpaceWeatherBlock.Density,
         SpaceWeatherBlock.Speed,
         SpaceWeatherBlock.Temperature,
-        SpaceWeatherBlock.Goes,
         SpaceWeatherBlock.GeomagneticHeading,
         SpaceWeatherBlock.Kp,
         SpaceWeatherBlock.HemisphericPower,
+        SpaceWeatherBlock.Goes,
     )
 
 private fun <T> RepositoryState<T>.screenData(): T? =
@@ -102,6 +104,19 @@ fun spaceWeatherBlocks(expanded: Boolean): List<List<SpaceWeatherBlock>> {
         }
     return blocks.map(::listOf)
 }
+
+internal fun spaceWeatherBlockSpacingBefore(
+    previous: SpaceWeatherBlock?,
+    current: SpaceWeatherBlock,
+): Dp =
+    when {
+        previous == null -> 0.dp
+        previous == SpaceWeatherBlock.SolarWindHeading ||
+            previous == SpaceWeatherBlock.GeomagneticHeading -> 0.dp
+        current == SpaceWeatherBlock.SolarWindHeading ||
+            current == SpaceWeatherBlock.GeomagneticHeading -> 0.dp
+        else -> SpaceWeatherDefaultBlockSpacing
+    }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -309,10 +324,14 @@ private fun SpaceWeatherBlockList(
                     state = rememberScrollState(),
                     enabled = userScrollEnabled,
                 ),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        rows.forEach { row ->
+        rows.forEachIndexed { index, row ->
             val block = row.single()
+            val previous = rows.getOrNull(index - 1)?.single()
+            val spacingBefore = spaceWeatherBlockSpacingBefore(previous, block)
+            if (spacingBefore > 0.dp) {
+                Spacer(Modifier.height(spacingBefore))
+            }
             SpaceWeatherBlockContent(
                 block = block,
                 state = state,
@@ -327,6 +346,7 @@ private fun SpaceWeatherBlockList(
                 chartDomain = chartDomain,
                 onRefreshSource = onRefreshSource,
                 onGlobeTouchActiveChanged = onGlobeTouchActiveChanged,
+                headingTopSpacing = if (index == 0) 0.dp else SectionHeadingTopSpacing,
             )
         }
     }
@@ -347,6 +367,7 @@ private fun SpaceWeatherBlockContent(
     chartDomain: ChartDomain,
     onRefreshSource: ((SpaceWeatherRefreshSource) -> Unit)?,
     onGlobeTouchActiveChanged: (Boolean) -> Unit,
+    headingTopSpacing: Dp = SectionHeadingTopSpacing,
 ) {
     val refreshSource = refreshSourceForBlock(block)
     val onChartRefresh: (() -> Unit)? =
@@ -378,7 +399,8 @@ private fun SpaceWeatherBlockContent(
                     }
                 }
             }
-        SpaceWeatherBlock.SolarWindHeading -> SectionHeading("Solar Wind")
+        SpaceWeatherBlock.SolarWindHeading ->
+            HelioFluxSectionHeading("Solar Wind", topSpacing = headingTopSpacing)
         SpaceWeatherBlock.Metrics -> SolarWindMetrics(latestSolarWindMetrics(magnetic, plasma))
         SpaceWeatherBlock.Timeframe -> TimeframeSelector(state.timeframe, onTimeframe)
         SpaceWeatherBlock.BzBt ->
@@ -439,13 +461,14 @@ private fun SpaceWeatherBlockContent(
         SpaceWeatherBlock.Goes ->
             SpaceWeatherLineCard(
                 goesChartMeta(goes?.primaryLabel, goes?.secondaryLabel),
-                goesSeriesOrEmpty(goes, state.timeframe, nowMillis),
-                chartDomain,
+                goesSeriesOrEmpty(goes, nowMillis),
+                goesChartDomain(nowMillis),
                 onRefresh = onChartRefresh,
                 refreshing = chartRefreshing,
                 refreshContentDescription = "Refresh GOES magnetometer",
             )
-        SpaceWeatherBlock.GeomagneticHeading -> SectionHeading("Geomagnetic Activity")
+        SpaceWeatherBlock.GeomagneticHeading ->
+            HelioFluxSectionHeading("Geomagnetic Activity", topSpacing = headingTopSpacing)
         SpaceWeatherBlock.Kp -> KpChart(kpPresentation(kp, nowMillis), kpChartDomain(nowMillis))
         SpaceWeatherBlock.HemisphericPower ->
             HemisphericPowerChart(
@@ -456,12 +479,3 @@ private fun SpaceWeatherBlockContent(
     }
 }
 
-@Composable
-private fun SectionHeading(text: String) {
-    Text(
-        text,
-        style = MaterialTheme.typography.headlineSmall,
-        color = MaterialTheme.colorScheme.onBackground,
-        modifier = Modifier.padding(top = 8.dp, bottom = 2.dp),
-    )
-}

@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ca.stewark.helioflux.core.model.ForecastSection
+import ca.stewark.helioflux.ui.components.HelioFluxSectionHeading
 import ca.stewark.helioflux.ui.theme.*
 
 internal const val FORECAST_COLLAPSED_MAX_LINES = 5
@@ -25,8 +26,8 @@ fun ForecastCards(
     modifier: Modifier = Modifier,
     expandedLayout: Boolean = false,
 ) {
-    Column(modifier.testTag("forecast-section"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("NOAA Forecast", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+    Column(modifier.testTag("forecast-section")) {
+        HelioFluxSectionHeading("NOAA Forecast", topSpacing = 0.dp)
         LazyRow(
             Modifier.fillMaxWidth().testTag("forecast-track"),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
