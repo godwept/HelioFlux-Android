@@ -10,7 +10,7 @@ import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotSame
 import org.junit.Test
 
 class OkHttpTransportTest {
@@ -38,11 +38,11 @@ class OkHttpTransportTest {
     fun blockingHttpExecutionRunsOffCallerDispatcher() = runBlocking {
         MockWebServer().use { server ->
             server.enqueue(MockResponse().setBody("ok"))
-            val executionThread = AtomicReference<String>()
+            val executionThread = AtomicReference<Thread>()
             val client =
                 OkHttpClient.Builder()
                     .addInterceptor { chain ->
-                        executionThread.set(Thread.currentThread().name)
+                        executionThread.set(Thread.currentThread())
                         chain.proceed(chain.request())
                     }
                     .build()
@@ -53,12 +53,11 @@ class OkHttpTransportTest {
 
             callerExecutor.asCoroutineDispatcher().use { callerDispatcher ->
                 withContext(callerDispatcher) {
-                    assertEquals("ui-caller", Thread.currentThread().name)
+                    val callerThread = Thread.currentThread()
                     transport.get(server.url("/").toString())
+                    assertNotSame(callerThread, executionThread.get())
                 }
             }
-
-            assertNotEquals("ui-caller", executionThread.get())
         }
     }
 }
