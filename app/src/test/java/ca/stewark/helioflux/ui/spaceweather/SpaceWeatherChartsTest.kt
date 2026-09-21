@@ -52,22 +52,17 @@ class SpaceWeatherChartsTest {
     }
 
     @Test
-    fun hemisphericPowerTodayDomainStopsAtNowInsteadOfFutureMidnight() {
-        val day = 24L * 60L * 60L * 1_000L
-        val now = day + 37L * 60L * 1_000L
+    fun hemisphericPowerShowsAllAvailableSamples() {
+        val oldest = HemisphericPowerSample(now - 36 * 60 * 60 * 1000L, 40.0, 30.0)
+        val newest = HemisphericPowerSample(now - 5 * 60 * 1000L, 55.0, 45.0)
+        val out = hemisphericPowerSeries(listOf(oldest, newest))
 
         assertEquals(
-            ChartDomain(day.toDouble(), now.toDouble()),
-            hemisphericPowerChartDomain(now),
+            listOf(oldest.timestampMillis.toDouble(), newest.timestampMillis.toDouble()),
+            out[0].points.map { it.x },
         )
-    }
-
-    @Test
-    fun hemisphericPowerIsNotFilteredBySolarWindTimeframe() {
-        val sample = HemisphericPowerSample(now - 2 * 60 * 60 * 1000L, 40.0, 30.0)
-        val out = hemisphericPowerSeries(listOf(sample))
-        assertEquals(40.0, out[0].points.single().y!!, 0.0)
-        assertEquals(30.0, out[1].points.single().y!!, 0.0)
+        assertEquals(listOf(40.0, 55.0), out[0].points.map { it.y })
+        assertEquals(listOf(30.0, 45.0), out[1].points.map { it.y })
     }
 
     @Test

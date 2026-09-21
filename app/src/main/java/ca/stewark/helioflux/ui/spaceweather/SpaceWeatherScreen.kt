@@ -58,7 +58,7 @@ fun spaceWeatherBlocks(expanded:Boolean):List<List<SpaceWeatherBlock>>{
   SpaceWeatherBlock.Goes->SpaceWeatherLineCard(goesChartMeta(goes?.primaryLabel,goes?.secondaryLabel),goesSeriesOrEmpty(goes,state.timeframe,nowMillis),chartDomain)
   SpaceWeatherBlock.GeomagneticHeading->SectionHeading("Geomagnetic Activity")
   SpaceWeatherBlock.Kp->KpChart(kpPresentation(kp,nowMillis),kpChartDomain(nowMillis))
-  SpaceWeatherBlock.HemisphericPower->HemisphericPowerChart(hemisphericPowerSeries(hp),hemisphericPowerChartDomain(nowMillis))
+  SpaceWeatherBlock.HemisphericPower->HemisphericPowerChart(hemisphericPowerSeries(hp))
  }
 }
 @Composable private fun SectionHeading(text:String){Text(text,style=MaterialTheme.typography.headlineSmall,color=MaterialTheme.colorScheme.onBackground,modifier=Modifier.padding(top=8.dp,bottom=2.dp))}

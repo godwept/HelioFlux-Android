@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ca.stewark.helioflux.core.model.HemisphericPowerSample
-import ca.stewark.helioflux.ui.components.ChartDomain
 import ca.stewark.helioflux.ui.components.ChartPoint
 import ca.stewark.helioflux.ui.components.ChartSeriesStyle
 import ca.stewark.helioflux.ui.components.HelioFluxLineChart
@@ -23,18 +22,11 @@ import ca.stewark.helioflux.ui.components.seriesColor
 
 val hemisphericPowerMeta =
     ChartCardMeta(
-        "OVATION Model · Today",
+        "OVATION Model",
         "Hemispheric Power (GW)",
         listOf("North", "South"),
     )
 const val hemisphericPowerEmptyMessage = "No hemispheric power data"
-private const val DayMillis = 24L * 60L * 60L * 1_000L
-
-fun hemisphericPowerChartDomain(now: Long): ChartDomain {
-    val utcDayStart = now - Math.floorMod(now, DayMillis)
-    return ChartDomain(utcDayStart.toDouble(), now.toDouble())
-}
-
 fun hemisphericPowerSeries(
     samples: List<HemisphericPowerSample>,
 ): List<LineChartSeries> =
@@ -58,7 +50,6 @@ fun hemisphericPowerSeries(
 @Composable
 fun HemisphericPowerChart(
     series: List<LineChartSeries>,
-    domain: ChartDomain,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -92,7 +83,6 @@ fun HemisphericPowerChart(
             } else {
                 HelioFluxLineChart(
                     series = series,
-                    domain = domain,
                     modifier = Modifier.fillMaxWidth().height(180.dp),
                 )
             }
