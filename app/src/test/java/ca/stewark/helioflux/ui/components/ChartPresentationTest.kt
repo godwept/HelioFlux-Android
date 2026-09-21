@@ -80,6 +80,12 @@ class ChartPresentationTest {
     }
 
     @Test
+    fun genericLogFormatterConvertsLogValueBackToScientificValue() {
+        assertEquals("1.0e-02", formatChartValue(-2.0, ChartValueFormat.LogScientific))
+        assertEquals("1.0e+06", formatChartValue(6.0, ChartValueFormat.LogScientific))
+    }
+
+    @Test
     fun xStepMatchesApprovedWindowBands() {
         assertEquals(15L * 60L * 1_000L, chartXStepMillis(ChartDomain(0.0, hour.toDouble())))
         assertEquals(30L * 60L * 1_000L, chartXStepMillis(ChartDomain(0.0, (3L * hour).toDouble())))

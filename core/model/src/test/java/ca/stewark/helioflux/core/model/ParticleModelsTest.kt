@@ -15,12 +15,14 @@ class ParticleModelsTest {
     }
 
     @Test
-    fun `ace epam preserves all five nullable channels`() {
-        val sample = AceEpamSample(1L, 2.0, null, 3.0, null, 4.0)
+    fun `ace epam preserves proton p7 and p8 channels`() {
+        val sample = AceEpamSample(1L, 2.0, null, 3.0, null, 4.0, 5.0, null)
         assertEquals(2.0, sample.electronLow!!, 0.0)
         assertNull(sample.electronHigh)
         assertEquals(3.0, sample.protonLow!!, 0.0)
         assertNull(sample.protonMid)
         assertEquals(4.0, sample.protonHigh!!, 0.0)
+        assertEquals(5.0, sample.protonP7!!, 0.0)
+        assertNull(sample.protonP8)
     }
 }

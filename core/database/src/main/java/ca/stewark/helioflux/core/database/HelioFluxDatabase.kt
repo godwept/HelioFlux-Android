@@ -60,7 +60,7 @@ import ca.stewark.helioflux.core.database.entity.SolarWindPlasmaEntity
         ActiveRegionEntity::class,
         EnlilFrameEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = false,
 )
 @TypeConverters(DatabaseConverters::class)

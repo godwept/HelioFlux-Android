@@ -34,6 +34,7 @@ val DefaultChartInteractionPolicy = ChartInteractionPolicy(
 enum class ChartValueFormat {
     Compact,
     Scientific,
+    LogScientific,
     XrayFlux,
 }
 
@@ -102,6 +103,7 @@ fun formatChartValue(value: Double, format: ChartValueFormat): String =
     when (format) {
         ChartValueFormat.Compact -> formatCompact(value)
         ChartValueFormat.Scientific -> String.format(Locale.US, "%.1e", value)
+        ChartValueFormat.LogScientific -> String.format(Locale.US, "%.1e", 10.0.pow(value))
         ChartValueFormat.XrayFlux -> String.format(Locale.US, "%.0e", 10.0.pow(value))
     }
 

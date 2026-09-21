@@ -7,4 +7,6 @@ data class AceEpamSample(
     val protonLow: Double?,
     val protonMid: Double?,
     val protonHigh: Double?,
+    val protonP7: Double?,
+    val protonP8: Double?,
 )

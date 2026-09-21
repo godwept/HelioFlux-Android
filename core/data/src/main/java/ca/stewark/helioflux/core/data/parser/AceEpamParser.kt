@@ -29,6 +29,8 @@ object AceEpamParser {
                     protonLow = value("p1"),
                     protonMid = value("p3"),
                     protonHigh = value("p5"),
+                    protonP7 = value("p7"),
+                    protonP8 = value("p8"),
                 )
             }
             .sortedBy(AceEpamSample::timestampMillis)

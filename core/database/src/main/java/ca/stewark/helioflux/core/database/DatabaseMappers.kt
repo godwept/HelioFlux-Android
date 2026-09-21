@@ -10,7 +10,7 @@ fun KpSample.toEntity()=KpEntity(timestampMillis,kp); fun KpEntity.toDomain()=Kp
 fun GoesMagSample.toEntity()=GoesMagEntity(timestampMillis,primary,secondary); fun GoesMagEntity.toDomain()=GoesMagSample(timestampMillis,primary,secondary)
 fun HemisphericPowerSample.toEntity()=HemisphericPowerEntity(timestampMillis,north,south); fun HemisphericPowerEntity.toDomain()=HemisphericPowerSample(timestampMillis,north,south)
 fun XrayFluxSample.toEntity()=XrayFluxEntity(timestampMillis,goes18Short,goes18Long,goes19Short,goes19Long); fun XrayFluxEntity.toDomain()=XrayFluxSample(timestampMillis,goes18Short,goes18Long,goes19Short,goes19Long)
-fun AceEpamSample.toEntity()=AceEpamEntity(timestampMillis,electronLow,electronHigh,protonLow,protonMid,protonHigh); fun AceEpamEntity.toDomain()=AceEpamSample(timestampMillis,electronLow,electronHigh,protonLow,protonMid,protonHigh)
+fun AceEpamSample.toEntity()=AceEpamEntity(timestampMillis,electronLow,electronHigh,protonLow,protonMid,protonHigh,protonP7,protonP8); fun AceEpamEntity.toDomain()=AceEpamSample(timestampMillis,electronLow,electronHigh,protonLow,protonMid,protonHigh,protonP7,protonP8)
 fun FlareEvent.toEntity()=FlareEventEntity(id,flareClass,timestampMillis,observatory,region,location); fun FlareEventEntity.toDomain()=FlareEvent(id,flareClass,timestampMillis,observatory,region,location)
 fun CmeEvent.toEntity()=CmeEventEntity(id,timestampMillis,speed,halfAngle,direction,type,link); fun CmeEventEntity.toDomain()=CmeEvent(id,timestampMillis,speed,halfAngle,direction,type,link)
 fun ForecastSection.toEntity()=ForecastSectionEntity(key,title,summary,forecast,issueTime); fun ForecastSectionEntity.toDomain()=ForecastSection(key,title,summary,forecast,issueTime)

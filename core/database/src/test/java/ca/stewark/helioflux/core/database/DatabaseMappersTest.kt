@@ -14,7 +14,7 @@ class DatabaseMappersTest {
    GoesMagSample(104,null,5.0).let{it.toEntity().toDomain() to it},
    HemisphericPowerSample(105,20.0,null).let{it.toEntity().toDomain() to it},
    XrayFluxSample(106,null,2.0,null,4.0).let{it.toEntity().toDomain() to it},
-   AceEpamSample(107,null,2.0,3.0,null,5.0).let{it.toEntity().toDomain() to it},
+   AceEpamSample(107,null,2.0,3.0,null,5.0,7.0,8.0).let{it.toEntity().toDomain() to it},
    FlareEvent("f","M1",108,"GOES",null,null).let{it.toEntity().toDomain() to it},
    CmeEvent("c",109,null,45.0,null,null,null).let{it.toEntity().toDomain() to it},
    ForecastSection("solar","Solar","summary","forecast",null).let{it.toEntity().toDomain() to it},
