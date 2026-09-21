@@ -43,7 +43,7 @@ class AuroraRepositoryTest {
         assertEquals(3_000, refreshed.data.observationTimestampMillis)
         assertEquals(2, refreshed.data.points.size)
         assertEquals(DataFreshness.Fresh, refreshed.freshness)
-        assertEquals(4_000, status.get(AuroraRepository.SOURCE)?.observationTimestampMillis)
+        assertEquals(4_000L, status.get(AuroraRepository.SOURCE)?.observationTimestampMillis)
     }
 
     @Test
