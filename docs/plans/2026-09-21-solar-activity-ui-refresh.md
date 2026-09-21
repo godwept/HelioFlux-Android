@@ -1079,7 +1079,7 @@ Expanded hierarchy passes and instrumentation compiles.
 
 ---
 
-### Task 21: Complete Solar Activity interaction and resilience instrumentation coverage
+### Task 17: Complete Solar Activity interaction and resilience instrumentation coverage
 
 **Files:**  
 `app/src/androidTest/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityUiTest.kt`  
@@ -1130,7 +1130,7 @@ Instrumentation compiles, and connected Solar Activity tests pass when available
 
 ---
 
-### Task 20: Run focused Solar Activity regression tests
+### Task 18: Run focused Solar Activity regression tests
 
 **Files:** No planned production changes.
 
@@ -1167,7 +1167,7 @@ All focused Solar Activity unit tests pass.
 
 ---
 
-### Task 17: Run the full local verification gate and inspect scope
+### Task 19: Run the full local verification gate and inspect scope
 
 **Files:** No planned production changes. Any newly discovered defect gets a focused failing test before correction.
 
@@ -1230,7 +1230,7 @@ All Gradle commands pass and no unplanned files are modified.
 
 ---
 
-### Task 18: Push one implementation batch and monitor Android CI
+### Task 20: Push one implementation batch and monitor Android CI
 
 **Files:** No additional planned source changes.
 
@@ -1262,7 +1262,7 @@ Android CI completes successfully for the final implementation SHA.
 
 ---
 
-### Task 19: Perform the physical Pixel acceptance pass
+### Task 21: Perform the physical Pixel acceptance pass
 
 **Files:** No planned source changes. Any discovered defect starts the project `$debugprompt` workflow before production changes.
 
