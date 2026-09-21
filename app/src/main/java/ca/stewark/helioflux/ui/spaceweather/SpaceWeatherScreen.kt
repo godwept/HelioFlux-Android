@@ -182,7 +182,7 @@ private fun CompactSpaceWeatherLayout(
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,
-        modifier = modifier.fillMaxSize().testTag("space-weather-pull-refresh"),
+        modifier = modifier.fillMaxSize().background(Color.Black).testTag("space-weather-pull-refresh"),
     ) {
         SpaceWeatherBlockList(
             rows = spaceWeatherBlocks(false),
@@ -223,7 +223,7 @@ private fun ExpandedSpaceWeatherLayout(
     modifier: Modifier,
 ) {
     Row(
-        modifier = modifier.fillMaxSize().testTag("space-weather-expanded"),
+        modifier = modifier.fillMaxSize().background(Color.Black).testTag("space-weather-expanded"),
     ) {
         Box(
             modifier =
