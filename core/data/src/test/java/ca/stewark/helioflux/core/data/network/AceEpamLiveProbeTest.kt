@@ -2,14 +2,17 @@ package ca.stewark.helioflux.core.data.network
 
 import java.net.HttpURLConnection
 import java.net.URL
+import java.time.Instant
 import org.junit.Assert.fail
 import org.junit.Test
 
 class AceEpamLiveProbeTest {
     @Test
     fun `show live LaTiS EPAM dataset columns`() {
-        val end = java.time.Instant.now()
-        val start = end.minusSeconds(72L * 60L * 60L)
+        val endMillis = System.currentTimeMillis()
+        val startMillis = endMillis - 72L * 60L * 60L * 1_000L
+        val end = Instant.ofEpochMilli(endMillis)
+        val start = Instant.ofEpochMilli(startMillis)
         val base = "https://lasp.colorado.edu/space-weather-portal/latis/dap/"
         val datasets = listOf("ace_epam_5m", "iswa_ace_epam_P5M")
 
