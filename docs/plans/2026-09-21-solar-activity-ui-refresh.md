@@ -8,7 +8,7 @@
 
 Refresh Solar Activity without changing repositories, the ViewModel, data sources, or chart engine. Portrait becomes one true-black lazy scientific feed. Landscape becomes a fixed Solar Imagery pane on the left and an independently scrollable/pull-to-refresh science pane on the right, using the same HMI/C2/C3/ENLIL selector in both orientations. The work also replaces AssistChips and generic event cards with HelioFlux scientific presentation, formats timestamps in UTC, replaces the current card-sized imagery dialog with a true full-screen viewer, preserves HMI overlays and static-image zoom/pan, and reuses the existing ENLIL blended playback in full screen.
 
-Tasks 1–14 modify the same Solar Activity UI subsystem and should be implemented as one TDD batch once this plan is approved. Run focused tests after each task, run the full local verification gate once, then push one implementation commit to minimize GitHub Actions usage and monitor Android CI to green.
+Tasks 1–16 modify the same Solar Activity UI subsystem and should be implemented as one TDD batch once this plan is approved. Run focused tests after each task, run the full local verification gate once, then push one implementation commit to minimize GitHub Actions usage and monitor Android CI to green.
 
 ## Tasks
 
@@ -191,7 +191,7 @@ data class CmeEventPresentation(
 
 Implement:
 
-- `flareProbabilityPresentation(state)`: Available and retained Failure -> C/M/X metrics; Loading -> loading message; Empty or failure without retained data -> unavailable message.
+- `flareProbabilityPresentation(state)`: Available -> C/M/X metrics; retained Failure -> the same metrics plus a small `Showing cached flare probabilities` message; Loading -> loading message; Empty or failure without retained data -> unavailable message.
 - C/M/X accents -> `WarningAmber`, `SolarOrange`, `AlertRed`.
 - `flareClassAccent(value)` using existing `flareClassGroup`:
   - A -> `SpaceMuted`
@@ -604,9 +604,9 @@ internal fun BoxScope.ActiveRegionOverlay(
 )
 ```
 
-Keep `mapActiveRegion` unchanged. Use `ActiveRegionOverlay` over the HMI image stage so the same overlay can later be reused by fullscreen.
+Keep `mapActiveRegion` unchanged. Keep the normal-card overlay attached to the same container it uses today so this polish pass does not silently change marker placement. The extracted `ActiveRegionOverlay` is reused later inside the fullscreen transformed image stage.
 
-Do not change active-region coordinate math.
+Do not change active-region coordinate math or normal-card marker placement in this task.
 
 **Verify:**
 
@@ -665,7 +665,7 @@ Keep:
 - poster fallback while preload completes;
 - no-frame behavior.
 
-Refactor `EnlilCard` to render `EnlilAnimation` inside its card and retain its title/click behavior.
+Refactor `EnlilCard` to render `EnlilAnimation` inside its card and retain its click behavior. Bring its metadata hierarchy in line with the approved imagery treatment by showing `WSA-Enlil`, source `NOAA`, and `Run <formatted UTC>` from the current run timestamp when frames are available. If a Failure contains retained frames, keep rendering them and show a subtle cached-data indication rather than reporting the animation as unavailable.
 
 Do not change cadence, preload strategy, or lifecycle conditions beyond moving the same logic into the reusable composable.
 
@@ -734,7 +734,7 @@ fun FullscreenImageryViewer(
 )
 ```
 
-Add a small reusable `ZoomableSolarImage` composable in the same file that owns `ImageryTransformState`, `AsyncImage`, and an optional overlay slot. Do not add navigation, download, share, or playback controls.
+Add a small reusable `ZoomableSolarImage` composable in the same file that owns `ImageryTransformState`, `AsyncImage`, and an optional overlay slot. Apply the scale/translation to one shared transformed stage containing both the image and overlay so HMI region labels move and zoom with the image rather than drifting independently. Do not add navigation, download, share, or playback controls.
 
 **Verify:**
 
@@ -857,141 +857,229 @@ The new layout contract is red against the current eager Column.
 
 ---
 
-### Task 13: Build the portrait true-black lazy Solar Activity feed
+### Task 13: Build the portrait shell and top Solar Imagery block
 
 **Files:**  
-`app/src/main/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityScreen.kt`  
-`app/src/main/java/ca/stewark/helioflux/ui/solaractivity/AceEpamChart.kt`  
-`app/src/androidTest/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityUiTest.kt`  
-`app/src/androidTest/java/ca/stewark/helioflux/ui/PartialDataTest.kt`
+\`app/src/main/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityScreen.kt\`  
+\`app/src/test/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityScreenSourceTest.kt\`  
+\`app/src/androidTest/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityUiTest.kt\`  
+\`app/src/androidTest/java/ca/stewark/helioflux/ui/PartialDataTest.kt\`
 
 **Test first:**
 
-Use the compact failures from Task 12.
+Use the compact failures from Task 12. Keep the assertions limited to the shell/top block in this task:
+
+- \`solar-activity-compact\` exists;
+- root/background source uses \`Color.Black\`;
+- \`Text("Solar Activity"\` is absent;
+- \`flare-probability-strip\` is present;
+- \`HelioFluxSectionHeading("Solar Imagery", topSpacing = 0.dp)\` is present;
+- selector and default HMI stage are present;
+- compact content is a \`LazyColumn\`, not \`Column(...verticalScroll(...))\`.
+
+Update \`PartialDataTest.kt\` so it no longer depends on the removed page title. It should assert \`Solar Imagery\` plus the available C probability text.
 
 **Implementation:**
 
-Refactor `SolarActivityScreen` to dispatch:
+Refactor \`SolarActivityScreen\` to dispatch explicitly:
 
-```kotlin
-if (expanded) {
-    ExpandedSolarActivityLayout(...)
-} else {
-    CompactSolarActivityLayout(...)
-}
-```
+    if (expanded) {
+        ExpandedSolarActivityLayout(...)
+    } else {
+        CompactSolarActivityLayout(...)
+    }
 
-For compact/portrait:
+Implement only the compact shell/top block in \`CompactSolarActivityLayout\`:
 
-1. Keep one `PullToRefreshBox` tagged `solar-activity-pull-refresh`.
-2. Use a root true-black surface/background.
-3. Use one vertical `LazyColumn` tagged `solar-activity-compact` with horizontal 16dp and vertical 12dp padding.
-4. Remove the generic `Solar Activity` title row.
-5. Keep the current aggregate freshness derivation and show `FreshnessIndicator` compactly at the top end of the content, without reintroducing a page title.
-6. Render in this exact order:
-   - `FlareProbabilityBadges`
-   - `HelioFluxSectionHeading("Solar Imagery", topSpacing = 0.dp)`
-   - `SolarImageryGallery(selectedImagery, ...)`
-   - `HelioFluxSectionHeading("X-Ray Activity")`
-   - `XrayChart(..., height = 260.dp)`
-   - `HelioFluxSectionHeading("Recent Flares")`
-   - `FlareList(state.flares)`
-   - `HelioFluxSectionHeading("Recent CMEs")`
-   - `CmeList(state.cmes, onCmeDetails)`
-   - `HelioFluxSectionHeading("Particle Environment")`
-   - `AceEpamChart(...)`.
-7. Keep the current 72-hour `chartDomain`.
-8. Do not add nested vertical scrolling to event lists.
-9. Stop extracting flare/CME lists into local raw-data variables; pass repository states so each section can show loading/empty/retained failure correctly.
-10. Keep X-Ray/EPAM Available/retained-data extraction only as needed by the existing chart APIs.
+1. Keep one \`PullToRefreshBox\` tagged \`solar-activity-pull-refresh\`.
+2. Use a true-black \`fillMaxSize()\` background.
+3. Use one vertical \`LazyColumn\` tagged \`solar-activity-compact\` with 16dp horizontal and 12dp vertical content padding.
+4. Remove the generic Solar Activity title row.
+5. Keep the existing aggregate freshness derivation and place \`FreshnessIndicator\` compactly at the top end of the content without restoring a page title.
+6. Render:
+   - \`FlareProbabilityBadges(state.probabilities)\`;
+   - \`HelioFluxSectionHeading("Solar Imagery", topSpacing = 0.dp)\`;
+   - \`SolarImageryGallery(selectedImagery, ...)\`.
+7. Keep local \`selectedImagery\` and \`viewer\` state in \`SolarActivityScreen\`; default selection is \`DefaultSolarGalleryItem\`.
+8. Do not add the lower science sections yet; Task 14 completes the compact feed.
 
-In `AceEpamChart.kt`, remove its internal `Text("ACE EPAM")` title because the screen now owns the `Particle Environment` section heading. Keep the chart series, 240dp chart height, scientific axis format, and empty message unchanged.
-
-Do not change `XrayChart.kt`.
+The expanded branch may call a small placeholder composable that preserves compilation only; do not add temporary visual behavior beyond what is necessary to compile.
 
 **Verify:**
 
-```bash
-./gradlew :app:testDebugUnitTest --tests "ca.stewark.helioflux.ui.solaractivity.SolarActivityScreenSourceTest"
-./gradlew :app:compileDebugAndroidTestKotlin
-```
+    ./gradlew :app:testDebugUnitTest --tests "ca.stewark.helioflux.ui.solaractivity.SolarActivityScreenSourceTest"
+    ./gradlew :app:compileDebugAndroidTestKotlin
 
-Compact layout contract passes and instrumentation compiles.
+The compact shell/top-block expectations pass.
 
 ---
 
-### Task 14: Build the fixed-imagery / scrolling-data landscape layout
+### Task 14: Complete the portrait science feed and section-local states
 
 **Files:**  
-`app/src/main/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityScreen.kt`  
-`app/src/test/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityScreenSourceTest.kt`  
-`app/src/androidTest/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityUiTest.kt`
+\`app/src/main/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityScreen.kt\`  
+\`app/src/main/java/ca/stewark/helioflux/ui/solaractivity/AceEpamChart.kt\`  
+\`app/src/test/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityScreenSourceTest.kt\`  
+\`app/src/androidTest/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityUiTest.kt\`
 
 **Test first:**
 
-Use the expanded failures from Task 12. Add exact split assertions:
+Extend the compact contract so scrolling reaches, in order:
 
-```kotlin
-@Test
-fun expandedSolarActivityUsesApprovedSplitWeights() {
-    assertEquals(0.43f, ExpandedSolarImageryWeight, 0.0f)
-    assertEquals(0.57f, ExpandedSolarDataWeight, 0.0f)
-}
-```
+1. X-Ray Activity
+2. Recent Flares
+3. Recent CMEs
+4. Particle Environment
+
+Add source assertions that the five approved \`HelioFluxSectionHeading\` calls exist and that neither \`FlareList.kt\` nor \`CmeList.kt\` owns a duplicate section title.
+
+Add an instrumentation assertion that a compact screen can scroll from HMI to \`Particle Environment\`.
+
+**Implementation:**
+
+Append these lazy blocks after Solar Imagery:
+
+- \`HelioFluxSectionHeading("X-Ray Activity")\`
+- X-Ray section body
+- \`HelioFluxSectionHeading("Recent Flares")\`
+- \`FlareList(state.flares)\`
+- \`HelioFluxSectionHeading("Recent CMEs")\`
+- \`CmeList(state.cmes, onCmeDetails)\`
+- \`HelioFluxSectionHeading("Particle Environment")\`
+- particle section body
+
+For X-Ray state handling:
+
+- Available -> existing \`XrayChart\` at 260dp using the current 72-hour domain.
+- Failure with retained samples -> small muted \`Showing cached X-Ray data\` label plus the same chart.
+- Loading -> inline \`Loading X-Ray data\`.
+- Empty or Failure without retained data -> inline \`X-Ray data unavailable\`.
+
+For ACE EPAM:
+
+- Available -> existing \`AceEpamChart\`.
+- Failure with retained samples -> small muted \`Showing cached particle data\` label plus \`AceEpamChart\`.
+- Loading -> inline \`Loading particle data\`.
+- Empty or Failure without retained data -> inline \`ACE EPAM data unavailable\`.
+
+Remove the internal \`Text("ACE EPAM")\` title from \`AceEpamChart.kt\`; keep its series, 240dp chart height, scientific Y format, and chart behavior unchanged.
+
+Do not modify \`XrayChart.kt\`, \`HelioFluxLineChart\`, chart domains, reduction, references, or gestures.
+
+**Verify:**
+
+    ./gradlew :app:testDebugUnitTest --tests "ca.stewark.helioflux.ui.solaractivity.SolarActivityScreenSourceTest"
+    ./gradlew :app:compileDebugAndroidTestKotlin
+
+Compact hierarchy and instrumentation compilation pass.
+
+---
+
+### Task 15: Build the expanded shell and fixed imagery pane
+
+**Files:**  
+\`app/src/main/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityScreen.kt\`  
+\`app/src/test/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityScreenSourceTest.kt\`  
+\`app/src/androidTest/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityUiTest.kt\`
+
+**Test first:**
+
+Add:
+
+    @Test
+    fun expandedSolarActivityUsesApprovedSplitWeights() {
+        assertEquals(0.43f, ExpandedSolarImageryWeight, 0.0f)
+        assertEquals(0.57f, ExpandedSolarDataWeight, 0.0f)
+    }
+
+Add source/instrumentation expectations for:
+
+- \`solar-activity-expanded\`;
+- \`solar-activity-expanded-imagery\`;
+- left pane contains \`Solar Imagery\`, selector, and selected HMI stage;
+- left pane source does not contain \`LazyColumn\` or \`verticalScroll\`.
 
 **Implementation:**
 
 Add:
 
-```kotlin
-internal const val ExpandedSolarImageryWeight = 0.43f
-internal const val ExpandedSolarDataWeight = 0.57f
-```
+    internal const val ExpandedSolarImageryWeight = 0.43f
+    internal const val ExpandedSolarDataWeight = 0.57f
 
-Implement `ExpandedSolarActivityLayout` as a true-black `Row` tagged `solar-activity-expanded`.
+Implement the expanded root as a true-black \`Row\` tagged \`solar-activity-expanded\`.
 
-Left pane:
+Create only the left pane in this task:
 
-- weight `ExpandedSolarImageryWeight`;
-- fill height;
-- start 16dp / top 12dp / end 8dp / bottom 12dp padding, matching the established adaptive screens;
-- tag `solar-activity-expanded-imagery`;
-- `HelioFluxSectionHeading("Solar Imagery", topSpacing = 0.dp)`;
-- shared HMI/C2/C3/ENLIL selector;
-- large selected imagery stage;
-- fixed in place with no vertical scroll.
+- weight \`ExpandedSolarImageryWeight\`;
+- \`fillMaxHeight()\`;
+- start 16dp / top 12dp / end 8dp / bottom 12dp padding;
+- tag \`solar-activity-expanded-imagery\`;
+- \`HelioFluxSectionHeading("Solar Imagery", topSpacing = 0.dp)\`;
+- the same shared HMI/C2/C3/ENLIL selector;
+- the same selected imagery stage;
+- no vertical scroll.
 
-Right pane:
-
-- one `PullToRefreshBox`;
-- weight `ExpandedSolarDataWeight`;
-- fill height;
-- tag `solar-activity-expanded-content`;
-- one `LazyColumn` tagged `solar-activity-expanded-scroll`;
-- start 8dp / end 16dp / vertical 12dp padding;
-- render:
-  - freshness indicator + C/M/X probability pills;
-  - X-Ray Activity heading/chart;
-  - Recent Flares heading/list;
-  - Recent CMEs heading/list;
-  - Particle Environment heading/ACE EPAM.
-
-The left imagery pane must not be inside the right scroll container or pull-to-refresh surface. The selector/state is shared with portrait and fullscreen.
-
-Do not change 43/57 unless implementation proves literal clipping; if that occurs, stop and revise the design/plan rather than silently changing the approved proportions.
+Reserve the right side with \`weight(ExpandedSolarDataWeight)\` so compilation/layout structure is stable; Task 16 fills it.
 
 **Verify:**
 
-```bash
-./gradlew :app:testDebugUnitTest --tests "ca.stewark.helioflux.ui.solaractivity.SolarActivityScreenSourceTest"
-./gradlew :app:compileDebugAndroidTestKotlin
-```
+    ./gradlew :app:testDebugUnitTest --tests "ca.stewark.helioflux.ui.solaractivity.SolarActivityScreenSourceTest"
+    ./gradlew :app:compileDebugAndroidTestKotlin
 
-Expanded layout contract passes and instrumentation sources compile.
+The split constants and fixed left pane contract pass.
 
 ---
 
-### Task 15: Complete Solar Activity interaction and resilience instrumentation coverage
+### Task 16: Add the independently scrollable expanded science pane
+
+**Files:**  
+\`app/src/main/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityScreen.kt\`  
+\`app/src/test/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityScreenSourceTest.kt\`  
+\`app/src/androidTest/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityUiTest.kt\`
+
+**Test first:**
+
+Extend expanded tests to require:
+
+- \`solar-activity-expanded-content\`;
+- \`solar-activity-expanded-scroll\`;
+- the right pane contains probability pills, X-Ray Activity, Recent Flares, Recent CMEs, and Particle Environment;
+- the right scroll subtree does not contain \`SolarImageryGallery\`;
+- instrumentation can scroll the right pane to Particle Environment while \`solar-activity-expanded-imagery\` still exists.
+
+**Implementation:**
+
+Fill the right side with one \`PullToRefreshBox\`:
+
+- weight \`ExpandedSolarDataWeight\`;
+- \`fillMaxHeight()\`;
+- tag \`solar-activity-expanded-content\`;
+- same \`isRefreshing\` and \`onRefresh\` as the screen.
+
+Inside it, use one \`LazyColumn\` tagged \`solar-activity-expanded-scroll\` with start 8dp / end 16dp / vertical 12dp content padding.
+
+Render, in order:
+
+1. compact freshness indicator plus \`FlareProbabilityBadges\`;
+2. X-Ray Activity heading and the same section-state body from Task 14;
+3. Recent Flares heading and \`FlareList(state.flares)\`;
+4. Recent CMEs heading and \`CmeList(state.cmes, onCmeDetails)\`;
+5. Particle Environment heading and the same particle section-state body.
+
+The left imagery pane must remain outside the right \`PullToRefreshBox\` and \`LazyColumn\`.
+
+Do not add nested vertical scrolling to flare/CME lists. Start with the approved 43/57 proportions; if literal clipping is discovered during implementation, stop and revise the approved design/plan instead of silently changing them.
+
+**Verify:**
+
+    ./gradlew :app:testDebugUnitTest --tests "ca.stewark.helioflux.ui.solaractivity.SolarActivityScreenSourceTest"
+    ./gradlew :app:compileDebugAndroidTestKotlin
+
+Expanded hierarchy passes and instrumentation compiles.
+
+---
+
+### Task 21: Complete Solar Activity interaction and resilience instrumentation coverage
 
 **Files:**  
 `app/src/androidTest/java/ca/stewark/helioflux/ui/solaractivity/SolarActivityUiTest.kt`  
@@ -1021,7 +1109,7 @@ Update `PartialDataTest` to assert mixed state rendering through stable section/
 
 **Implementation:**
 
-No planned production changes in this task. If a test exposes a regression, add the narrowest reproduction and make only the correction required by Tasks 1–14.
+No planned production changes in this task. If a test exposes a regression, add the narrowest reproduction and make only the correction required by Tasks 1–16.
 
 If the implementation reveals a distinct ENLIL lifecycle/performance bug beyond the selected-only composition required by this design, stop and route that defect through `$debugprompt` before modifying playback/lifecycle logic.
 
@@ -1042,7 +1130,7 @@ Instrumentation compiles, and connected Solar Activity tests pass when available
 
 ---
 
-### Task 16: Run focused Solar Activity regression tests
+### Task 20: Run focused Solar Activity regression tests
 
 **Files:** No planned production changes.
 
