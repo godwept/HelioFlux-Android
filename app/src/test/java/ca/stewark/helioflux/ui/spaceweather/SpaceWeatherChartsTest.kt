@@ -27,6 +27,12 @@ class SpaceWeatherChartsTest {
     }
 
     @Test
+    fun chartRefreshControlUsesApprovedPixelDimensions() {
+        assertEquals(48.dp, ChartRefreshTouchTarget)
+        assertEquals(36.dp, ChartRefreshVisibleSize)
+    }
+
+    @Test
     fun bzBtUsesFilteredDataAndZeroReference() {
         val samples = listOf(
             SolarWindMag(now - 4 * 60 * 60 * 1000, null, null, -9.0, 10.0),

@@ -90,6 +90,31 @@ class AppRefreshCoordinatorTest {
     }
 
     @Test
+    fun fastRefreshExecutionsAreSerialized() = runTest {
+        val firstGate = CompletableDeferred<Unit>()
+        var calls = 0
+        val coordinator = coordinator(
+            fast = listOf({
+                calls++
+                if (calls == 1) firstGate.await()
+            }),
+        )
+
+        val first = launch { coordinator.refreshFast() }
+        runCurrent()
+        val second = launch { coordinator.refreshFast() }
+        runCurrent()
+
+        assertEquals(1, calls)
+
+        firstGate.complete(Unit)
+        first.join()
+        second.join()
+
+        assertEquals(2, calls)
+    }
+
+    @Test
     fun manualAllRefreshSetsBusyUntilEveryActionCompletes() = runTest {
         val gate = CompletableDeferred<Unit>()
         val coordinator = coordinator(fast = listOf({ gate.await() }))

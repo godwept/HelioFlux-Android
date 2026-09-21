@@ -24,6 +24,7 @@ class AppDataRefreshWorkerTest {
         val request = buildFastDataRefreshRequest()
 
         assertEquals(TimeUnit.MINUTES.toMillis(15), request.workSpec.intervalDuration)
+        assertEquals(TimeUnit.MINUTES.toMillis(15), request.workSpec.initialDelay)
         assertEquals(NetworkType.CONNECTED, request.workSpec.constraints.requiredNetworkType)
         assertEquals(AppDataRefreshWorker.TIER_FAST, request.workSpec.input.getString(AppDataRefreshWorker.KEY_TIER))
     }
@@ -33,6 +34,7 @@ class AppDataRefreshWorkerTest {
         val request = buildSlowDataRefreshRequest()
 
         assertEquals(TimeUnit.HOURS.toMillis(1), request.workSpec.intervalDuration)
+        assertEquals(TimeUnit.HOURS.toMillis(1), request.workSpec.initialDelay)
         assertEquals(NetworkType.CONNECTED, request.workSpec.constraints.requiredNetworkType)
         assertEquals(AppDataRefreshWorker.TIER_SLOW, request.workSpec.input.getString(AppDataRefreshWorker.KEY_TIER))
     }

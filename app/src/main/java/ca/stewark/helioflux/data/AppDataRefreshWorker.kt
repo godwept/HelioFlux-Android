@@ -24,6 +24,7 @@ internal fun buildFastDataRefreshRequest(): PeriodicWorkRequest =
         TimeUnit.MINUTES,
     )
         .setConstraints(dataRefreshWorkConstraints)
+        .setInitialDelay(FastRefreshIntervalMinutes, TimeUnit.MINUTES)
         .setInputData(workDataOf(AppDataRefreshWorker.KEY_TIER to AppDataRefreshWorker.TIER_FAST))
         .build()
 
@@ -33,6 +34,7 @@ internal fun buildSlowDataRefreshRequest(): PeriodicWorkRequest =
         TimeUnit.HOURS,
     )
         .setConstraints(dataRefreshWorkConstraints)
+        .setInitialDelay(SlowRefreshIntervalHours, TimeUnit.HOURS)
         .setInputData(workDataOf(AppDataRefreshWorker.KEY_TIER to AppDataRefreshWorker.TIER_SLOW))
         .build()
 

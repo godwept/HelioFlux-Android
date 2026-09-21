@@ -1,6 +1,8 @@
 package ca.stewark.helioflux.ui.spaceweather
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -51,6 +54,8 @@ val densityChartMeta = ChartCardMeta("Solar Wind", "Density (p/cm³)")
 val speedChartMeta = ChartCardMeta("Solar Wind", "Speed (km/s)")
 val temperatureChartMeta = ChartCardMeta("Solar Wind", "Temperature (K)")
 val SpaceWeatherChartHeight = 240.dp
+val ChartRefreshTouchTarget = 48.dp
+val ChartRefreshVisibleSize = 36.dp
 
 fun goesChartMeta(primary: String?, secondary: String?) =
     ChartCardMeta(
@@ -207,20 +212,40 @@ internal fun ChartRefreshAction(
     IconButton(
         onClick = onRefresh,
         enabled = !refreshing,
-        modifier = Modifier.semantics { this.contentDescription = contentDescription },
+        modifier = Modifier
+            .size(ChartRefreshTouchTarget)
+            .semantics { this.contentDescription = contentDescription },
     ) {
-        if (refreshing) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(18.dp),
-                strokeWidth = 2.dp,
-            )
-        } else {
-            Text(
-                text = "↻",
-                style = MaterialTheme.typography.titleLarge,
-                fontSize = 20.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier
+                .size(ChartRefreshVisibleSize)
+                .background(
+                    MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = .72f),
+                    CircleShape,
+                )
+                .border(
+                    BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = .72f),
+                    ),
+                    CircleShape,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (refreshing) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                Text(
+                    text = "↻",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontSize = 24.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }

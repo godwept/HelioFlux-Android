@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 interface AppRefreshCoordinatorProvider {
     val refreshCoordinator: AppRefreshCoordinator
@@ -20,23 +22,33 @@ class AppRefreshCoordinator(
 ) {
     private val startupStarted = AtomicBoolean(false)
     private val manualRefreshStarted = AtomicBoolean(false)
+    private val fastRefreshMutex = Mutex()
+    private val slowRefreshMutex = Mutex()
     private val _isRefreshing = MutableStateFlow(false)
 
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
     suspend fun refreshFast() {
-        runActions(fastActions)
+        fastRefreshMutex.withLock {
+            runActions(fastActions)
+        }
     }
 
     suspend fun refreshSlow() {
-        runActions(slowActions)
+        slowRefreshMutex.withLock {
+            runActions(slowActions)
+        }
     }
 
     suspend fun refreshAll() {
         if (!manualRefreshStarted.compareAndSet(false, true)) return
         _isRefreshing.value = true
         try {
-            runActions(fastActions + slowActions + solarHeroAction)
+            supervisorScope {
+                launch { refreshFast() }
+                launch { refreshSlow() }
+                launch { runCatching { solarHeroAction() } }
+            }
         } finally {
             _isRefreshing.value = false
             manualRefreshStarted.set(false)
@@ -46,7 +58,10 @@ class AppRefreshCoordinator(
     fun refreshStartupOnce(scope: CoroutineScope) {
         if (!startupStarted.compareAndSet(false, true)) return
         scope.launch {
-            runActions(fastActions + slowActions)
+            supervisorScope {
+                launch { refreshFast() }
+                launch { refreshSlow() }
+            }
         }
     }
 
