@@ -168,7 +168,6 @@ class SpaceWeatherScreenTest {
     }
 
     @Test
-    fun fixedBlockListUsesEagerScrollableColumnToKeepChartsComposedDuringScroll() {    @Test
     fun fixedBlockListUsesEagerScrollableColumnToKeepChartsComposedDuringScroll() {
         val source = File(
             "src/main/java/ca/stewark/helioflux/ui/spaceweather/SpaceWeatherScreen.kt",
