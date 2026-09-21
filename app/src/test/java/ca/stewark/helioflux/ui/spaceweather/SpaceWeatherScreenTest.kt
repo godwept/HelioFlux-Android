@@ -126,6 +126,19 @@ class SpaceWeatherScreenTest {
     }
 
     @Test
+    fun compactAndExpandedLayoutsUseBlackScreenCanvas() {
+        val source = File(
+            "src/main/java/ca/stewark/helioflux/ui/spaceweather/SpaceWeatherScreen.kt",
+        ).readText()
+
+        val compact = source.substringAfter("private fun CompactSpaceWeatherLayout(").substringBefore("@OptIn(ExperimentalMaterial3Api::class)", source.indexOf("private fun CompactSpaceWeatherLayout("))
+        val expanded = source.substringAfter("private fun ExpandedSpaceWeatherLayout(").substringBefore("@Composable\nprivate fun SpaceWeatherBlockList")
+
+        assertTrue(compact.contains(".background(Color.Black)"))
+        assertTrue(expanded.contains(".background(Color.Black)"))
+    }
+
+    @Test
     fun auroraHeroUsesBlackSquareStage() {
         val source = File(
             "src/main/java/ca/stewark/helioflux/ui/spaceweather/SpaceWeatherScreen.kt",
