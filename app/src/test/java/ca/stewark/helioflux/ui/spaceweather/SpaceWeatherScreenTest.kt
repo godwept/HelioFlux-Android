@@ -100,8 +100,9 @@ class SpaceWeatherScreenTest {
                 .containsMatchIn(source),
         )
 
+        val blockContent = source.substringAfter("private fun SpaceWeatherBlockContent(")
         val goesBlock =
-            source.substringAfter("SpaceWeatherBlock.Goes ->")
+            blockContent.substringAfter("SpaceWeatherBlock.Goes ->")
                 .substringBefore("SpaceWeatherBlock.GeomagneticHeading ->")
 
         assertTrue(goesBlock.contains("goesSeriesOrEmpty(goes, nowMillis)"))
