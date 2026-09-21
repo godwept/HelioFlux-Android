@@ -64,8 +64,10 @@ private val ShortUtcFormatter =
     DateTimeFormatter.ofPattern("HH:mm", Locale.US).withZone(ZoneOffset.UTC)
 private val LongUtcFormatter =
     DateTimeFormatter.ofPattern("MMM d HH:mm", Locale.US).withZone(ZoneOffset.UTC)
-private val MarkerUtcFormatter =
-    DateTimeFormatter.ofPattern("MMM d HH:mm 'UTC'", Locale.US).withZone(ZoneOffset.UTC)
+private val MarkerUtcDateFormatter =
+    DateTimeFormatter.ofPattern("MMM d", Locale.US).withZone(ZoneOffset.UTC)
+private val MarkerUtcTimeFormatter =
+    DateTimeFormatter.ofPattern("HH:mm 'UTC'", Locale.US).withZone(ZoneOffset.UTC)
 
 fun formatUtcAxisLabel(xMillis: Double, domain: ChartDomain): String {
     val formatter =
@@ -77,8 +79,13 @@ fun formatUtcAxisLabel(xMillis: Double, domain: ChartDomain): String {
     return formatter.format(Instant.ofEpochMilli(xMillis.toLong()))
 }
 
-fun formatUtcMarkerTimestamp(xMillis: Double): String =
-    MarkerUtcFormatter.format(Instant.ofEpochMilli(xMillis.toLong()))
+fun formatUtcMarkerTimestamp(xMillis: Double): String {
+    val instant = Instant.ofEpochMilli(xMillis.toLong())
+    return MarkerUtcDateFormatter.format(instant) + "\n" + MarkerUtcTimeFormatter.format(instant)
+}
+
+fun chartMarkerLineCount(seriesCount: Int): Int =
+    2 + seriesCount.coerceAtLeast(0)
 
 fun chartXStepMillis(domain: ChartDomain): Long {
     val duration = (domain.maxX - domain.minX).coerceAtLeast(0.0)

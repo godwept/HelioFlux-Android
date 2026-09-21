@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.window.core.layout.WindowSizeClass
@@ -44,6 +45,14 @@ private val NavActive=Color(0xFFFF9F2A)
 private val NavInactive=Color(0xFF8B949E)
 private val NavDivider=Color(0x33FF9500)
 private val NavAnimation=tween<androidx.compose.ui.unit.Dp>(durationMillis=225,easing=FastOutSlowInEasing)
+internal val NavigationRailItemHeight=72.dp
+internal val NavigationRailIndicatorHeight=24.dp
+
+internal fun navigationRailGroupTop(availableHeight:Dp,itemCount:Int):Dp=
+ ((availableHeight-NavigationRailItemHeight*itemCount).coerceAtLeast(0.dp))/2
+
+internal fun navigationRailIndicatorOffset(availableHeight:Dp,selectedIndex:Int,itemCount:Int):Dp=
+ navigationRailGroupTop(availableHeight,itemCount)+NavigationRailItemHeight*selectedIndex+(NavigationRailItemHeight-NavigationRailIndicatorHeight)/2
 
 @Composable fun HelioFluxApp(initialDestination:HelioFluxDestination?=null,initialFocus:String?=null){
  val app=LocalContext.current.applicationContext as HelioFluxApplication
@@ -103,12 +112,13 @@ private val NavAnimation=tween<androidx.compose.ui.unit.Dp>(durationMillis=225,e
 @Composable private fun HelioFluxNavigationRail(selected:HelioFluxDestination,onSelect:(HelioFluxDestination)->Unit){
  val destinations=HelioFluxDestination.entries
  val selectedIndex=destinations.indexOf(selected)
- val itemHeight=72.dp
- val target=itemHeight*selectedIndex+24.dp
- val indicatorOffset by animateDpAsState(target,NavAnimation,label="rail-nav-indicator")
- Box(Modifier.width(104.dp).fillMaxHeight().background(NavBackground).drawBehind{drawLine(NavDivider,Offset(size.width-1f,0f),Offset(size.width-1f,size.height),1f)}.testTag(NavigationRailTag)){
-  Box(Modifier.offset(y=indicatorOffset).width(3.dp).height(24.dp).background(NavActive,CircleShape).testTag("helioflux-rail-indicator"))
-  Column(Modifier.fillMaxWidth()){
+ val itemHeight=NavigationRailItemHeight
+ BoxWithConstraints(Modifier.width(104.dp).fillMaxHeight().background(NavBackground).drawBehind{drawLine(NavDivider,Offset(size.width-1f,0f),Offset(size.width-1f,size.height),1f)}.testTag(NavigationRailTag)){
+  val groupTop=navigationRailGroupTop(maxHeight,destinations.size)
+  val target=navigationRailIndicatorOffset(maxHeight,selectedIndex,destinations.size)
+  val indicatorOffset by animateDpAsState(target,NavAnimation,label="rail-nav-indicator")
+  Box(Modifier.offset(y=indicatorOffset).width(3.dp).height(NavigationRailIndicatorHeight).background(NavActive,CircleShape).testTag("helioflux-rail-indicator"))
+  Column(Modifier.fillMaxWidth().offset(y=groupTop)){
    destinations.forEach{destination->
     NavItem(destination,destination==selected,onSelect,Modifier.fillMaxWidth().height(itemHeight))
    }

@@ -242,8 +242,10 @@ fun HelioFluxLineChart(
                     style =
                         TextStyle(
                             color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 10.sp,
+                            fontSize = 11.sp,
+                            lineHeight = 14.sp,
                         ),
+                    lineCount = chartMarkerLineCount(preparedSeries.size),
                 ),
             valueFormatter = markerFormatter,
             guideline =

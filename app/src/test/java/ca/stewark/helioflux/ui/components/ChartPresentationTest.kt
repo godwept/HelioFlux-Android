@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 import java.time.Instant
 
 class ChartPresentationTest {
@@ -41,6 +42,20 @@ class ChartPresentationTest {
             "Sep 20 12:34",
             formatUtcAxisLabel(instant, ChartDomain(instant - 72L * hour, instant)),
         )
+    }
+
+    @Test
+    fun markerInspectionReservesReadableLinesForTimestampAndValues() {
+        val instant = Instant.parse("2026-09-20T12:34:00Z").toEpochMilli().toDouble()
+
+        assertEquals("Sep 20\n12:34 UTC", formatUtcMarkerTimestamp(instant))
+        assertEquals(3, chartMarkerLineCount(1))
+        assertEquals(6, chartMarkerLineCount(4))
+
+        val source =
+            File("src/main/java/ca/stewark/helioflux/ui/components/HelioFluxLineChart.kt")
+                .readText()
+        assertTrue(source.contains("lineCount = chartMarkerLineCount(preparedSeries.size)"))
     }
 
     @Test
