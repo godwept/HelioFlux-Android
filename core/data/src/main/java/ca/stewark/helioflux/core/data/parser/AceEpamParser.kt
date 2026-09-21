@@ -11,17 +11,17 @@ object AceEpamParser {
                 .toList()
         if (lines.isEmpty()) return emptyList()
 
-        val header = splitLine(lines.first()).map { it.lowercase() }
+        val header = splitLine(lines.first()).map(::normalizeHeader)
         val timeIndex = header.indexOf("time")
         if (timeIndex < 0) return emptyList()
 
         fun index(name: String): Int = header.indexOf(name)
 
-        val p1Index = index("p1")
-        val p3Index = index("p3")
-        val p5Index = index("p5")
-        val fp6Index = index("fp6p")
-        val p7Index = index("p7")
+        val p1Index = index("protonflux_47_68")
+        val p3Index = index("protonflux_115_195")
+        val p5Index = index("protonflux_310_580")
+        val fp6Index = index("protonflux_795_1193")
+        val p7Index = index("protonflux_1060_1900")
 
         return lines
             .drop(1)
@@ -59,4 +59,7 @@ object AceEpamParser {
 
     private fun splitLine(line: String): List<String> =
         line.split(',').map { value -> value.trim().trim('"') }
+
+    private fun normalizeHeader(value: String): String =
+        value.substringBefore(" (").trim().lowercase()
 }

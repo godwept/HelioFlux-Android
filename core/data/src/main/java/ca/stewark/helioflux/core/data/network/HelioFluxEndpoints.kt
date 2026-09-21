@@ -23,7 +23,7 @@ object HelioFluxEndpoints {
     fun aceEpam(startMillis: Long, endMillis: Long): String {
         val start = Instant.ofEpochMilli(startMillis)
         val end = Instant.ofEpochMilli(endMillis)
-        return "$LASP/ace_epam_5m.csv?time%3E=$start&time%3C=$end&project(time,p1,p3,p5,fp6p,p7)"
+        return "$LASP/iswa_ace_epam_P5M.csv?time%3E=$start&time%3C=$end"
     }
 
     val donki = "$WORKER/donki"
