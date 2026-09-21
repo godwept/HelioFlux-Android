@@ -32,7 +32,7 @@ private const val DayMillis = 24L * 60L * 60L * 1_000L
 
 fun hemisphericPowerChartDomain(now: Long): ChartDomain {
     val utcDayStart = now - Math.floorMod(now, DayMillis)
-    return ChartDomain(utcDayStart.toDouble(), (utcDayStart + DayMillis).toDouble())
+    return ChartDomain(utcDayStart.toDouble(), now.toDouble())
 }
 
 fun hemisphericPowerSeries(
