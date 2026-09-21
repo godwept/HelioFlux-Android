@@ -48,7 +48,7 @@ jobs:
       - name: Verify Gradle project
         run: ./gradlew projects
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest
+        run: ./gradlew testDebugUnitTest --info
       - name: Compile instrumentation tests
         run: ./gradlew assembleDebugAndroidTest
       - name: Run connected instrumentation tests when a device is available

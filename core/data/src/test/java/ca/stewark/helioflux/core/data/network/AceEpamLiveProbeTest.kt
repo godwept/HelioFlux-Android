@@ -27,6 +27,10 @@ class AceEpamLiveProbeTest {
             fail("LaTiS HTTP " + status + " for " + url + "\n" + body.take(2000))
         }
 
+        System.out.println("LATIS_PROBE_URL=" + url)
+        System.out.println("LATIS_PROBE_STATUS=" + status)
+        System.out.println("LATIS_PROBE_BODY_START\\n" + body.take(4000) + "\\nLATIS_PROBE_BODY_END")
+
         val rows =
             try {
                 AceEpamParser.parse(body)
