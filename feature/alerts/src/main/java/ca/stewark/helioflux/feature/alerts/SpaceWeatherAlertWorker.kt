@@ -13,6 +13,9 @@ import ca.stewark.helioflux.core.data.repository.SolarActivityRepository
 import ca.stewark.helioflux.core.data.repository.SpaceWeatherRepository
 import ca.stewark.helioflux.core.database.dao.AlertStateDao
 import ca.stewark.helioflux.core.database.entity.AlertStateEntity
+import ca.stewark.helioflux.core.model.FlareEvent
+import ca.stewark.helioflux.core.model.KpSample
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
 data class AlertFlare(val id: String, val flareClass: String)
@@ -79,21 +82,21 @@ class SpaceWeatherAlertWorker(
     }
 }
 
-class RepositoryAlertRepository(
-    private val spaceWeather: SpaceWeatherRepository,
-    private val solarActivity: SolarActivityRepository,
-    private val nowMillis: () -> Long = System::currentTimeMillis,
+class RepositoryAlertRepository private constructor(
+    private val kpStates: (Long, Long) -> Flow<RepositoryState<List<KpSample>>>,
+    private val flareStates: () -> Flow<RepositoryState<List<FlareEvent>>>,
+    private val nowMillis: () -> Long,
 ) : AlertRepository {
-    override suspend fun currentConditions(): AlertConditions {
-        spaceWeather.refreshKp()
-        // NOAA's hemispheric-power file resets at UTC midnight, so the hourly
-        // background worker must persist it during the day for cross-midnight history.
-        spaceWeather.refreshHemisphericPower()
-        solarActivity.refreshFlares()
+    constructor(
+        spaceWeather: SpaceWeatherRepository,
+        solarActivity: SolarActivityRepository,
+        nowMillis: () -> Long = System::currentTimeMillis,
+    ) : this(spaceWeather::kp, solarActivity::flares, nowMillis)
 
+    override suspend fun currentConditions(): AlertConditions {
         val now = nowMillis()
-        val kpState = spaceWeather.kp(now - DAY_MILLIS, now).first { it !is RepositoryState.Loading }
-        val flareState = solarActivity.flares().first { it !is RepositoryState.Loading }
+        val kpState = kpStates(now - DAY_MILLIS, now).first { it !is RepositoryState.Loading }
+        val flareState = flareStates().first { it !is RepositoryState.Loading }
 
         if (kpState is RepositoryState.Failure) throw TransientAlertDataException(kpState.message)
         if (flareState is RepositoryState.Failure) throw TransientAlertDataException(flareState.message)
@@ -107,8 +110,14 @@ class RepositoryAlertRepository(
         return AlertConditions(kp, flares)
     }
 
-    private companion object {
-        const val DAY_MILLIS = 24L * 60 * 60 * 1000
+    internal companion object {
+        private const val DAY_MILLIS = 24L * 60 * 60 * 1000
+
+        fun forTest(
+            kpStates: (Long, Long) -> Flow<RepositoryState<List<KpSample>>>,
+            flareStates: () -> Flow<RepositoryState<List<FlareEvent>>>,
+            nowMillis: () -> Long,
+        ) = RepositoryAlertRepository(kpStates, flareStates, nowMillis)
     }
 }
 

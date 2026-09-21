@@ -2,7 +2,10 @@ package ca.stewark.helioflux
 
 import android.app.Application
 import android.content.Context
+import ca.stewark.helioflux.data.AppDataRefreshScheduler
+import ca.stewark.helioflux.data.AppDataRefreshScheduling
 import ca.stewark.helioflux.data.AppRefreshCoordinator
+import ca.stewark.helioflux.data.AppRefreshCoordinatorProvider
 import ca.stewark.helioflux.feature.alerts.AlertScheduler
 import ca.stewark.helioflux.feature.alerts.AlertScheduling
 import ca.stewark.helioflux.feature.alerts.AlertWorkerDependencies
@@ -17,19 +20,35 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 
-class HelioFluxApplication : Application(), AlertWorkerDependenciesProvider, SunWidgetDependenciesProvider {
+class HelioFluxApplication :
+    Application(),
+    AlertWorkerDependenciesProvider,
+    SunWidgetDependenciesProvider,
+    AppRefreshCoordinatorProvider {
     lateinit var container: AppContainer
+        private set
+
+    override lateinit var refreshCoordinator: AppRefreshCoordinator
         private set
 
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var alertsInitialized = false
+    private var dataRefreshInitialized = false
 
     override fun onCreate() {
         super.onCreate()
         container = AppContainer.create(this)
-        AppRefreshCoordinator.from(container).refreshOnce(applicationScope)
+        refreshCoordinator = AppRefreshCoordinator.from(container)
+        refreshCoordinator.refreshStartupOnce(applicationScope)
+        initializeDataRefresh(AppDataRefreshScheduler(this))
         initializeAlerts(NotificationChannels::create, AlertScheduler(this))
         SunWidgetRefreshScheduler(this).schedule()
+    }
+
+    internal fun initializeDataRefresh(scheduler: AppDataRefreshScheduling) {
+        if (dataRefreshInitialized) return
+        scheduler.schedule()
+        dataRefreshInitialized = true
     }
 
     internal fun initializeAlerts(

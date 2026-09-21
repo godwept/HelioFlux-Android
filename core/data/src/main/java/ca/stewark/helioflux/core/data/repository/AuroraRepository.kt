@@ -7,8 +7,8 @@ import ca.stewark.helioflux.core.data.freshness.FreshnessSource
 import ca.stewark.helioflux.core.data.network.HelioFluxEndpoints
 import ca.stewark.helioflux.core.data.network.HttpTransport
 import ca.stewark.helioflux.core.data.parser.OvationParser
-import ca.stewark.helioflux.core.database.dao.AuroraSnapshotDao
 import ca.stewark.helioflux.core.database.RetentionPolicy
+import ca.stewark.helioflux.core.database.dao.AuroraSnapshotDao
 import ca.stewark.helioflux.core.database.dao.DataSourceStatusDao
 import ca.stewark.helioflux.core.database.entity.DataSourceStatusEntity
 import ca.stewark.helioflux.core.database.toDomain
@@ -40,7 +40,15 @@ class AuroraRepository(
             auroraDao.replaceSnapshot(snapshot, points)
             auroraDao.deleteOld(now - RetentionPolicy.SOLAR_ACTIVITY_SERIES_MILLIS)
             statusDao.upsert(
-                DataSourceStatusEntity(SOURCE, parsed.observationTimestampMillis, now, now, now, null, null)
+                DataSourceStatusEntity(
+                    SOURCE,
+                    parsed.forecastTimestampMillis,
+                    now,
+                    now,
+                    now,
+                    null,
+                    null,
+                )
             )
         } catch (error: Exception) {
             val previous = statusDao.get(SOURCE)
@@ -60,11 +68,16 @@ class AuroraRepository(
 
     private suspend fun markAttempt(now: Long) {
         val previous = statusDao.get(SOURCE)
-        statusDao.upsert(previous?.copy(lastAttemptTimestampMillis = now)
-            ?: DataSourceStatusEntity(SOURCE, null, null, null, now, null, null))
+        statusDao.upsert(
+            previous?.copy(lastAttemptTimestampMillis = now)
+                ?: DataSourceStatusEntity(SOURCE, null, null, null, now, null, null)
+        )
     }
 
-    private fun state(data: AuroraSnapshot?, status: DataSourceStatusEntity?): RepositoryState<AuroraSnapshot> {
+    private fun state(
+        data: AuroraSnapshot?,
+        status: DataSourceStatusEntity?,
+    ): RepositoryState<AuroraSnapshot> {
         val lastError = status?.lastErrorTimestampMillis
         val lastSuccess = status?.lastSuccessTimestampMillis
         if (lastError != null && (lastSuccess == null || lastError >= lastSuccess)) {
@@ -78,10 +91,16 @@ class AuroraRepository(
         if (data == null && lastSuccess == null) return RepositoryState.Loading
         if (data == null) return RepositoryState.Empty(SOURCE, DataFreshness.Cached)
 
-        val freshness = when (val result = FreshnessEvaluator.evaluate(
-            nowMillis(), status?.observationTimestampMillis, status?.fetchedTimestampMillis,
-            lastSuccess != null, true, FreshnessPolicies.all.getValue(FreshnessSource.OVATION)
-        )) {
+        val freshness = when (
+            val result = FreshnessEvaluator.evaluate(
+                nowMillis(),
+                status?.observationTimestampMillis,
+                status?.fetchedTimestampMillis,
+                lastSuccess != null,
+                true,
+                FreshnessPolicies.all.getValue(FreshnessSource.OVATION),
+            )
+        ) {
             is FreshnessResult.Available -> result.freshness
             FreshnessResult.Unavailable -> DataFreshness.Cached
         }

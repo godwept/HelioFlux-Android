@@ -1,6 +1,5 @@
 package ca.stewark.helioflux.core.data.repository
 
-import ca.stewark.helioflux.core.data.network.HelioFluxEndpoints
 import ca.stewark.helioflux.core.data.network.HttpResult
 import ca.stewark.helioflux.core.data.network.HttpTransport
 import ca.stewark.helioflux.core.database.dao.AuroraSnapshotDao
@@ -16,11 +15,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AuroraRepositoryTest {
-    @Test fun cachedSnapshotEmitsThenValidRefreshStoresCompleteSnapshot() = runTest {
+    @Test
+    fun cachedSnapshotEmitsThenValidRefreshStoresCompleteSnapshot() = runTest {
         val dao = FakeAuroraDao().apply {
             replaceSnapshot(
                 AuroraSnapshotEntity(1_000, 2_000),
@@ -44,9 +43,43 @@ class AuroraRepositoryTest {
         assertEquals(3_000, refreshed.data.observationTimestampMillis)
         assertEquals(2, refreshed.data.points.size)
         assertEquals(DataFreshness.Fresh, refreshed.freshness)
+        assertEquals(4_000, status.get(AuroraRepository.SOURCE)?.observationTimestampMillis)
     }
 
-    @Test fun failedRefreshPreservesSnapshotAndChangesFreshnessOnly() = runTest {
+    @Test
+    fun currentForecastIsFreshEvenWhenObservationTimeIsOlder() = runTest {
+        val dao = FakeAuroraDao()
+        val status = FakeStatusDao()
+        val transport = FakeTransport().apply {
+            body = """{"Observation Time":"1970-01-01T00:00:00Z","Forecast Time":"1970-01-01T00:30:00Z","coordinates":[[2,62,10]]}"""
+        }
+        val now = 30L * 60L * 1_000L
+        val repository = AuroraRepository(dao, status, transport) { now }
+
+        repository.refresh()
+
+        val refreshed = repository.snapshot().first() as RepositoryState.Available
+        assertEquals(DataFreshness.Fresh, refreshed.freshness)
+        assertEquals(now, status.get(AuroraRepository.SOURCE)?.observationTimestampMillis)
+    }
+
+    @Test
+    fun oldForecastIsDelayed() = runTest {
+        val dao = FakeAuroraDao()
+        val status = FakeStatusDao()
+        val transport = FakeTransport().apply {
+            body = """{"Observation Time":"1970-01-01T00:00:00Z","Forecast Time":"1970-01-01T00:10:00Z","coordinates":[[2,62,10]]}"""
+        }
+        val repository = AuroraRepository(dao, status, transport) { 30L * 60L * 1_000L }
+
+        repository.refresh()
+
+        val refreshed = repository.snapshot().first() as RepositoryState.Available
+        assertEquals(DataFreshness.Delayed, refreshed.freshness)
+    }
+
+    @Test
+    fun failedRefreshPreservesSnapshotAndChangesFreshnessOnly() = runTest {
         val dao = FakeAuroraDao().apply {
             replaceSnapshot(
                 AuroraSnapshotEntity(1_000, 2_000),
@@ -70,29 +103,58 @@ class AuroraRepositoryTest {
         private val snapshots = linkedMapOf<Long, AuroraSnapshotEntity>()
         private val points = linkedMapOf<Long, MutableList<AuroraPointEntity>>()
 
-        override suspend fun upsertSnapshot(snapshot: AuroraSnapshotEntity) { snapshots[snapshot.observationTimestampMillis] = snapshot }
-        override suspend fun upsertPoints(points: List<AuroraPointEntity>) {
-            points.forEach { point -> this.points.getOrPut(point.snapshotTimestampMillis) { mutableListOf() }.add(point) }
+        override suspend fun upsertSnapshot(snapshot: AuroraSnapshotEntity) {
+            snapshots[snapshot.observationTimestampMillis] = snapshot
         }
-        override suspend fun deletePointsForSnapshot(snapshotTimestampMillis: Long) { points.remove(snapshotTimestampMillis) }
-        override suspend fun latestSnapshot(): AuroraSnapshotEntity? = snapshots.values.maxByOrNull { it.observationTimestampMillis }
+
+        override suspend fun upsertPoints(points: List<AuroraPointEntity>) {
+            points.forEach { point ->
+                this.points.getOrPut(point.snapshotTimestampMillis) { mutableListOf() }.add(point)
+            }
+        }
+
+        override suspend fun deletePointsForSnapshot(snapshotTimestampMillis: Long) {
+            points.remove(snapshotTimestampMillis)
+        }
+
+        override suspend fun latestSnapshot(): AuroraSnapshotEntity? =
+            snapshots.values.maxByOrNull { it.observationTimestampMillis }
+
         override suspend fun pointsForSnapshot(snapshotTimestampMillis: Long): List<AuroraPointEntity> =
             points[snapshotTimestampMillis].orEmpty().sortedWith(compareBy({ it.latitude }, { it.longitude }))
-        override suspend fun deleteOldSnapshotsExcept(cutoffMillis: Long, keepTimestampMillis: Long) {
-            snapshots.keys.filter { it < cutoffMillis && it != keepTimestampMillis }.forEach { snapshots.remove(it); points.remove(it) }
+
+        override suspend fun deleteOldSnapshotsExcept(
+            cutoffMillis: Long,
+            keepTimestampMillis: Long,
+        ) {
+            snapshots.keys
+                .filter { it < cutoffMillis && it != keepTimestampMillis }
+                .forEach {
+                    snapshots.remove(it)
+                    points.remove(it)
+                }
         }
     }
 
     private class FakeTransport : HttpTransport {
         var body = ""
+
         override suspend fun get(url: String) = HttpResult(200, body, emptyMap())
+
         override suspend fun head(url: String) = HttpResult(200, "", emptyMap())
     }
 
     private class FakeStatusDao : DataSourceStatusDao {
         private val states = mutableMapOf<DataSourceKey, MutableStateFlow<DataSourceStatusEntity?>>()
-        override suspend fun upsert(status: DataSourceStatusEntity) { states.getOrPut(status.source) { MutableStateFlow(null) }.value = status }
-        override suspend fun get(source: DataSourceKey): DataSourceStatusEntity? = states[source]?.value
-        override fun observe(source: DataSourceKey): Flow<DataSourceStatusEntity?> = states.getOrPut(source) { MutableStateFlow(null) }
+
+        override suspend fun upsert(status: DataSourceStatusEntity) {
+            states.getOrPut(status.source) { MutableStateFlow(null) }.value = status
+        }
+
+        override suspend fun get(source: DataSourceKey): DataSourceStatusEntity? =
+            states[source]?.value
+
+        override fun observe(source: DataSourceKey): Flow<DataSourceStatusEntity?> =
+            states.getOrPut(source) { MutableStateFlow(null) }
     }
 }
