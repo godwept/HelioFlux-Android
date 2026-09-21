@@ -80,7 +80,7 @@ class SpaceWeatherScreenTest {
                 .findAll(source)
                 .count(),
         )
-        assertTrue(source.contains("chartDomain=spaceWeatherChartDomain"))
+        assertTrue(Regex("""val\s+chartDomain\s*=\s*spaceWeatherChartDomain""").containsMatchIn(source))
         assertTrue(source.contains("SpaceWeatherLineCard("))
         assertTrue(source.contains("KpChart("))
         assertTrue(source.contains("HemisphericPowerChart("))
@@ -103,10 +103,10 @@ class SpaceWeatherScreenTest {
             "src/main/java/ca/stewark/helioflux/ui/spaceweather/SpaceWeatherScreen.kt",
         ).readText()
         val hero = source
-            .substringAfter("SpaceWeatherBlock.AuroraHero->")
-            .substringBefore("SpaceWeatherBlock.SolarWindHeading->")
+            .substringAfter("SpaceWeatherBlock.AuroraHero ->")
+            .substringBefore("SpaceWeatherBlock.SolarWindHeading ->")
 
-        assertTrue(hero.contains(".fillMaxWidth().aspectRatio(1f)"))
+        assertTrue(Regex("""\.fillMaxWidth\(\)\s*\.aspectRatio\(1f\)""").containsMatchIn(hero))
         assertTrue(hero.contains(".background(Color.Black)"))
         assertTrue(hero.contains(".clip(RoundedCornerShape(16.dp))"))
         assertFalse(hero.contains(".height(340.dp)"))
