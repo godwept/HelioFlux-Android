@@ -3,7 +3,9 @@ package ca.stewark.helioflux.ui.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,12 +62,15 @@ private fun HelioFluxMasthead() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     state: HomeUiState,
     expanded: Boolean,
     onDestination: (HelioFluxDestination) -> Unit,
     modifier: Modifier = Modifier,
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
 ) {
     val forecasts = when (val f = state.forecast) {
         is RepositoryState.Available -> f.data
@@ -73,41 +78,49 @@ fun HomeScreen(
         else -> emptyList()
     }
 
-    LazyColumn(
-        modifier
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        modifier = modifier
             .fillMaxSize()
             .background(Color.Black)
-            .testTag("home-screen")
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .testTag("home-pull-refresh"),
     ) {
-        item { HelioFluxMasthead() }
-        item {
-            if (expanded) {
-                Row(
-                    Modifier.fillMaxWidth().testTag("home-expanded"),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    SolarHero(state.frames, Modifier.weight(1f))
-                    CurrentConditions(state.conditions, onDestination, Modifier.weight(1f))
-                }
-            } else {
-                Column(
-                    Modifier.fillMaxWidth().testTag("home-compact"),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    SolarHero(state.frames, Modifier.fillMaxWidth())
-                    CurrentConditions(state.conditions, onDestination, Modifier.fillMaxWidth())
+            LazyColumn(
+                Modifier
+                    .fillMaxSize()
+                    .testTag("home-screen")
+                    .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            item { HelioFluxMasthead() }
+            item {
+                if (expanded) {
+                    Row(
+                        Modifier.fillMaxWidth().testTag("home-expanded"),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        SolarHero(state.frames, Modifier.weight(1f))
+                        CurrentConditions(state.conditions, onDestination, Modifier.weight(1f))
+                    }
+                } else {
+                    Column(
+                        Modifier.fillMaxWidth().testTag("home-compact"),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        SolarHero(state.frames, Modifier.fillMaxWidth())
+                        CurrentConditions(state.conditions, onDestination, Modifier.fillMaxWidth())
+                    }
                 }
             }
-        }
-        item {
-            ForecastCards(
-                sections = forecasts,
-                expandedLayout = expanded,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-            )
+            item {
+                ForecastCards(
+                    sections = forecasts,
+                    expandedLayout = expanded,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                )
+            }
         }
     }
 }

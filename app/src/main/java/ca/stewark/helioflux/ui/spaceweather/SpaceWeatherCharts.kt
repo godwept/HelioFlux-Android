@@ -7,14 +7,21 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import ca.stewark.helioflux.core.data.repository.GoesMagnetometerSeries
 import ca.stewark.helioflux.core.model.SolarWindMag
 import ca.stewark.helioflux.core.model.SolarWindPlasma
@@ -127,6 +134,9 @@ fun SpaceWeatherLineCard(
     domain: ChartDomain,
     modifier: Modifier = Modifier,
     referenceLines: List<ChartReferenceLine> = emptyList(),
+    onRefresh: (() -> Unit)? = null,
+    refreshing: Boolean = false,
+    refreshContentDescription: String = "Refresh chart",
 ) {
     Card(
         modifier,
@@ -141,12 +151,27 @@ fun SpaceWeatherLineCard(
             Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(
-                meta.context.uppercase(),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(meta.title, style = MaterialTheme.typography.titleMedium)
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        meta.context.uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(meta.title, style = MaterialTheme.typography.titleMedium)
+                }
+                onRefresh?.let {
+                    ChartRefreshAction(
+                        contentDescription = refreshContentDescription,
+                        refreshing = refreshing,
+                        onRefresh = it,
+                    )
+                }
+            }
             if (meta.legendLabels.isNotEmpty()) {
                 LegendRow(meta.legendLabels, series.map { seriesColor(it.style) })
             }
@@ -168,6 +193,33 @@ fun LegendRow(labels: List<String>, colors: List<Color>) {
                 "● $label",
                 style = MaterialTheme.typography.labelSmall,
                 color = colors.getOrElse(index) { DataCyan },
+            )
+        }
+    }
+}
+
+@Composable
+internal fun ChartRefreshAction(
+    contentDescription: String,
+    refreshing: Boolean,
+    onRefresh: () -> Unit,
+) {
+    IconButton(
+        onClick = onRefresh,
+        enabled = !refreshing,
+        modifier = Modifier.semantics { this.contentDescription = contentDescription },
+    ) {
+        if (refreshing) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(18.dp),
+                strokeWidth = 2.dp,
+            )
+        } else {
+            Text(
+                text = "↻",
+                style = MaterialTheme.typography.titleLarge,
+                fontSize = 20.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

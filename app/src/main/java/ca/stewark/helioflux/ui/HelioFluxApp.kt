@@ -35,6 +35,7 @@ import ca.stewark.helioflux.ui.home.*
 import ca.stewark.helioflux.ui.navigation.HelioFluxDestination
 import ca.stewark.helioflux.ui.solaractivity.*
 import ca.stewark.helioflux.ui.spaceweather.*
+import kotlinx.coroutines.launch
 
 private const val BottomNavigationTag="helioflux-bottom-navigation"
 private const val NavigationRailTag="helioflux-navigation-rail"
@@ -53,19 +54,31 @@ private val NavAnimation=tween<androidx.compose.ui.unit.Dp>(durationMillis=225,e
  val spaceWeatherState by spaceWeatherVm.state.collectAsState()
  val solarActivityVm=remember(app){SolarActivityViewModel(app.container.solarActivity,app.container.solarImagery,scope)}
  val solarActivityState by solarActivityVm.state.collectAsState()
- HelioFluxApp(currentWindowAdaptiveInfo().windowSizeClass,homeState,spaceWeatherState,solarActivityState,spaceWeatherVm::selectTimeframe,initialDestination,initialFocus)
+ val isRefreshing by app.refreshCoordinator.isRefreshing.collectAsState()
+ HelioFluxApp(
+  windowSizeClass=currentWindowAdaptiveInfo().windowSizeClass,
+  homeState=homeState,
+  spaceWeatherState=spaceWeatherState,
+  solarActivityState=solarActivityState,
+  onTimeframe=spaceWeatherVm::selectTimeframe,
+  initialDestination=initialDestination,
+  initialFocus=initialFocus,
+  isRefreshing=isRefreshing,
+  onRefreshAll={scope.launch{app.refreshCoordinator.refreshAll()}},
+  onSpaceWeatherRefresh=spaceWeatherVm::refresh,
+ )
 }
 
-@Composable internal fun HelioFluxApp(windowSizeClass:WindowSizeClass,homeState:HomeUiState?=null,spaceWeatherState:SpaceWeatherUiState?=null,solarActivityState:SolarActivityUiState?=null,onTimeframe:(Timeframe)->Unit={},initialDestination:HelioFluxDestination?=null,initialFocus:String?=null){
+@Composable internal fun HelioFluxApp(windowSizeClass:WindowSizeClass,homeState:HomeUiState?=null,spaceWeatherState:SpaceWeatherUiState?=null,solarActivityState:SolarActivityUiState?=null,onTimeframe:(Timeframe)->Unit={},initialDestination:HelioFluxDestination?=null,initialFocus:String?=null,isRefreshing:Boolean=false,onRefreshAll:()->Unit={},onSpaceWeatherRefresh:(SpaceWeatherRefreshSource)->Unit={}){
  var selectedRoute by rememberSaveable{mutableStateOf((initialDestination?:HelioFluxDestination.Home).route)}
  val selected=HelioFluxDestination.entries.firstOrNull{it.route==selectedRoute}?:HelioFluxDestination.Home
  val expanded=windowSizeClass.isWidthAtLeastBreakpoint(840)
  val select:(HelioFluxDestination)->Unit={selectedRoute=it.route}
  if(expanded)Row(Modifier.fillMaxSize()){
   HelioFluxNavigationRail(selected,select)
-  DestinationContent(selected,expanded,homeState,spaceWeatherState,solarActivityState,onTimeframe,select,Modifier.fillMaxSize())
+  DestinationContent(selected,expanded,homeState,spaceWeatherState,solarActivityState,onTimeframe,select,isRefreshing,onRefreshAll,onSpaceWeatherRefresh,Modifier.fillMaxSize())
  }else Scaffold(bottomBar={HelioFluxBottomNavigation(selected,select)}){pad->
-  DestinationContent(selected,false,homeState,spaceWeatherState,solarActivityState,onTimeframe,select,Modifier.fillMaxSize().padding(pad))
+  DestinationContent(selected,false,homeState,spaceWeatherState,solarActivityState,onTimeframe,select,isRefreshing,onRefreshAll,onSpaceWeatherRefresh,Modifier.fillMaxSize().padding(pad))
  }
 }
 
@@ -144,11 +157,11 @@ private val NavAnimation=tween<androidx.compose.ui.unit.Dp>(durationMillis=225,e
  })
 }
 
-@Composable private fun DestinationContent(destination:HelioFluxDestination,expanded:Boolean,homeState:HomeUiState?,spaceWeatherState:SpaceWeatherUiState?,solarActivityState:SolarActivityUiState?,onTimeframe:(Timeframe)->Unit,onDestination:(HelioFluxDestination)->Unit,modifier:Modifier=Modifier){
+@Composable private fun DestinationContent(destination:HelioFluxDestination,expanded:Boolean,homeState:HomeUiState?,spaceWeatherState:SpaceWeatherUiState?,solarActivityState:SolarActivityUiState?,onTimeframe:(Timeframe)->Unit,onDestination:(HelioFluxDestination)->Unit,isRefreshing:Boolean,onRefreshAll:()->Unit,onSpaceWeatherRefresh:(SpaceWeatherRefreshSource)->Unit,modifier:Modifier=Modifier){
  when {
-  destination==HelioFluxDestination.Home&&homeState!=null -> HomeScreen(homeState,expanded,onDestination,modifier)
-  destination==HelioFluxDestination.SpaceWeather&&spaceWeatherState!=null -> SpaceWeatherScreen(spaceWeatherState,expanded,onTimeframe,modifier)
-  destination==HelioFluxDestination.SolarActivity&&solarActivityState!=null -> SolarActivityScreen(solarActivityState,expanded)
+  destination==HelioFluxDestination.Home&&homeState!=null -> HomeScreen(homeState,expanded,onDestination,modifier,isRefreshing,onRefreshAll)
+  destination==HelioFluxDestination.SpaceWeather&&spaceWeatherState!=null -> SpaceWeatherScreen(spaceWeatherState,expanded,onTimeframe,modifier,isRefreshing=isRefreshing,onRefresh=onRefreshAll,onRefreshSource=onSpaceWeatherRefresh)
+  destination==HelioFluxDestination.SolarActivity&&solarActivityState!=null -> SolarActivityScreen(solarActivityState,expanded,isRefreshing=isRefreshing,onRefresh=onRefreshAll)
   else -> Text(destination.label,modifier.testTag("destination-"+destination.route))
  }
 }

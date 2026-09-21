@@ -3,6 +3,7 @@ package ca.stewark.helioflux.ui.spaceweather
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -11,6 +12,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ca.stewark.helioflux.core.model.HemisphericPowerSample
@@ -51,6 +53,8 @@ fun hemisphericPowerSeries(
 fun HemisphericPowerChart(
     series: List<LineChartSeries>,
     modifier: Modifier = Modifier,
+    onRefresh: (() -> Unit)? = null,
+    refreshing: Boolean = false,
 ) {
     Card(
         modifier,
@@ -65,15 +69,30 @@ fun HemisphericPowerChart(
             Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(
-                hemisphericPowerMeta.context.uppercase(),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                hemisphericPowerMeta.title,
-                style = MaterialTheme.typography.titleMedium,
-            )
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        hemisphericPowerMeta.context.uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        hemisphericPowerMeta.title,
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
+                onRefresh?.let {
+                    ChartRefreshAction(
+                        contentDescription = "Refresh Hemispheric Power",
+                        refreshing = refreshing,
+                        onRefresh = it,
+                    )
+                }
+            }
             LegendRow(
                 hemisphericPowerMeta.legendLabels,
                 series.map { seriesColor(it.style) },
