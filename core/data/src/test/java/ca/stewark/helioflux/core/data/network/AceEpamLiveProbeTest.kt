@@ -1,6 +1,5 @@
 package ca.stewark.helioflux.core.data.network
 
-import ca.stewark.helioflux.core.data.parser.AceEpamParser
 import java.net.HttpURLConnection
 import java.net.URL
 import org.junit.Assert.fail
@@ -8,39 +7,29 @@ import org.junit.Test
 
 class AceEpamLiveProbeTest {
     @Test
-    fun `live LaTiS request returns parseable recent EPAM rows`() {
-        val end = System.currentTimeMillis()
-        val start = end - 72L * 60L * 60L * 1_000L
-        val url = HelioFluxEndpoints.aceEpam(start, end)
-        val connection = URL(url).openConnection() as HttpURLConnection
-        connection.connectTimeout = 20_000
-        connection.readTimeout = 30_000
+    fun `show live LaTiS EPAM dataset columns`() {
+        val end = java.time.Instant.now()
+        val start = end.minusSeconds(72L * 60L * 60L)
+        val base = "https://lasp.colorado.edu/space-weather-portal/latis/dap/"
+        val datasets = listOf("ace_epam_5m", "iswa_ace_epam_P5M")
 
-        val status = connection.responseCode
-        val body =
-            (if (status in 200..299) connection.inputStream else connection.errorStream)
-                ?.bufferedReader()
-                ?.use { it.readText() }
-                .orEmpty()
-
-        if (status !in 200..299) {
-            fail("LaTiS HTTP " + status + " for " + url + "\n" + body.take(2000))
+        datasets.forEach { dataset ->
+            val url = base + dataset + ".csv?time%3E=" + start + "&time%3C=" + end + "&limit(3)"
+            val connection = URL(url).openConnection() as HttpURLConnection
+            connection.connectTimeout = 20_000
+            connection.readTimeout = 30_000
+            val status = connection.responseCode
+            val body =
+                (if (status in 200..299) connection.inputStream else connection.errorStream)
+                    ?.bufferedReader()
+                    ?.use { it.readText() }
+                    .orEmpty()
+            System.out.println("LATIS_DATASET=" + dataset)
+            System.out.println("LATIS_URL=" + url)
+            System.out.println("LATIS_STATUS=" + status)
+            System.out.println("LATIS_BODY_START\\n" + body.take(8000) + "\\nLATIS_BODY_END")
         }
 
-        System.out.println("LATIS_PROBE_URL=" + url)
-        System.out.println("LATIS_PROBE_STATUS=" + status)
-        System.out.println("LATIS_PROBE_BODY_START\\n" + body.take(4000) + "\\nLATIS_PROBE_BODY_END")
-
-        val rows =
-            try {
-                AceEpamParser.parse(body)
-            } catch (error: Exception) {
-                fail("LaTiS parser failed for " + url + "\n" + body.take(2000) + "\n" + error)
-                emptyList()
-            }
-
-        if (rows.isEmpty()) {
-            fail("LaTiS returned no parseable EPAM rows for " + url + "\n" + body.take(2000))
-        }
+        fail("Diagnostic probe complete")
     }
 }
