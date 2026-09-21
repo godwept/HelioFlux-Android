@@ -131,7 +131,7 @@ class SpaceWeatherScreenTest {
             "src/main/java/ca/stewark/helioflux/ui/spaceweather/SpaceWeatherScreen.kt",
         ).readText()
 
-        val compact = source.substringAfter("private fun CompactSpaceWeatherLayout(").substringBefore("@OptIn(ExperimentalMaterial3Api::class)", source.indexOf("private fun CompactSpaceWeatherLayout("))
+        val compact = source.substringAfter("private fun CompactSpaceWeatherLayout(").substringBefore("private fun ExpandedSpaceWeatherLayout(")
         val expanded = source.substringAfter("private fun ExpandedSpaceWeatherLayout(").substringBefore("@Composable\nprivate fun SpaceWeatherBlockList")
 
         assertTrue(compact.contains(".background(Color.Black)"))
