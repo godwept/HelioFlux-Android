@@ -4,6 +4,7 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import ca.stewark.helioflux.core.data.repository.RepositoryState
 import ca.stewark.helioflux.core.model.*
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
@@ -48,6 +49,44 @@ class SolarActivityUiTest {
                 ),
         )
 
+    private fun populatedEventState(): SolarActivityUiState =
+        populatedImageryState().copy(
+            flares =
+                RepositoryState.Available(
+                    listOf(
+                        FlareEvent("flare-1", "M1.7", 1789907640000L, "GOES", "12345", "N12W34"),
+                        FlareEvent("flare-2", "C4.2", 1789904040000L, "GOES", "12344", "N08E11"),
+                    ),
+                    source,
+                    DataFreshness.Fresh,
+                ),
+            cmes =
+                RepositoryState.Available(
+                    listOf(
+                        CmeEvent(
+                            "cme-1",
+                            1789907640000L,
+                            1250.0,
+                            35.0,
+                            "NW",
+                            null,
+                            "https://example.test/cme-1",
+                        ),
+                        CmeEvent(
+                            "cme-2",
+                            1789904040000L,
+                            650.0,
+                            25.0,
+                            "W",
+                            null,
+                            null,
+                        ),
+                    ),
+                    source,
+                    DataFreshness.Fresh,
+                ),
+        )
+
     @Test
     fun imagerySelectorStartsOnHmiAndSwitchesSources() {
         compose.setContent { SolarActivityScreen(populatedImageryState(), expanded = false) }
@@ -80,6 +119,46 @@ class SolarActivityUiTest {
         compose.onNodeWithTag("solar-activity-expanded-content").assertExists()
         compose.onNodeWithTag("solar-activity-expanded-scroll").assertExists()
         compose.onNodeWithTag("solar-activity-expanded-scroll").performScrollToNode(hasText("Particle Environment"))
+        compose.onNodeWithTag("solar-activity-expanded-imagery").assertExists()
+    }
+
+    @Test
+    fun compactEventCardsKeepCompleteListsAndDetailsAction() {
+        var openedCme: CmeEvent? = null
+        compose.setContent {
+            SolarActivityScreen(
+                state = populatedEventState(),
+                expanded = false,
+                onCmeDetails = { openedCme = it },
+            )
+        }
+
+        compose.onNodeWithTag("solar-activity-compact")
+            .performScrollToNode(hasTestTag("recent-events-row"))
+
+        compose.onNodeWithTag("recent-flares-card").assertExists()
+        compose.onNodeWithTag("recent-cmes-card").assertExists()
+        compose.onNodeWithTag("flare-row-flare-1").assertExists()
+        compose.onNodeWithTag("flare-row-flare-2").assertExists()
+        compose.onNodeWithTag("cme-row-cme-1").assertExists()
+        compose.onNodeWithTag("cme-row-cme-2").assertExists()
+        compose.onNodeWithText("Details").performClick()
+
+        compose.runOnIdle {
+            assertEquals("cme-1", openedCme?.id)
+        }
+    }
+
+    @Test
+    fun expandedSciencePaneUsesSamePairedEventCards() {
+        compose.setContent { SolarActivityScreen(populatedEventState(), expanded = true) }
+
+        compose.onNodeWithTag("solar-activity-expanded-scroll")
+            .performScrollToNode(hasTestTag("recent-events-row"))
+
+        compose.onNodeWithTag("recent-events-row").assertExists()
+        compose.onNodeWithTag("recent-flares-card").assertExists()
+        compose.onNodeWithTag("recent-cmes-card").assertExists()
         compose.onNodeWithTag("solar-activity-expanded-imagery").assertExists()
     }
 

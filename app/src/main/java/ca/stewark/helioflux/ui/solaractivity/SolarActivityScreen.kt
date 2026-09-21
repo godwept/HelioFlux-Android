@@ -1,15 +1,17 @@
 package ca.stewark.helioflux.ui.solaractivity
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
@@ -19,7 +21,9 @@ import ca.stewark.helioflux.core.model.*
 import ca.stewark.helioflux.ui.components.ChartDomain
 import ca.stewark.helioflux.ui.components.FreshnessIndicator
 import ca.stewark.helioflux.ui.components.HelioFluxSectionHeading
+import ca.stewark.helioflux.ui.theme.SolarOrange
 import ca.stewark.helioflux.ui.theme.SpaceMuted
+import ca.stewark.helioflux.ui.theme.SpaceSurface
 
 internal const val ExpandedSolarImageryWeight = 0.43f
 internal const val ExpandedSolarDataWeight = 0.57f
@@ -169,6 +173,7 @@ private fun CompactSolarActivityLayout(
             modifier =
                 Modifier
                     .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.statusBars.only(WindowInsetsSides.Top))
                     .background(Color.Black)
                     .testTag("solar-activity-compact"),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
@@ -262,6 +267,7 @@ private fun ExpandedSolarActivityLayout(
                 modifier =
                     Modifier
                         .fillMaxSize()
+                        .windowInsetsPadding(WindowInsets.statusBars.only(WindowInsetsSides.Top))
                         .background(Color.Black)
                         .testTag("solar-activity-expanded-scroll"),
                 contentPadding =
@@ -299,28 +305,79 @@ private fun LazyListScope.solarActivityScienceItems(
     onCmeDetails: (CmeEvent) -> Unit,
 ) {
     item {
-        HelioFluxSectionHeading("X-Ray Activity")
+        XrayActivitySection(state.xray, chartDomain)
     }
     item {
-        XraySection(state.xray, chartDomain)
-    }
-    item {
-        HelioFluxSectionHeading("Recent Flares")
-    }
-    item {
-        FlareList(state.flares)
-    }
-    item {
-        HelioFluxSectionHeading("Recent CMEs")
-    }
-    item {
-        CmeList(state.cmes, onCmeDetails)
+        SolarEventCards(
+            flares = state.flares,
+            cmes = state.cmes,
+            onCmeDetails = onCmeDetails,
+        )
     }
     item {
         HelioFluxSectionHeading("Particle Environment")
     }
     item {
         ParticleSection(state.epam, chartDomain)
+    }
+}
+
+@Composable
+private fun XrayActivitySection(
+    state: RepositoryState<List<XrayFluxSample>>,
+    chartDomain: ChartDomain,
+) {
+    Column {
+        HelioFluxSectionHeading("X-Ray Activity", topSpacing = 0.dp)
+        XraySection(state, chartDomain)
+    }
+}
+
+@Composable
+private fun SolarEventCards(
+    flares: RepositoryState<List<FlareEvent>>,
+    cmes: RepositoryState<List<CmeEvent>>,
+    onCmeDetails: (CmeEvent) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().testTag("recent-events-row"),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Card(
+            modifier = Modifier.weight(1f).testTag("recent-flares-card"),
+            colors = CardDefaults.cardColors(containerColor = SpaceSurface),
+            border = BorderStroke(1.dp, SolarOrange.copy(alpha = 0.24f)),
+        ) {
+            Column(
+                Modifier.fillMaxWidth().padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    "Recent Flares",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = SolarOrange,
+                )
+                FlareList(flares)
+            }
+        }
+
+        Card(
+            modifier = Modifier.weight(1f).testTag("recent-cmes-card"),
+            colors = CardDefaults.cardColors(containerColor = SpaceSurface),
+            border = BorderStroke(1.dp, SolarOrange.copy(alpha = 0.24f)),
+        ) {
+            Column(
+                Modifier.fillMaxWidth().padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    "Recent CMEs",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = SolarOrange,
+                )
+                CmeList(cmes, onCmeDetails)
+            }
+        }
     }
 }
 

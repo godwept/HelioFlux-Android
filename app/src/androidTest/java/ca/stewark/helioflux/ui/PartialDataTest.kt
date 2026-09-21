@@ -1,8 +1,7 @@
 package ca.stewark.helioflux.ui
 
-import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithText
 import ca.stewark.helioflux.core.data.repository.RepositoryState
 import ca.stewark.helioflux.core.model.DataFreshness
 import ca.stewark.helioflux.core.model.DataSourceKey
@@ -48,5 +47,13 @@ class PartialDataTest {
 
         rule.onNodeWithText("Solar Imagery").assertIsDisplayed()
         rule.onNodeWithText("25%").assertIsDisplayed()
+        rule.onNodeWithTag("solar-activity-compact")
+            .performScrollToNode(hasTestTag("recent-events-row"))
+        rule.onNodeWithTag("recent-events-row").assertExists()
+        rule.onNodeWithTag("recent-flares-card").assertExists()
+        rule.onNodeWithTag("recent-cmes-card").assertExists()
+        rule.onNodeWithText("Showing cached flare data").assertExists()
+        rule.onNodeWithText("No recent CMEs").assertExists()
+        rule.onNodeWithTag("flare-row-flare-1").assertExists()
     }
 }
