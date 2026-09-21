@@ -140,7 +140,6 @@ fun goesSeriesOrEmpty(
     series?.let { goesSeries(it, now) }.orEmpty()
 
 @Composable
-fun SpaceWeatherLineCard(@Composable
 fun SpaceWeatherLineCard(
     meta: ChartCardMeta,
     series: List<LineChartSeries>,
