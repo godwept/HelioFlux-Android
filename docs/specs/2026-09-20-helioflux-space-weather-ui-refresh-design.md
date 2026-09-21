@@ -15,7 +15,7 @@ On Pixel-sized screens, the Aurora globe is the dominant opening visual, compara
 
 Preserve the working Space Weather functionality and data pipeline. The one approved behavioral parity change is that **12h becomes the default timeframe**.
 
-Success means noticeably stronger visual hierarchy, spacing, typography, chart presentation, responsive composition, and PWA parity while retaining the existing working data behavior and globe lifecycle.
+Success means noticeably stronger visual hierarchy, spacing, typography, chart presentation, responsive composition, and PWA parity while retaining the existing working data behavior and globe lifecycle. The entire Space Weather screen canvas is pure black in compact and expanded layouts, including behind the globe, headings, metrics, timeframe control, charts, spacing, and down to the bottom-navigation boundary. Existing cards and controls retain their established styling so the globe's black rendering surface visually disappears into the surrounding screen and the Earth appears to float in space.
 
 ## Scope
 
