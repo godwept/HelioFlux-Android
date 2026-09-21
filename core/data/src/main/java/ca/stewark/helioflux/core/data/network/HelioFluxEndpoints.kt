@@ -1,7 +1,10 @@
 package ca.stewark.helioflux.core.data.network
 
+import java.time.Instant
+
 object HelioFluxEndpoints {
     private const val NOAA = "https://services.swpc.noaa.gov"
+    private const val LASP = "https://lasp.colorado.edu/space-weather-portal/latis/dap"
     private const val WORKER = "https://helioflux-api-proxy.mathew-stewart.workers.dev/api"
 
     val rtswMag = "$NOAA/json/rtsw/rtsw_mag_1m.json"
@@ -14,9 +17,14 @@ object HelioFluxEndpoints {
     val goesSecondaryXray = "$NOAA/json/goes/secondary/xrays-3-day.json"
     val ovation = "$NOAA/json/ovation_aurora_latest.json"
     val hemisphericPower = "$NOAA/text/aurora-nowcast-hemi-power.txt"
-    val aceEpam = "$NOAA/json/ace/epam/ace_epam_5m.json"
     val forecastDiscussion = "$NOAA/text/discussion.txt"
     val flareProbabilities = "$NOAA/text/3-day-solar-geomag-predictions.txt"
+
+    fun aceEpam(startMillis: Long, endMillis: Long): String {
+        val start = Instant.ofEpochMilli(startMillis)
+        val end = Instant.ofEpochMilli(endMillis)
+        return "$LASP/ace_epam_5m.csv?time%3E=$start&time%3C=$end&project(time,p1,p3,p5,fp6p,p7)"
+    }
 
     val donki = "$WORKER/donki"
     val helioviewer = "$WORKER/helioviewer"

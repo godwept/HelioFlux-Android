@@ -50,8 +50,8 @@ internal fun aceEpamSeries(samples: List<AceEpamSample>): List<LineChartSeries> 
         epamSeries(samples, "Proton 47-68 keV", ChartSeriesStyle.Alert) { it.protonLow },
         epamSeries(samples, "Proton 115-195 keV", ChartSeriesStyle.Warning) { it.protonMid },
         epamSeries(samples, "Proton 310-580 keV", ChartSeriesStyle.Primary) { it.protonHigh },
-        epamSeries(samples, "Proton 795-1193 keV", ChartSeriesStyle.Secondary) { it.protonP7 },
-        epamSeries(samples, "Proton 1060-1900 keV", ChartSeriesStyle.Success) { it.protonP8 },
+        epamSeries(samples, "Proton 795-1193 keV", ChartSeriesStyle.Secondary) { it.protonFp6 },
+        epamSeries(samples, "Proton 1060-1900 keV", ChartSeriesStyle.Success) { it.protonP7 },
     )
 
 @Composable

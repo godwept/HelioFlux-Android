@@ -12,6 +12,6 @@ data class AceEpamEntity(
     val protonLow: Double?,
     val protonMid: Double?,
     val protonHigh: Double?,
+    val protonFp6: Double?,
     val protonP7: Double?,
-    val protonP8: Double?,
 )

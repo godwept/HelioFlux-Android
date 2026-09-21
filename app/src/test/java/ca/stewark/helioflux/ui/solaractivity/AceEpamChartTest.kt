@@ -10,7 +10,7 @@ import org.junit.Test
 
 class AceEpamChartTest {
     @Test
-    fun `particle environment matches NOAA five proton channel product`() {
+    fun `particle environment matches NOAA p1 p3 p5 fp6 p7 product`() {
         val samples =
             listOf(
                 AceEpamSample(
@@ -20,8 +20,8 @@ class AceEpamChartTest {
                     protonLow = 10_000.0,
                     protonMid = 100.0,
                     protonHigh = 1.0,
-                    protonP7 = 0.1,
-                    protonP8 = 0.01,
+                    protonFp6 = 0.1,
+                    protonP7 = 0.01,
                 ),
             )
 
