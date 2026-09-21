@@ -86,6 +86,9 @@ class RepositoryAlertRepository(
 ) : AlertRepository {
     override suspend fun currentConditions(): AlertConditions {
         spaceWeather.refreshKp()
+        // NOAA's hemispheric-power file resets at UTC midnight, so the hourly
+        // background worker must persist it during the day for cross-midnight history.
+        spaceWeather.refreshHemisphericPower()
         solarActivity.refreshFlares()
 
         val now = nowMillis()

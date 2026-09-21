@@ -128,6 +128,22 @@ class SpaceWeatherRepositoryTest {
     }
 
     @Test
+    fun hemisphericPowerRefreshAccumulatesRowsInsteadOfReplacingHistory() = runTest {
+        transport[HelioFluxEndpoints.hemisphericPower] = ok(
+            "2026-09-19_23:00 2026-09-20_00:00 35 31"
+        )
+        repository.refreshHemisphericPower()
+
+        transport[HelioFluxEndpoints.hemisphericPower] = ok(
+            "2026-09-20_00:05 2026-09-20_01:05 15 15"
+        )
+        repository.refreshHemisphericPower()
+
+        assertEquals(2, power.rows.value.size)
+        assertEquals(listOf(35.0, 15.0), power.rows.value.map { it.north })
+    }
+
+    @Test
     fun invalidHemisphericPowerResponseDoesNotWipeHistory() = runTest {
         power.upsertAll(listOf(HemisphericPowerEntity(NOW - 60_000, 35.0, 31.0)))
         transport[HelioFluxEndpoints.hemisphericPower] = ok("not a valid NOAA power row")
