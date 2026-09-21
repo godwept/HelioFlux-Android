@@ -2,7 +2,8 @@ package ca.stewark.helioflux.ui.spaceweather
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -299,33 +300,34 @@ private fun SpaceWeatherBlockList(
     onGlobeTouchActiveChanged: (Boolean) -> Unit,
     modifier: Modifier,
 ) {
-    LazyColumn(
+    Column(
         modifier =
             modifier
                 .testTag("space-weather-screen")
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-        userScrollEnabled = userScrollEnabled,
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .verticalScroll(
+                    state = rememberScrollState(),
+                    enabled = userScrollEnabled,
+                ),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         rows.forEach { row ->
-            item {
-                val block = row.single()
-                SpaceWeatherBlockContent(
-                    block = block,
-                    state = state,
-                    magnetic = magnetic,
-                    plasma = plasma,
-                    kp = kp,
-                    goes = goes,
-                    hp = hp,
-                    aurora = aurora,
-                    onTimeframe = onTimeframe,
-                    nowMillis = nowMillis,
-                    chartDomain = chartDomain,
-                    onRefreshSource = onRefreshSource,
-                    onGlobeTouchActiveChanged = onGlobeTouchActiveChanged,
-                )
-            }
+            val block = row.single()
+            SpaceWeatherBlockContent(
+                block = block,
+                state = state,
+                magnetic = magnetic,
+                plasma = plasma,
+                kp = kp,
+                goes = goes,
+                hp = hp,
+                aurora = aurora,
+                onTimeframe = onTimeframe,
+                nowMillis = nowMillis,
+                chartDomain = chartDomain,
+                onRefreshSource = onRefreshSource,
+                onGlobeTouchActiveChanged = onGlobeTouchActiveChanged,
+            )
         }
     }
 }

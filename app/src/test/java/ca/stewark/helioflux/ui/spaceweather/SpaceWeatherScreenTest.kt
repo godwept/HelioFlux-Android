@@ -101,7 +101,22 @@ class SpaceWeatherScreenTest {
     }
 
     @Test
-    fun compactGlobeTouchStillPreventsLazyColumnFromCancellingSceneViewGesture() {
+    fun fixedBlockListUsesEagerScrollableColumnToKeepChartsComposedDuringScroll() {
+        val source = File(
+            "src/main/java/ca/stewark/helioflux/ui/spaceweather/SpaceWeatherScreen.kt",
+        ).readText()
+        val blockList =
+            source.substringAfter("private fun SpaceWeatherBlockList(")
+                .substringBefore("@Composable\nprivate fun SpaceWeatherBlockContent")
+
+        assertFalse(blockList.contains("LazyColumn("))
+        assertTrue(blockList.contains("Column("))
+        assertTrue(blockList.contains("rememberScrollState()"))
+        assertTrue(blockList.contains(".verticalScroll("))
+    }
+
+    @Test
+    fun compactGlobeTouchStillPreventsScrollableContentFromCancellingSceneViewGesture() {
         val source = File(
             "src/main/java/ca/stewark/helioflux/ui/spaceweather/SpaceWeatherScreen.kt",
         ).readText()
