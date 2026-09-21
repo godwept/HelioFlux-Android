@@ -1,7 +1,5 @@
 package ca.stewark.helioflux.ui.solaractivity
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
@@ -46,33 +44,27 @@ fun AceEpamChart(
         return
     }
 
-    Column(
-        modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text("ACE EPAM")
-        HelioFluxLineChart(
-            series =
-                listOf(
-                    epamSeries(
-                        samples,
-                        "Electron 38-53 keV",
-                        ChartSeriesStyle.Secondary,
-                    ) { it.electronLow },
-                    epamSeries(
-                        samples,
-                        "Proton 47-68 keV",
-                        ChartSeriesStyle.Warning,
-                    ) { it.protonLow },
-                    epamSeries(
-                        samples,
-                        "Proton 115-195 keV",
-                        ChartSeriesStyle.Alert,
-                    ) { it.protonMid },
-                ),
-            domain = domain,
-            modifier = Modifier.fillMaxWidth().height(240.dp),
-            yAxisFormat = ChartValueFormat.Scientific,
-        )
-    }
+    HelioFluxLineChart(
+        series =
+            listOf(
+                epamSeries(
+                    samples,
+                    "Electron 38-53 keV",
+                    ChartSeriesStyle.Secondary,
+                ) { it.electronLow },
+                epamSeries(
+                    samples,
+                    "Proton 47-68 keV",
+                    ChartSeriesStyle.Warning,
+                ) { it.protonLow },
+                epamSeries(
+                    samples,
+                    "Proton 115-195 keV",
+                    ChartSeriesStyle.Alert,
+                ) { it.protonMid },
+            ),
+        domain = domain,
+        modifier = modifier.fillMaxWidth().height(240.dp),
+        yAxisFormat = ChartValueFormat.Scientific,
+    )
 }

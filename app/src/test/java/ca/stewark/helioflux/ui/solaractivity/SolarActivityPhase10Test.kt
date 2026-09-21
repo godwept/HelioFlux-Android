@@ -90,4 +90,35 @@ class SolarActivityPhase10Test {
         assertEquals(CmeSpeedEmphasis.Strong, cmeSpeedEmphasis(1000.0))
         assertEquals("1.0e+03", exponentialAxisLabel(1000.0))
     }
+
+    @Test
+    fun eventListsUseRepositoryOrderAndScreenOwnedHeadings() {
+        val flareSource =
+            File("src/main/java/ca/stewark/helioflux/ui/solaractivity/FlareList.kt")
+                .readText()
+        val cmeSource =
+            File("src/main/java/ca/stewark/helioflux/ui/solaractivity/CmeList.kt")
+                .readText()
+
+        assertFalse(flareSource.contains("sortedByDescending"))
+        assertFalse(flareSource.contains("Recent flares"))
+        assertTrue(flareSource.contains("flare-row-"))
+        assertFalse(cmeSource.contains("sortedByDescending"))
+        assertFalse(cmeSource.contains("Recent CMEs"))
+        assertTrue(cmeSource.contains("cme-row-"))
+        assertTrue(cmeSource.contains("Details"))
+    }
+
+    @Test
+    fun fullscreenViewerIsEdgeToEdgeInsteadOfAlertDialog() {
+        val source =
+            File("src/main/java/ca/stewark/helioflux/ui/solaractivity/FullscreenImageryViewer.kt")
+                .readText()
+
+        assertFalse(source.contains("AlertDialog("))
+        assertTrue(source.contains("Dialog("))
+        assertTrue(source.contains("usePlatformDefaultWidth = false"))
+        assertTrue(source.contains("fillMaxSize()"))
+        assertTrue(source.contains("fullscreen-imagery-viewer"))
+    }
 }

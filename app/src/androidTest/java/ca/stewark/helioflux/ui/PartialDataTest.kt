@@ -16,24 +16,37 @@ import org.junit.Test
 class PartialDataTest {
     @get:Rule val rule = createComposeRule()
 
-    @Test fun mixedSectionStatesDoNotBecomeScreenWideError() {
+    @Test
+    fun mixedSectionStatesDoNotBecomeScreenWideError() {
         val failed = DataSourceKey("failed")
         val empty = DataSourceKey("empty")
         val cached = DataSourceKey("cached")
         val fresh = DataSourceKey("fresh")
         rule.setContent {
             SolarActivityScreen(
-                state = SolarActivityUiState(
-                    probabilities = RepositoryState.Available(FlareProbabilities(25, 5, 1), fresh, DataFreshness.Fresh),
-                    flares = RepositoryState.Failure(failed, "source unavailable", listOf(FlareEvent("flare-1", "M1.0", 1L, "GOES", null, null)), DataFreshness.Cached),
-                    cmes = RepositoryState.Empty(empty, DataFreshness.Fresh),
-                    epam = RepositoryState.Failure(cached, "offline", emptyList(), DataFreshness.Cached),
-                ),
+                state =
+                    SolarActivityUiState(
+                        probabilities =
+                            RepositoryState.Available(
+                                FlareProbabilities(25, 5, 1),
+                                fresh,
+                                DataFreshness.Fresh,
+                            ),
+                        flares =
+                            RepositoryState.Failure(
+                                failed,
+                                "source unavailable",
+                                listOf(FlareEvent("flare-1", "M1.0", 1L, "GOES", null, null)),
+                                DataFreshness.Cached,
+                            ),
+                        cmes = RepositoryState.Empty(empty, DataFreshness.Fresh),
+                        epam = RepositoryState.Failure(cached, "offline", emptyList(), DataFreshness.Cached),
+                    ),
                 expanded = false,
             )
         }
 
-        rule.onNodeWithText("Solar Activity").assertIsDisplayed()
-        rule.onNodeWithText("C 25%").assertIsDisplayed()
+        rule.onNodeWithText("Solar Imagery").assertIsDisplayed()
+        rule.onNodeWithText("25%").assertIsDisplayed()
     }
 }
