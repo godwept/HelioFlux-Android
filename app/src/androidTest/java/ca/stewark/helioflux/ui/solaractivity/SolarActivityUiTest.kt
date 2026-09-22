@@ -157,7 +157,7 @@ class SolarActivityUiTest {
     }
 
     @Test
-    fun compactEventCardsKeepCompleteListsAndDetailsAction() {
+    fun compactEventCardsStackAndKeepCompleteListsAndDetailsAction() {
         var openedCme: CmeEvent? = null
         compose.setContent {
             SolarActivityScreen(
@@ -168,7 +168,7 @@ class SolarActivityUiTest {
         }
 
         compose.onNodeWithTag("solar-activity-compact")
-            .performScrollToNode(hasTestTag("recent-events-row"))
+            .performScrollToNode(hasTestTag("recent-flares-card"))
 
         compose.onNodeWithTag("recent-flares-card").assertExists()
         compose.onNodeWithTag("recent-cmes-card").assertExists()
@@ -184,16 +184,30 @@ class SolarActivityUiTest {
     }
 
     @Test
-    fun expandedSciencePaneUsesSamePairedEventCards() {
+    fun expandedSciencePaneUsesSameStackedEventCards() {
         compose.setContent { SolarActivityScreen(populatedEventState(), expanded = true) }
 
         compose.onNodeWithTag("solar-activity-expanded-scroll")
             .performScrollToNode(hasTestTag("recent-events-row"))
 
-        compose.onNodeWithTag("recent-events-row").assertExists()
         compose.onNodeWithTag("recent-flares-card").assertExists()
         compose.onNodeWithTag("recent-cmes-card").assertExists()
         compose.onNodeWithTag("solar-activity-expanded-imagery").assertExists()
+    }
+
+    @Test
+    fun compactScienceFeedPlacesParticleEnvironmentBeforeRecentEvents() {
+        compose.setContent {
+            SolarActivityScreen(populatedEventState(), expanded = false)
+        }
+
+        compose.onNodeWithTag("solar-activity-compact")
+            .performScrollToNode(hasText("Particle Environment"))
+        compose.onNodeWithText("Particle Environment").assertExists()
+
+        compose.onNodeWithTag("solar-activity-compact")
+            .performScrollToNode(hasText("Recent Flares"))
+        compose.onNodeWithText("Recent Flares").assertExists()
     }
 
     @Test
