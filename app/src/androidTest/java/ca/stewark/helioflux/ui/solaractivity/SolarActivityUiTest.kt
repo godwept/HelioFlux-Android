@@ -188,7 +188,7 @@ class SolarActivityUiTest {
         compose.setContent { SolarActivityScreen(populatedEventState(), expanded = true) }
 
         compose.onNodeWithTag("solar-activity-expanded-scroll")
-            .performScrollToNode(hasTestTag("recent-events-row"))
+            .performScrollToNode(hasTestTag("recent-flares-card"))
 
         compose.onNodeWithTag("recent-flares-card").assertExists()
         compose.onNodeWithTag("recent-cmes-card").assertExists()
