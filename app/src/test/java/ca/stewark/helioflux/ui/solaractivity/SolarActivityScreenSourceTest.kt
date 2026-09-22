@@ -118,7 +118,10 @@ class SolarActivityScreenSourceTest {
     @Test
     fun recentEventsUseStackedFullWidthCards() {
         val eventsStart = source.indexOf("private fun SolarEventCards(")
-        val eventsEnd = source.indexOf("\n@Composable\nprivate fun XraySection(", eventsStart)
+        val eventsEnd = source.indexOf("private fun XraySection(", eventsStart)
+
+        assertTrue(eventsStart >= 0)
+        assertTrue(eventsEnd > eventsStart)
         val eventsSource = source.substring(eventsStart, eventsEnd)
 
         assertTrue(eventsSource.contains("Column("))
