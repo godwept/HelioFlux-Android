@@ -6,6 +6,7 @@ import ca.stewark.helioflux.ui.components.ChartValueFormat
 import ca.stewark.helioflux.ui.components.ChartYDomain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 
@@ -61,9 +62,9 @@ class AceEpamChartTest {
             File("src/main/java/ca/stewark/helioflux/ui/components/HelioFluxLineChart.kt")
                 .readText()
 
-        assert(aceSource.contains("animateInitial = false"))
-        assert(sharedChartSource.contains("animateInitial: Boolean = true"))
-        assert(sharedChartSource.contains("initialAnimationSpec = null"))
+        assertTrue(aceSource.contains("animateInitial = false"))
+        assertTrue(sharedChartSource.contains("animateInitial: Boolean = true"))
+        assertTrue(sharedChartSource.contains("initialAnimationSpec = null"))
     }
 
     @Test
