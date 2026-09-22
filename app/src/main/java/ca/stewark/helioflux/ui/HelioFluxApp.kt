@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
@@ -171,7 +172,17 @@ internal fun navigationRailIndicatorOffset(availableHeight:Dp,selectedIndex:Int,
  when {
   destination==HelioFluxDestination.Home&&homeState!=null -> HomeScreen(homeState,expanded,onDestination,modifier,isRefreshing,onRefreshAll)
   destination==HelioFluxDestination.SpaceWeather&&spaceWeatherState!=null -> SpaceWeatherScreen(spaceWeatherState,expanded,onTimeframe,modifier,isRefreshing=isRefreshing,onRefresh=onRefreshAll,onRefreshSource=onSpaceWeatherRefresh)
-  destination==HelioFluxDestination.SolarActivity&&solarActivityState!=null -> SolarActivityScreen(solarActivityState,expanded,modifier=modifier,isRefreshing=isRefreshing,onRefresh=onRefreshAll)
+  destination==HelioFluxDestination.SolarActivity&&solarActivityState!=null -> {
+   val uriHandler = LocalUriHandler.current
+   SolarActivityScreen(
+    solarActivityState,
+    expanded,
+    onCmeDetails = { cme -> cme.link?.let(uriHandler::openUri) },
+    modifier = modifier,
+    isRefreshing = isRefreshing,
+    onRefresh = onRefreshAll,
+   )
+  }
   else -> Text(destination.label,modifier.testTag("destination-"+destination.route))
  }
 }
