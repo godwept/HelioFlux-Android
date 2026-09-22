@@ -38,7 +38,17 @@ class AppContainer private constructor(
             val db=Room.databaseBuilder(context,HelioFluxDatabase::class.java,"helioflux.db").fallbackToDestructiveMigration().build()
             val transport=OkHttpTransport()
             val status=db.dataSourceStatusDao()
-            val imageHttpClient =\n                OkHttpClient.Builder()\n                    .addInterceptor(ImageDownloadProgressInterceptor(imageDownloadProgressRegistry))\n                    .build()\n            val imageLoader =\n                ImageLoader.Builder(context)\n                    .components {\n                        add(OkHttpNetworkFetcherFactory(callFactory = { imageHttpClient }))\n                    }\n                    .build()\n            return AppContainer(
+            val imageHttpClient =
+                OkHttpClient.Builder()
+                    .addInterceptor(ImageDownloadProgressInterceptor(imageDownloadProgressRegistry))
+                    .build()
+            val imageLoader =
+                ImageLoader.Builder(context)
+                    .components {
+                        add(OkHttpNetworkFetcherFactory(callFactory = { imageHttpClient }))
+                    }
+                    .build()
+            return AppContainer(
                 db,transport,
                 SpaceWeatherRepository(db.solarWindMagDao(),db.solarWindPlasmaDao(),db.kpDao(),db.goesMagDao(),db.hemisphericPowerDao(),status,transport),
                 AuroraRepository(db.auroraSnapshotDao(),status,transport),
