@@ -26,8 +26,12 @@ object HelioFluxEndpoints {
         return "$LASP/iswa_ace_epam_P5M.csv?time%3E=$start&time%3C=$end"
     }
 
-    val hmiMetadata =
-        "$LASP/iswa_sdo_aia_hmic_files.json?takeRight(1)&project(time,url)"
+    fun hmiMetadata(startMillis: Long, endMillis: Long): String {
+        val start = Instant.ofEpochMilli(startMillis)
+        val end = Instant.ofEpochMilli(endMillis)
+        return "$LASP/iswa_sdo_aia_hmic_files.json?" +
+            "time%3E=$start&time%3C=$end&takeRight(1)&project(time,url)"
+    }
 
     val donki = "$WORKER/donki"
     val helioviewer = "$WORKER/helioviewer"

@@ -34,16 +34,23 @@ class HelioFluxEndpointsTest {
     }
 
     @Test
-    fun `hmi metadata uses direct LaTiS latest color magnetogram query`() {
+    fun `hmi metadata uses bounded direct LaTiS color magnetogram query`() {
+        val start = Instant.parse("2026-09-21T11:20:00Z").toEpochMilli()
+        val end = Instant.parse("2026-09-22T11:20:00Z").toEpochMilli()
+
+        val url = HelioFluxEndpoints.hmiMetadata(start, end)
+
         assertTrue(
-            HelioFluxEndpoints.hmiMetadata.startsWith(
+            url.startsWith(
                 "https://lasp.colorado.edu/space-weather-portal/latis/dap/" +
                     "iswa_sdo_aia_hmic_files.json?",
             ),
         )
-        assertTrue(HelioFluxEndpoints.hmiMetadata.contains("takeRight(1)"))
-        assertTrue(HelioFluxEndpoints.hmiMetadata.contains("project(time,url)"))
-        assertFalse(HelioFluxEndpoints.hmiMetadata.contains("workers.dev"))
+        assertTrue(url.contains("time%3E=2026-09-21T11:20:00Z"))
+        assertTrue(url.contains("time%3C=2026-09-22T11:20:00Z"))
+        assertTrue(url.contains("takeRight(1)"))
+        assertTrue(url.contains("project(time,url)"))
+        assertFalse(url.contains("workers.dev"))
     }
 
     @Test
