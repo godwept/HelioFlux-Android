@@ -130,12 +130,14 @@ fun SolarActivityScreen(
                         title = "LASCO C2",
                         imageUrl = state.lascoC2.screenData()?.url,
                         modifier = Modifier.fillMaxSize(),
+                        trackMediaLoading = true,
                     )
                 SolarGalleryItem.LascoC3 ->
                     ZoomableSolarImage(
                         title = "LASCO C3",
                         imageUrl = state.lascoC3.screenData()?.url,
                         modifier = Modifier.fillMaxSize(),
+                        trackMediaLoading = true,
                     )
                 SolarGalleryItem.Enlil ->
                     EnlilAnimation(

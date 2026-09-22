@@ -107,19 +107,21 @@ fun SolarImageryGallery(
                 )
             SolarGalleryItem.LascoC2 ->
                 SolarImageryCard(
-                    "LASCO C2",
-                    "SOHO / LASCO",
-                    lascoC2,
-                    { onOpen(selected) },
-                    Modifier.fillMaxWidth().testTag(selected.stageTag),
+                    title = "LASCO C2",
+                    source = "SOHO / LASCO",
+                    state = lascoC2,
+                    onClick = { onOpen(selected) },
+                    modifier = Modifier.fillMaxWidth().testTag(selected.stageTag),
+                    trackMediaLoading = true,
                 )
             SolarGalleryItem.LascoC3 ->
                 SolarImageryCard(
-                    "LASCO C3",
-                    "SOHO / LASCO",
-                    lascoC3,
-                    { onOpen(selected) },
-                    Modifier.fillMaxWidth().testTag(selected.stageTag),
+                    title = "LASCO C3",
+                    source = "SOHO / LASCO",
+                    state = lascoC3,
+                    onClick = { onOpen(selected) },
+                    modifier = Modifier.fillMaxWidth().testTag(selected.stageTag),
+                    trackMediaLoading = true,
                 )
             SolarGalleryItem.Enlil ->
                 EnlilCard(
