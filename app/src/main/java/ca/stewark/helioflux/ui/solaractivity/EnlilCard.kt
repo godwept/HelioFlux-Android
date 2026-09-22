@@ -22,6 +22,7 @@ import coil3.SingletonImageLoader
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -87,7 +88,13 @@ internal suspend fun preloadEnlilUrls(
                 async {
                     val loaded =
                         semaphore.withPermit {
-                            runCatching { load(url) }.getOrDefault(false)
+                            try {
+                                load(url)
+                            } catch (error: CancellationException) {
+                                throw error
+                            } catch (_: Exception) {
+                                false
+                            }
                         }
                     url to loaded
                 }
