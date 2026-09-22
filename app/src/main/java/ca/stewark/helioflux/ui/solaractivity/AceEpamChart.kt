@@ -71,6 +71,7 @@ fun AceEpamChart(
         modifier = modifier.fillMaxWidth().height(240.dp),
         fixedYDomain = EpamYDomain,
         yAxisFormat = ChartValueFormat.LogScientific,
+        // This LazyColumn item is disposed off-screen; skip Vico's reveal animation on re-entry.
         animateInitial = false,
     )
 }
