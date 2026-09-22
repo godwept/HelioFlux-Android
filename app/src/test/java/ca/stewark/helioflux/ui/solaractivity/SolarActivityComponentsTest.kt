@@ -3,6 +3,7 @@ package ca.stewark.helioflux.ui.solaractivity
 import androidx.compose.ui.unit.dp
 import ca.stewark.helioflux.core.data.repository.RepositoryState
 import ca.stewark.helioflux.core.model.*
+import ca.stewark.helioflux.imageloading.ImageDownloadProgress
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -96,6 +97,32 @@ class SolarActivityComponentsTest {
                 repositoryLoading = true,
                 imageUrl = null,
                 mediaState = SolarMediaLoadState.Failed,
+            ),
+        )
+    }
+
+    @Test
+    fun solarDownloadProgressFormatsKnownTotalInKilobytes() {
+        assertEquals(
+            "Downloading… 8,420 KB / 17,860 KB",
+            formatSolarDownloadProgress(
+                ImageDownloadProgress(
+                    bytesRead = 8_420L * 1024L,
+                    totalBytes = 17_860L * 1024L,
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun solarDownloadProgressFormatsUnknownTotalWithDownloadedBytesOnly() {
+        assertEquals(
+            "Downloading… 8,420 KB",
+            formatSolarDownloadProgress(
+                ImageDownloadProgress(
+                    bytesRead = 8_420L * 1024L,
+                    totalBytes = null,
+                ),
             ),
         )
     }

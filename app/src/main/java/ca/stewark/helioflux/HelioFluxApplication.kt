@@ -16,6 +16,7 @@ import ca.stewark.helioflux.feature.alerts.RepositoryAlertRepository
 import ca.stewark.helioflux.feature.alerts.RoomAlertStateStore
 import ca.stewark.helioflux.feature.widgets.SunWidgetDependenciesProvider
 import ca.stewark.helioflux.feature.widgets.SunWidgetRefreshScheduler
+import coil3.SingletonImageLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -38,6 +39,7 @@ class HelioFluxApplication :
     override fun onCreate() {
         super.onCreate()
         container = AppContainer.create(this)
+        SingletonImageLoader.setSafe { _ -> container.imageLoader }
         refreshCoordinator = AppRefreshCoordinator.from(container)
         refreshCoordinator.refreshStartupOnce(applicationScope)
         initializeDataRefresh(AppDataRefreshScheduler(this))

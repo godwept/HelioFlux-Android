@@ -27,7 +27,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 
 internal const val EnlilPreloadConcurrency = 4
@@ -43,6 +45,11 @@ internal enum class EnlilMediaLoadState {
     Ready,
     Failed,
 }
+
+internal fun formatEnlilProgress(
+    completedFrames: Int,
+    totalFrames: Int,
+): String = "Loading frame " + completedFrames + " of " + totalFrames
 
 internal fun enlilBlendProgress(
     elapsedMillis: Long,
@@ -78,11 +85,17 @@ internal fun enlilMediaLoadState(
 internal suspend fun preloadEnlilUrls(
     urls: List<String>,
     maxConcurrency: Int = EnlilPreloadConcurrency,
+    onProgress: (completedFrames: Int, totalFrames: Int) -> Unit = { _, _ -> },
     load: suspend (String) -> Boolean,
 ): EnlilPreloadResult =
     coroutineScope {
         require(maxConcurrency > 0)
+        if (urls.isNotEmpty()) {
+            onProgress(0, urls.size)
+        }
         val semaphore = Semaphore(maxConcurrency)
+        val progressMutex = Mutex()
+        var completedFrames = 0
         val results =
             urls.map { url ->
                 async {
@@ -96,6 +109,10 @@ internal suspend fun preloadEnlilUrls(
                                 false
                             }
                         }
+                    progressMutex.withLock {
+                        completedFrames += 1
+                        onProgress(completedFrames, urls.size)
+                    }
                     url to loaded
                 }
             }.awaitAll()
@@ -116,12 +133,38 @@ private fun RepositoryState<List<EnlilFrame>>.enlilFrames(): List<EnlilFrame> =
 private suspend fun preloadEnlilFrames(
     context: android.content.Context,
     urls: List<String>,
+    onProgress: (completedFrames: Int, totalFrames: Int) -> Unit,
 ): EnlilPreloadResult {
     val loader = SingletonImageLoader.get(context)
-    return preloadEnlilUrls(urls) { url ->
+    return preloadEnlilUrls(
+        urls = urls,
+        onProgress = onProgress,
+    ) { url ->
         loader.execute(
             ImageRequest.Builder(context).data(url).build(),
         ) is SuccessResult
+    }
+}
+
+@Composable
+internal fun EnlilLoadingIndicator(
+    completedFrames: Int,
+    totalFrames: Int,
+) {
+    Column(
+        modifier = Modifier.testTag("enlil-loading"),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        CircularProgressIndicator()
+        if (totalFrames > 0) {
+            Text(
+                formatEnlilProgress(completedFrames, totalFrames),
+                modifier = Modifier.testTag("enlil-progress"),
+                style = MaterialTheme.typography.labelMedium,
+                color = SpaceMuted,
+            )
+        }
     }
 }
 
@@ -136,11 +179,20 @@ fun EnlilAnimation(
     val urls = frames.map { it.url }
     val context = LocalContext.current
     var preloadResult by remember(urls) { mutableStateOf<EnlilPreloadResult?>(null) }
+    var completedFrames by remember(urls) { mutableIntStateOf(0) }
 
     LaunchedEffect(urls) {
         preloadResult = null
+        completedFrames = 0
         if (urls.isNotEmpty()) {
-            preloadResult = preloadEnlilFrames(context, urls)
+            preloadResult =
+                preloadEnlilFrames(
+                    context = context,
+                    urls = urls,
+                    onProgress = { completed, _ ->
+                        completedFrames = completed
+                    },
+                )
         }
     }
 
@@ -187,8 +239,9 @@ fun EnlilAnimation(
     ) {
         when (mediaState) {
             EnlilMediaLoadState.Loading ->
-                CircularProgressIndicator(
-                    Modifier.testTag("enlil-loading"),
+                EnlilLoadingIndicator(
+                    completedFrames = completedFrames,
+                    totalFrames = urls.size,
                 )
             EnlilMediaLoadState.Failed ->
                 Text(

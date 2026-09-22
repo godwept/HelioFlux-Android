@@ -1,6 +1,9 @@
 package ca.stewark.helioflux.ui.solaractivity
 
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Test
@@ -82,6 +85,68 @@ class EnlilPlaybackTest {
             assertEquals(listOf("one", "three", "four", "six"), result.successfulUrls)
             assertEquals(2, result.failureCount)
         }
+
+    @Test
+    fun boundedPreloadReportsZeroThenEveryCompletedFrame() =
+        runTest {
+            val updates = mutableListOf<Pair<Int, Int>>()
+            val urls = listOf("one", "two", "three")
+
+            preloadEnlilUrls(
+                urls = urls,
+                load = { url ->
+                    delay(if (url == "one") 20 else 5)
+                    url != "two"
+                },
+                onProgress = { completed, total ->
+                    updates += completed to total
+                },
+            )
+
+            assertEquals(
+                listOf(0 to 3, 1 to 3, 2 to 3, 3 to 3),
+                updates,
+            )
+        }
+
+    @Test
+    fun failedFrameStillAdvancesCompletedProgress() =
+        runTest {
+            val updates = mutableListOf<Pair<Int, Int>>()
+
+            preloadEnlilUrls(
+                urls = listOf("one"),
+                load = { false },
+                onProgress = { completed, total -> updates += completed to total },
+            )
+
+            assertEquals(listOf(0 to 1, 1 to 1), updates)
+        }
+
+    @Test
+    fun cancelledPreloadDoesNotReportCompletedFrames() =
+        runTest {
+            val updates = mutableListOf<Pair<Int, Int>>()
+            val job =
+                launch {
+                    preloadEnlilUrls(
+                        urls = listOf("one", "two"),
+                        load = { awaitCancellation() },
+                        onProgress = { completed, total -> updates += completed to total },
+                    )
+                }
+
+            yield()
+            job.cancel()
+            job.join()
+
+            assertEquals(listOf(0 to 2), updates)
+        }
+
+    @Test
+    fun enlilProgressFormatsCompletedFrames() {
+        assertEquals("Loading frame 18 of 48", formatEnlilProgress(18, 48))
+    }
 
     @Test
     fun playbackStateWaitsForFullPreloadAndHandlesSingleFrame() {
