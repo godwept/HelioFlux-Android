@@ -17,6 +17,126 @@ class ChartPresentationTest {
     }
 
     @Test
+    fun markerTouchClearanceIsFortyEightDp() {
+        assertEquals(48.dp, ChartMarkerTouchClearance)
+    }
+
+    @Test
+    fun markerLabelPrefersFortyEightPxAboveSelectedPoint() {
+        val placement =
+            markerLabelPlacement(
+                targetX = 150f,
+                pointTopY = 160f,
+                pointBottomY = 160f,
+                labelWidth = 100f,
+                labelHeight = 40f,
+                boundsLeft = 0f,
+                boundsTop = 0f,
+                boundsRight = 300f,
+                boundsBottom = 240f,
+                clearance = 48f,
+            )
+
+        assertEquals(MarkerLabelSide.Above, placement.side)
+        assertEquals(72f, placement.top, 0f)
+    }
+
+    @Test
+    fun markerLabelFlipsBelowWhenPreferredClearanceDoesNotFitAbove() {
+        val placement =
+            markerLabelPlacement(
+                targetX = 150f,
+                pointTopY = 60f,
+                pointBottomY = 60f,
+                labelWidth = 100f,
+                labelHeight = 40f,
+                boundsLeft = 0f,
+                boundsTop = 0f,
+                boundsRight = 300f,
+                boundsBottom = 240f,
+                clearance = 48f,
+            )
+
+        assertEquals(MarkerLabelSide.Below, placement.side)
+        assertEquals(108f, placement.top, 0f)
+    }
+
+    @Test
+    fun markerLabelBelowPlacementStaysInsideBottomBound() {
+        val placement =
+            markerLabelPlacement(
+                targetX = 150f,
+                pointTopY = 20f,
+                pointBottomY = 190f,
+                labelWidth = 100f,
+                labelHeight = 40f,
+                boundsLeft = 0f,
+                boundsTop = 0f,
+                boundsRight = 300f,
+                boundsBottom = 240f,
+                clearance = 48f,
+            )
+
+        assertEquals(MarkerLabelSide.Below, placement.side)
+        assertEquals(200f, placement.top, 0f)
+    }
+
+    @Test
+    fun markerLabelStaysInsideHorizontalBounds() {
+        val leftPlacement =
+            markerLabelPlacement(
+                targetX = 10f,
+                pointTopY = 160f,
+                pointBottomY = 160f,
+                labelWidth = 100f,
+                labelHeight = 40f,
+                boundsLeft = 0f,
+                boundsTop = 0f,
+                boundsRight = 300f,
+                boundsBottom = 240f,
+                clearance = 48f,
+            )
+        val rightPlacement =
+            markerLabelPlacement(
+                targetX = 290f,
+                pointTopY = 160f,
+                pointBottomY = 160f,
+                labelWidth = 100f,
+                labelHeight = 40f,
+                boundsLeft = 0f,
+                boundsTop = 0f,
+                boundsRight = 300f,
+                boundsBottom = 240f,
+                clearance = 48f,
+            )
+
+        assertEquals(0f, leftPlacement.left, 0f)
+        assertEquals(200f, rightPlacement.left, 0f)
+    }
+
+    @Test
+    fun oversizedMarkerLabelPrioritizesReadableBoundsOverClearance() {
+        val placement =
+            markerLabelPlacement(
+                targetX = 150f,
+                pointTopY = 30f,
+                pointBottomY = 30f,
+                labelWidth = 100f,
+                labelHeight = 180f,
+                boundsLeft = 0f,
+                boundsTop = 0f,
+                boundsRight = 300f,
+                boundsBottom = 200f,
+                clearance = 48f,
+            )
+
+        assertEquals(MarkerLabelSide.Below, placement.side)
+        assertTrue(placement.top >= 0f)
+        assertTrue(placement.top + 180f <= 200f)
+        assertTrue(placement.top < 30f + 48f)
+    }
+
+    @Test
     fun sharedRendererAppliesConfiguredSeriesStrokeWidth() {
         val source =
             File("src/main/java/ca/stewark/helioflux/ui/components/HelioFluxLineChart.kt")
@@ -75,19 +195,19 @@ class ChartPresentationTest {
     }
 
     @Test
-    fun markerInspectionFloatsAroundSelectedPoint() {
+    fun markerInspectionUsesFingerClearPlacementWithoutChangingInteractionContract() {
         val source =
             File("src/main/java/ca/stewark/helioflux/ui/components/HelioFluxLineChart.kt")
                 .readText()
 
-        assertTrue(
-            source.contains(
-                "labelPosition = DefaultCartesianMarker.LabelPosition.AroundPoint",
-            ),
-        )
+        assertTrue(source.contains("ChartMarkerTouchClearance = 48.dp"))
+        assertTrue(source.contains("HelioFluxCartesianMarker("))
+        assertTrue(source.contains("markerLabelPlacement("))
         assertTrue(source.contains("lineCount = chartMarkerLineCount(preparedSeries.size)"))
         assertTrue(source.contains("valueFormatter = markerFormatter"))
         assertTrue(source.contains("guideline ="))
+        assertTrue(source.contains("CartesianMarkerController.rememberShowOnPress("))
+        assertTrue(source.contains("consumeMoveEvents = DefaultChartInteractionPolicy.consumeMoveEvents"))
     }
 
     @Test

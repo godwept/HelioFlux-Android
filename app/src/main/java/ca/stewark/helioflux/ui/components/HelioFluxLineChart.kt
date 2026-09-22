@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
@@ -24,6 +25,7 @@ import ca.stewark.helioflux.ui.theme.SolarOrange
 import ca.stewark.helioflux.ui.theme.SpaceMuted
 import ca.stewark.helioflux.ui.theme.WarningAmber
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
+import com.patrykandpatrick.vico.compose.cartesian.CartesianDrawingContext
 import com.patrykandpatrick.vico.compose.cartesian.Zoom
 import com.patrykandpatrick.vico.compose.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.VerticalAxis
@@ -36,14 +38,21 @@ import com.patrykandpatrick.vico.compose.cartesian.decoration.HorizontalLine
 import com.patrykandpatrick.vico.compose.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.marker.CartesianMarker
 import com.patrykandpatrick.vico.compose.cartesian.marker.CartesianMarkerController
 import com.patrykandpatrick.vico.compose.cartesian.marker.DefaultCartesianMarker
-import com.patrykandpatrick.vico.compose.cartesian.marker.rememberDefaultCartesianMarker
+import com.patrykandpatrick.vico.compose.cartesian.marker.LineCartesianLayerMarkerTarget
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoZoomState
 import com.patrykandpatrick.vico.compose.common.Fill
+import com.patrykandpatrick.vico.compose.common.Position
+import com.patrykandpatrick.vico.compose.common.component.LineComponent
+import com.patrykandpatrick.vico.compose.common.component.TextComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
+import com.patrykandpatrick.vico.compose.common.shape.MarkerCornerBasedShape
+import kotlin.math.ceil
+import kotlin.math.min
 
 enum class ChartSeriesStyle {
     Default,
@@ -101,6 +110,142 @@ private data class RenderSegment(
 )
 
 internal val ChartSeriesStrokeWidth = 1.dp
+internal val ChartMarkerTouchClearance = 48.dp
+
+internal enum class MarkerLabelSide {
+    Above,
+    Below,
+}
+
+internal data class MarkerLabelPlacement(
+    val left: Float,
+    val top: Float,
+    val side: MarkerLabelSide,
+)
+
+internal fun markerLabelPlacement(
+    targetX: Float,
+    pointTopY: Float,
+    pointBottomY: Float,
+    labelWidth: Float,
+    labelHeight: Float,
+    boundsLeft: Float,
+    boundsTop: Float,
+    boundsRight: Float,
+    boundsBottom: Float,
+    clearance: Float,
+): MarkerLabelPlacement {
+    val availableWidth = (boundsRight - boundsLeft).coerceAtLeast(0f)
+    val availableHeight = (boundsBottom - boundsTop).coerceAtLeast(0f)
+    val maxLeft = boundsRight - labelWidth
+    val left =
+        if (labelWidth >= availableWidth) {
+            boundsLeft
+        } else {
+            (targetX - labelWidth / 2f).coerceIn(boundsLeft, maxLeft)
+        }
+
+    val idealAboveTop = pointTopY - clearance - labelHeight
+    val side = if (idealAboveTop >= boundsTop) MarkerLabelSide.Above else MarkerLabelSide.Below
+    val idealTop =
+        if (side == MarkerLabelSide.Above) {
+            idealAboveTop
+        } else {
+            pointBottomY + clearance
+        }
+    val maxTop = boundsBottom - labelHeight
+    val top =
+        if (labelHeight >= availableHeight) {
+            boundsTop
+        } else {
+            idealTop.coerceIn(boundsTop, maxTop)
+        }
+
+    return MarkerLabelPlacement(left = left, top = top, side = side)
+}
+
+private class HelioFluxCartesianMarker(
+    label: TextComponent,
+    valueFormatter: DefaultCartesianMarker.ValueFormatter,
+    guideline: LineComponent?,
+    private val touchClearance: androidx.compose.ui.unit.Dp,
+) : DefaultCartesianMarker(
+        label = label,
+        valueFormatter = valueFormatter,
+        labelPosition = LabelPosition.AroundPoint,
+        guideline = guideline,
+    ) {
+    override fun drawOverLayers(
+        context: CartesianDrawingContext,
+        targets: List<CartesianMarker.Target>,
+    ) {
+        val lineTargets = targets.filterIsInstance<LineCartesianLayerMarkerTarget>()
+        if (targets.isEmpty() || lineTargets.size != targets.size || lineTargets.any { it.points.isEmpty() }) {
+            super.drawOverLayers(context, targets)
+            return
+        }
+
+        with(context) {
+            drawGuideline(targets)
+            val text = valueFormatter.format(context, targets)
+            val targetX = targets.map { it.canvasX }.average().toFloat()
+            val pointTopY = lineTargets.minOf { target -> target.points.minOf { it.canvasY } }
+            val pointBottomY = lineTargets.maxOf { target -> target.points.maxOf { it.canvasY } }
+            val labelBounds = label.getBounds(context, text, layerBounds.width.toInt())
+            val placement =
+                markerLabelPlacement(
+                    targetX = targetX,
+                    pointTopY = pointTopY,
+                    pointBottomY = pointBottomY,
+                    labelWidth = labelBounds.width,
+                    labelHeight = labelBounds.height,
+                    boundsLeft = layerBounds.left,
+                    boundsTop = layerBounds.top,
+                    boundsRight = layerBounds.right,
+                    boundsBottom = layerBounds.bottom,
+                    clearance = touchClearance.pixels,
+                )
+            val labelCenterX = placement.left + labelBounds.width / 2f
+            markerCornerBasedShape?.tickX = targetX - labelCenterX
+            markerCornerBasedShape?.tickPosition =
+                if (placement.side == MarkerLabelSide.Above) {
+                    MarkerCornerBasedShape.TickPosition.Bottom
+                } else {
+                    MarkerCornerBasedShape.TickPosition.Top
+                }
+
+            label.draw(
+                context = context,
+                text = text,
+                x = labelCenterX,
+                y = placement.top,
+                verticalPosition = Position.Vertical.Top,
+                maxWidth =
+                    ceil(
+                        min(
+                            layerBounds.right - labelCenterX,
+                            labelCenterX - layerBounds.left,
+                        ) * 2f,
+                    ).toInt(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun rememberHelioFluxCartesianMarker(
+    label: TextComponent,
+    valueFormatter: DefaultCartesianMarker.ValueFormatter,
+    guideline: LineComponent?,
+): DefaultCartesianMarker =
+    remember(label, valueFormatter, guideline) {
+        HelioFluxCartesianMarker(
+            label = label,
+            valueFormatter = valueFormatter,
+            guideline = guideline,
+            touchClearance = ChartMarkerTouchClearance,
+        )
+    }
 
 @Composable
 fun HelioFluxLineChart(
@@ -243,7 +388,7 @@ fun HelioFluxLineChart(
             }
         }
     val marker =
-        rememberDefaultCartesianMarker(
+        rememberHelioFluxCartesianMarker(
             label =
                 rememberTextComponent(
                     style =
@@ -255,7 +400,6 @@ fun HelioFluxLineChart(
                     lineCount = chartMarkerLineCount(preparedSeries.size),
                 ),
             valueFormatter = markerFormatter,
-            labelPosition = DefaultCartesianMarker.LabelPosition.AroundPoint,
             guideline =
                 rememberAxisGuidelineComponent(
                     fill = Fill(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)),
