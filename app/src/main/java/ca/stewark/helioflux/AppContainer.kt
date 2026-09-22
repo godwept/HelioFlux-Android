@@ -7,7 +7,11 @@ import ca.stewark.helioflux.core.data.network.HttpTransport
 import ca.stewark.helioflux.core.data.network.OkHttpTransport
 import ca.stewark.helioflux.core.data.repository.*
 import ca.stewark.helioflux.core.database.HelioFluxDatabase
+import ca.stewark.helioflux.imageloading.ImageDownloadProgressInterceptor
+import ca.stewark.helioflux.imageloading.imageDownloadProgressRegistry
 import coil3.ImageLoader
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import okhttp3.OkHttpClient
 
 interface RepositoryProvider {
     val spaceWeather: SpaceWeatherRepository
@@ -34,7 +38,7 @@ class AppContainer private constructor(
             val db=Room.databaseBuilder(context,HelioFluxDatabase::class.java,"helioflux.db").fallbackToDestructiveMigration().build()
             val transport=OkHttpTransport()
             val status=db.dataSourceStatusDao()
-            return AppContainer(
+            val imageHttpClient =\n                OkHttpClient.Builder()\n                    .addInterceptor(ImageDownloadProgressInterceptor(imageDownloadProgressRegistry))\n                    .build()\n            val imageLoader =\n                ImageLoader.Builder(context)\n                    .components {\n                        add(OkHttpNetworkFetcherFactory(callFactory = { imageHttpClient }))\n                    }\n                    .build()\n            return AppContainer(
                 db,transport,
                 SpaceWeatherRepository(db.solarWindMagDao(),db.solarWindPlasmaDao(),db.kpDao(),db.goesMagDao(),db.hemisphericPowerDao(),status,transport),
                 AuroraRepository(db.auroraSnapshotDao(),status,transport),
@@ -42,7 +46,7 @@ class AppContainer private constructor(
                 SolarActivityRepository(db.xrayFluxDao(),db.flareEventDao(),db.cmeEventDao(),db.aceEpamDao(),status,transport),
                 SolarImageryRepository(db.solarImageDao(),db.activeRegionDao(),db.enlilFrameDao(),status,transport),
                 SolarHeroRepository(db.solarHeroFrameDao(),status,HelioviewerApi(transport)),
-                ImageLoader.Builder(context).build(),
+                imageLoader,
             )
         }
     }
