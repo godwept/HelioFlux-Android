@@ -50,7 +50,7 @@ import com.patrykandpatrick.vico.compose.common.pixels
 import com.patrykandpatrick.vico.compose.common.component.LineComponent
 import com.patrykandpatrick.vico.compose.common.component.TextComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
-import com.patrykandpatrick.vico.compose.common.shape.MarkerCornerBasedShape
+import com.patrykandpatrick.vico.compose.common.MarkerCornerBasedShape
 import kotlin.math.ceil
 import kotlin.math.min
 
