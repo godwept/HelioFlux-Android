@@ -42,20 +42,43 @@ internal fun solarBlendProgress(elapsedMillis: Long, cadenceMillis: Long): Float
 internal fun selectPlayableSolarFrames(frames: List<SolarImage>, preloadedUrls: Set<String>): List<SolarImage> =
     frames.filter { it.url in preloadedUrls }
 
-private fun solarFrameRequest(context: android.content.Context, url: String): ImageRequest =
-    ImageRequest.Builder(context).data(url).size(512).build()
+internal fun solarHeroLoadingText(completedFrames: Int, totalFrames: Int): String? =
+    totalFrames.takeIf { it > 0 }?.let { "Loading frame $completedFrames of $it" }
 
-private suspend fun preloadSolarFrames(context: android.content.Context, frames: List<SolarImage>): Set<String> =
+internal suspend fun preloadSolarFrameUrls(
+    urls: List<String>,
+    load: suspend (String) -> Boolean,
+    onProgress: (completedFrames: Int, totalFrames: Int) -> Unit,
+): Set<String> =
     coroutineScope {
-        val imageLoader = SingletonImageLoader.get(context)
-        frames.map { frame ->
+        if (urls.isEmpty()) return@coroutineScope emptySet()
+        var completedFrames = 0
+        onProgress(0, urls.size)
+        urls.map { url ->
             async {
-                frame.url.takeIf {
-                    imageLoader.execute(solarFrameRequest(context, frame.url)) is SuccessResult
-                }
+                val successful = load(url)
+                completedFrames += 1
+                onProgress(completedFrames, urls.size)
+                url.takeIf { successful }
             }
         }.awaitAll().filterNotNull().toSet()
     }
+
+private fun solarFrameRequest(context: android.content.Context, url: String): ImageRequest =
+    ImageRequest.Builder(context).data(url).size(512).build()
+
+private suspend fun preloadSolarFrames(
+    context: android.content.Context,
+    frames: List<SolarImage>,
+    onProgress: (completedFrames: Int, totalFrames: Int) -> Unit,
+): Set<String> {
+    val imageLoader = SingletonImageLoader.get(context)
+    return preloadSolarFrameUrls(
+        urls = frames.map { it.url },
+        load = { url -> imageLoader.execute(solarFrameRequest(context, url)) is SuccessResult },
+        onProgress = onProgress,
+    )
+}
 
 @Composable
 fun SolarHero(
@@ -71,10 +94,19 @@ fun SolarHero(
     val context = LocalContext.current
     var preloadedUrls by remember(frames) { mutableStateOf<Set<String>>(emptySet()) }
     var preloadComplete by remember(frames) { mutableStateOf(false) }
+    var completedFrames by remember(frames) { mutableIntStateOf(0) }
 
     LaunchedEffect(frames) {
         preloadComplete = false
-        preloadedUrls = if (frames.isEmpty()) emptySet() else preloadSolarFrames(context, frames)
+        completedFrames = 0
+        preloadedUrls =
+            if (frames.isEmpty()) {
+                emptySet()
+            } else {
+                preloadSolarFrames(context, frames) { completed, _ ->
+                    completedFrames = completed
+                }
+            }
         preloadComplete = true
     }
 
@@ -158,7 +190,7 @@ fun SolarHero(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     CircularProgressIndicator()
-                    Text("Loading...")
+                    solarHeroLoadingText(completedFrames, frames.size)?.let { Text(it) }
                 }
             }
             if (state is RepositoryState.Failure) {
