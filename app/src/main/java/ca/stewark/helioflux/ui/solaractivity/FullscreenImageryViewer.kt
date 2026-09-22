@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -81,6 +82,7 @@ fun ZoomableSolarImage(
     title: String,
     imageUrl: String?,
     modifier: Modifier = Modifier,
+    trackMediaLoading: Boolean = false,
     overlay: @Composable BoxScope.() -> Unit = {},
 ) {
     val transform = remember(imageUrl) { ImageryTransformState() }
@@ -88,6 +90,16 @@ fun ZoomableSolarImage(
         rememberTransformableState { zoom, pan, _ ->
             transform.transform(zoom, pan)
         }
+    var mediaState by remember(imageUrl, trackMediaLoading) {
+        mutableStateOf(
+            if (trackMediaLoading) {
+                initialSolarMediaLoadState(imageUrl)
+            } else {
+                SolarMediaLoadState.Ready
+            },
+        )
+    }
+
     BoxWithConstraints(
         modifier = modifier,
         contentAlignment = Alignment.Center,
@@ -110,11 +122,51 @@ fun ZoomableSolarImage(
                     contentDescription = title,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Fit,
+                    onLoading = {
+                        if (trackMediaLoading) {
+                            mediaState = SolarMediaLoadState.Loading
+                        }
+                    },
+                    onSuccess = {
+                        if (trackMediaLoading) {
+                            mediaState =
+                                reduceSolarMediaLoadState(SolarMediaLoadEvent.Success)
+                        }
+                    },
+                    onError = {
+                        if (trackMediaLoading) {
+                            mediaState =
+                                reduceSolarMediaLoadState(SolarMediaLoadEvent.Error)
+                        }
+                    },
                 )
-            } else {
+            }
+
+            if (
+                trackMediaLoading &&
+                imageUrl != null &&
+                mediaState == SolarMediaLoadState.Loading
+            ) {
+                CircularProgressIndicator(
+                    Modifier
+                        .align(Alignment.Center)
+                        .testTag("fullscreen-solar-media-loading"),
+                )
+            }
+
+            if (
+                imageUrl == null ||
+                (
+                    trackMediaLoading &&
+                        mediaState == SolarMediaLoadState.Failed
+                )
+            ) {
                 Text(
                     "Image unavailable",
-                    modifier = Modifier.align(Alignment.Center),
+                    modifier =
+                        Modifier
+                            .align(Alignment.Center)
+                            .testTag("fullscreen-solar-media-unavailable"),
                     color = SpaceMuted,
                 )
             }
