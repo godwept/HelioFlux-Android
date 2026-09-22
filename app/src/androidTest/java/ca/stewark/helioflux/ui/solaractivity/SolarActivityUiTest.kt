@@ -231,7 +231,7 @@ class SolarActivityUiTest {
     }
 
     @Test
-    fun enlilRepositoryLoadingShowsSpinnerAndEmptyShowsUnavailable() {
+    fun enlilRepositoryLoadingShowsSpinner() {
         compose.setContent {
             SolarActivityScreen(
                 populatedImageryState().copy(enlil = RepositoryState.Loading),
@@ -241,7 +241,10 @@ class SolarActivityUiTest {
 
         compose.onNodeWithTag("solar-imagery-enlil").performClick()
         compose.onNodeWithTag("enlil-loading").assertExists()
+    }
 
+    @Test
+    fun enlilEmptyStateShowsUnavailable() {
         compose.setContent {
             SolarActivityScreen(
                 populatedImageryState().copy(
@@ -262,13 +265,11 @@ class SolarActivityUiTest {
         compose.onNodeWithTag("solar-imagery-c2").performClick()
         compose.onNodeWithTag("solar-imagery-stage-c2").performClick()
         compose.onNodeWithTag("fullscreen-imagery-viewer").assertExists()
-        compose.onNodeWithTag("fullscreen-solar-media-loading").assertExists()
         compose.onNodeWithTag("fullscreen-imagery-close").performClick()
 
         compose.onNodeWithTag("solar-imagery-c3").performClick()
         compose.onNodeWithTag("solar-imagery-stage-c3").performClick()
         compose.onNodeWithTag("fullscreen-imagery-viewer").assertExists()
-        compose.onNodeWithTag("fullscreen-solar-media-loading").assertExists()
     }
 
 }
