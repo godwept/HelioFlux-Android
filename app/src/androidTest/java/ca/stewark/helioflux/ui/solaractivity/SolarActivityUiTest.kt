@@ -40,7 +40,10 @@ class SolarActivityUiTest {
                 ),
             activeRegions =
                 RepositoryState.Available(
-                    listOf(ActiveRegion("r1", "12345", 0.0, 0.0)),
+                    listOf(
+                        ActiveRegion("r1", "4532", 0.0, 0.0),
+                        ActiveRegion("r2", "4533", 20.0, 20.0),
+                    ),
                     source,
                     DataFreshness.Fresh,
                 ),
@@ -196,9 +199,13 @@ class SolarActivityUiTest {
     fun hmiAndEnlilOpenTrueFullscreenAndSelectionSurvivesClose() {
         compose.setContent { SolarActivityScreen(populatedImageryState(), expanded = false) }
 
+        compose.onNodeWithText("4532").assertExists()
+        compose.onNodeWithText("4533").assertExists()
         compose.onNodeWithTag("solar-imagery-stage-hmi").performClick()
         compose.onNodeWithTag("fullscreen-imagery-viewer").assertExists()
         compose.onNodeWithTag("fullscreen-active-region-overlay").assertExists()
+        compose.onNodeWithText("4532").assertExists()
+        compose.onNodeWithText("4533").assertExists()
         compose.onNodeWithTag("fullscreen-imagery-close").performClick()
         compose.onNodeWithTag("fullscreen-imagery-viewer").assertDoesNotExist()
         compose.onNodeWithTag("solar-imagery-stage-hmi").assertExists()

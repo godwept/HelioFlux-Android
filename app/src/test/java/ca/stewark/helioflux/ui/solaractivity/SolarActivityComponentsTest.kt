@@ -1,5 +1,6 @@
 package ca.stewark.helioflux.ui.solaractivity
 
+import androidx.compose.ui.unit.dp
 import ca.stewark.helioflux.core.data.repository.RepositoryState
 import ca.stewark.helioflux.core.model.*
 import org.junit.Assert.*
@@ -43,5 +44,12 @@ class SolarActivityComponentsTest {
         assertEquals(NormalizedRegionPosition(0.5, 0.5), mapActiveRegion(0.0, 0.0))
         assertEquals(NormalizedRegionPosition(1.0, 0.0), mapActiveRegion(1000.0, 1000.0))
         assertEquals(NormalizedRegionPosition(0.0, 1.0), mapActiveRegion(-1000.0, -1000.0))
+    }
+
+    @Test
+    fun activeRegionLabelSpacingUsesApprovedThresholds() {
+        assertEquals(10.dp, ActiveRegionLabelMinGap)
+        assertEquals(48.dp, ActiveRegionLabelMaxDisplacement)
+        assertEquals(16.dp, ActiveRegionLeaderThreshold)
     }
 }
