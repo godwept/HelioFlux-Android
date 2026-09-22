@@ -126,7 +126,10 @@ class SolarActivityScreenSourceTest {
         assertTrue(eventsSource.contains("testTag(\"recent-flares-card\")"))
         assertTrue(eventsSource.contains("testTag(\"recent-cmes-card\")"))
         assertFalse(eventsSource.contains("weight(1f)"))
-        assertEquals(2, Regex("fillMaxWidth\\(\\).*testTag\\(\"recent-(?:flares|cmes)-card\"\\)").findAll(eventsSource.replace("\n", " ")).count())
+        assertEquals(
+            2,
+            Regex("Modifier\\.fillMaxWidth\\(\\)\\.testTag").findAll(eventsSource).count(),
+        )
     }
 
     @Test
