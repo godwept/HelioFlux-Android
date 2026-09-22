@@ -217,4 +217,58 @@ class SolarActivityUiTest {
         compose.onNodeWithTag("fullscreen-imagery-close").performClick()
         compose.onNodeWithTag("solar-imagery-stage-enlil").assertExists()
     }
+    @Test
+    fun c2RepositoryLoadingShowsMediaSpinner() {
+        compose.setContent {
+            SolarActivityScreen(
+                populatedImageryState().copy(lascoC2 = RepositoryState.Loading),
+                expanded = false,
+            )
+        }
+
+        compose.onNodeWithTag("solar-imagery-c2").performClick()
+        compose.onNodeWithTag("solar-media-loading").assertExists()
+    }
+
+    @Test
+    fun enlilRepositoryLoadingShowsSpinnerAndEmptyShowsUnavailable() {
+        compose.setContent {
+            SolarActivityScreen(
+                populatedImageryState().copy(enlil = RepositoryState.Loading),
+                expanded = false,
+            )
+        }
+
+        compose.onNodeWithTag("solar-imagery-enlil").performClick()
+        compose.onNodeWithTag("enlil-loading").assertExists()
+
+        compose.setContent {
+            SolarActivityScreen(
+                populatedImageryState().copy(
+                    enlil = RepositoryState.Empty(source, DataFreshness.Fresh),
+                ),
+                expanded = false,
+            )
+        }
+
+        compose.onNodeWithTag("solar-imagery-enlil").performClick()
+        compose.onNodeWithTag("enlil-unavailable").assertExists()
+    }
+
+    @Test
+    fun c2AndC3OpenFullscreenViewer() {
+        compose.setContent { SolarActivityScreen(populatedImageryState(), expanded = false) }
+
+        compose.onNodeWithTag("solar-imagery-c2").performClick()
+        compose.onNodeWithTag("solar-imagery-stage-c2").performClick()
+        compose.onNodeWithTag("fullscreen-imagery-viewer").assertExists()
+        compose.onNodeWithTag("fullscreen-solar-media-loading").assertExists()
+        compose.onNodeWithTag("fullscreen-imagery-close").performClick()
+
+        compose.onNodeWithTag("solar-imagery-c3").performClick()
+        compose.onNodeWithTag("solar-imagery-stage-c3").performClick()
+        compose.onNodeWithTag("fullscreen-imagery-viewer").assertExists()
+        compose.onNodeWithTag("fullscreen-solar-media-loading").assertExists()
+    }
+
 }
