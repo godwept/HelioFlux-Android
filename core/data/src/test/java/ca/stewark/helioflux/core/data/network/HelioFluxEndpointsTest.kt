@@ -14,7 +14,7 @@ class HelioFluxEndpointsTest {
             HelioFluxEndpoints.goesSecondaryMagnetometer, HelioFluxEndpoints.goesPrimaryXray,
             HelioFluxEndpoints.goesSecondaryXray, HelioFluxEndpoints.ovation,
             HelioFluxEndpoints.hemisphericPower, HelioFluxEndpoints.forecastDiscussion,
-            HelioFluxEndpoints.sunspotReport,
+            HelioFluxEndpoints.solarRegionSummary,
         ).forEach { assertTrue(it.startsWith("https://services.swpc.noaa.gov/")) }
     }
 
@@ -55,9 +55,9 @@ class HelioFluxEndpointsTest {
     }
 
     @Test
-    fun `sunspot report is direct NOAA source`() {
-        assertTrue(HelioFluxEndpoints.sunspotReport.endsWith("/json/sunspot_report.json"))
-        assertFalse(HelioFluxEndpoints.sunspotReport.contains("workers.dev"))
+    fun `solar region summary is current NOAA text source`() {
+        assertTrue(HelioFluxEndpoints.solarRegionSummary.endsWith("/text/srs.txt"))
+        assertFalse(HelioFluxEndpoints.solarRegionSummary.contains("workers.dev"))
     }
 
     @Test
