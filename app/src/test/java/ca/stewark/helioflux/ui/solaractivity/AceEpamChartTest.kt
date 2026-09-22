@@ -64,7 +64,7 @@ class AceEpamChartTest {
 
         assertTrue(aceSource.contains("animateInitial = false"))
         assertTrue(sharedChartSource.contains("animateInitial: Boolean = true"))
-        assertTrue(sharedChartSource.contains("initialAnimationSpec = null"))
+        assertTrue(sharedChartSource.contains("animateIn = animateInitial"))
     }
 
     @Test
