@@ -38,7 +38,9 @@ class HelioFluxApplication :
 
     override fun onCreate() {
         super.onCreate()
-        container = AppContainer.create(this)\n        SingletonImageLoader.setSafe { _ -> container.imageLoader }\n        refreshCoordinator = AppRefreshCoordinator.from(container)
+        container = AppContainer.create(this)
+        SingletonImageLoader.setSafe { _ -> container.imageLoader }
+        refreshCoordinator = AppRefreshCoordinator.from(container)
         refreshCoordinator.refreshStartupOnce(applicationScope)
         initializeDataRefresh(AppDataRefreshScheduler(this))
         initializeAlerts(NotificationChannels::create, AlertScheduler(this))
