@@ -52,7 +52,7 @@ internal class ImageDownloadProgressRegistry {
 
 internal val imageDownloadProgressRegistry = ImageDownloadProgressRegistry()
 
-private fun isTrackedSolarActivityDownload(url: String): Boolean =
+internal fun isTrackedSolarActivityDownload(url: String): Boolean =
     url.endsWith("current_c2small.gif") ||
         url.endsWith("current_c3small.gif")
 
