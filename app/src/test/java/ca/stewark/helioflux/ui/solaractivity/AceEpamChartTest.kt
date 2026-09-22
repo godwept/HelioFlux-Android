@@ -6,7 +6,9 @@ import ca.stewark.helioflux.ui.components.ChartValueFormat
 import ca.stewark.helioflux.ui.components.ChartYDomain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 class AceEpamChartTest {
     @Test
@@ -49,6 +51,20 @@ class AceEpamChartTest {
         )
         assertEquals(List(5) { ChartValueFormat.LogScientific }, series.map { it.valueFormat })
         assertEquals(listOf(4.0, 2.0, 0.0, -1.0, -2.0), series.map { it.points.single().y })
+    }
+
+    @Test
+    fun `particle chart disables initial reveal animation on lazy list reentry`() {
+        val aceSource =
+            File("src/main/java/ca/stewark/helioflux/ui/solaractivity/AceEpamChart.kt")
+                .readText()
+        val sharedChartSource =
+            File("src/main/java/ca/stewark/helioflux/ui/components/HelioFluxLineChart.kt")
+                .readText()
+
+        assertTrue(aceSource.contains("animateInitial = false"))
+        assertTrue(sharedChartSource.contains("animateInitial: Boolean = true"))
+        assertTrue(sharedChartSource.contains("initialAnimationSpec = null"))
     }
 
     @Test

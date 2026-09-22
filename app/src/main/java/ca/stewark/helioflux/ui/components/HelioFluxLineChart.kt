@@ -108,6 +108,7 @@ fun HelioFluxLineChart(
     domain: ChartDomain? = null,
     fixedYDomain: ChartYDomain? = null,
     yAxisFormat: ChartValueFormat = ChartValueFormat.Compact,
+    animateInitial: Boolean = true,
 ) {
     val resolvedDomain =
         domain
@@ -283,28 +284,43 @@ fun HelioFluxLineChart(
         )
 
     key(resolvedDomain) {
-        CartesianChartHost(
-            chart =
-                rememberCartesianChart(
-                    layer,
-                    startAxis = startAxis,
-                    bottomAxis = bottomAxis,
-                    marker = marker,
-                    decorations = decorations,
-                    getXStep = { chartXStepMillis(resolvedDomain).toDouble() },
-                    markerController = markerController,
-                ),
-            modelProducer = modelProducer,
-            modifier = modifier,
-            scrollState =
-                rememberVicoScrollState(
-                    scrollEnabled = DefaultChartInteractionPolicy.scrollEnabled,
-                ),
-            zoomState =
-                rememberVicoZoomState(
-                    zoomEnabled = DefaultChartInteractionPolicy.zoomEnabled,
-                    initialZoom = Zoom.Content,
-                ),
-        )
+        val chart =
+            rememberCartesianChart(
+                layer,
+                startAxis = startAxis,
+                bottomAxis = bottomAxis,
+                marker = marker,
+                decorations = decorations,
+                getXStep = { chartXStepMillis(resolvedDomain).toDouble() },
+                markerController = markerController,
+            )
+        val scrollState =
+            rememberVicoScrollState(
+                scrollEnabled = DefaultChartInteractionPolicy.scrollEnabled,
+            )
+        val zoomState =
+            rememberVicoZoomState(
+                zoomEnabled = DefaultChartInteractionPolicy.zoomEnabled,
+                initialZoom = Zoom.Content,
+            )
+
+        if (animateInitial) {
+            CartesianChartHost(
+                chart = chart,
+                modelProducer = modelProducer,
+                modifier = modifier,
+                scrollState = scrollState,
+                zoomState = zoomState,
+            )
+        } else {
+            CartesianChartHost(
+                chart = chart,
+                modelProducer = modelProducer,
+                modifier = modifier,
+                scrollState = scrollState,
+                zoomState = zoomState,
+                initialAnimationSpec = null,
+            )
+        }
     }
 }
