@@ -14,6 +14,7 @@ class HelioFluxEndpointsTest {
             HelioFluxEndpoints.goesSecondaryMagnetometer, HelioFluxEndpoints.goesPrimaryXray,
             HelioFluxEndpoints.goesSecondaryXray, HelioFluxEndpoints.ovation,
             HelioFluxEndpoints.hemisphericPower, HelioFluxEndpoints.forecastDiscussion,
+            HelioFluxEndpoints.sunspotReport,
         ).forEach { assertTrue(it.startsWith("https://services.swpc.noaa.gov/")) }
     }
 
@@ -54,24 +55,9 @@ class HelioFluxEndpointsTest {
     }
 
     @Test
-    fun `hek requests active regions in a bounded helioprojective search`() {
-        val start = Instant.parse("2026-09-21T11:20:00Z").toEpochMilli()
-        val end = Instant.parse("2026-09-22T11:20:00Z").toEpochMilli()
-
-        val url = HelioFluxEndpoints.hek(start, end)
-
-        assertTrue(url.startsWith("https://helioflux-api-proxy.mathew-stewart.workers.dev/api/hek?"))
-        assertTrue(url.contains("cosec=2"))
-        assertTrue(url.contains("cmd=search"))
-        assertTrue(url.contains("type=column"))
-        assertTrue(url.contains("event_type=ar"))
-        assertTrue(url.contains("event_coordsys=helioprojective"))
-        assertTrue(url.contains("event_starttime=2026-09-21T11%3A20%3A00"))
-        assertTrue(url.contains("event_endtime=2026-09-22T11%3A20%3A00"))
-        assertTrue(url.contains("x1=-1200"))
-        assertTrue(url.contains("x2=1200"))
-        assertTrue(url.contains("y1=-1200"))
-        assertTrue(url.contains("y2=1200"))
+    fun `sunspot report is direct NOAA source`() {
+        assertTrue(HelioFluxEndpoints.sunspotReport.endsWith("/json/sunspot_report.json"))
+        assertFalse(HelioFluxEndpoints.sunspotReport.contains("workers.dev"))
     }
 
     @Test
