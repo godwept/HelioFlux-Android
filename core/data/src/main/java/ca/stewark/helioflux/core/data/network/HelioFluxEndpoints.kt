@@ -25,6 +25,7 @@ object HelioFluxEndpoints {
     val hemisphericPower = "$NOAA/text/aurora-nowcast-hemi-power.txt"
     val forecastDiscussion = "$NOAA/text/discussion.txt"
     val flareProbabilities = "$NOAA/text/3-day-solar-geomag-predictions.txt"
+    val sunspotReport = "$NOAA/json/sunspot_report.json"
 
     fun aceEpam(startMillis: Long, endMillis: Long): String {
         val start = Instant.ofEpochMilli(startMillis)
