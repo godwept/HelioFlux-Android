@@ -29,14 +29,75 @@ class SolarActivityComponentsTest {
                     SolarImage(
                         SolarImageType.LascoC2,
                         1789907640000L,
-                        "https://example.test/c2.gif",
+                        "https://example.test/c2small.gif",
                     ),
                     source,
                     DataFreshness.Fresh,
                 ),
             )
         assertEquals("Sep 20, 12:34 UTC", available.updatedTime)
-        assertEquals("https://example.test/c2.gif", available.imageUrl)
+        assertEquals("https://example.test/c2small.gif", available.imageUrl)
+    }
+
+    @Test
+    fun availableImageStartsInMediaLoadingState() {
+        assertEquals(
+            SolarMediaLoadState.Loading,
+            initialSolarMediaLoadState("https://example.test/c2small.gif"),
+        )
+    }
+
+    @Test
+    fun absentImageStartsInFailedMediaState() {
+        assertEquals(SolarMediaLoadState.Failed, initialSolarMediaLoadState(null))
+    }
+
+    @Test
+    fun mediaCallbacksTransitionToReadyOrFailed() {
+        assertEquals(
+            SolarMediaLoadState.Ready,
+            reduceSolarMediaLoadState(SolarMediaLoadEvent.Success),
+        )
+        assertEquals(
+            SolarMediaLoadState.Failed,
+            reduceSolarMediaLoadState(SolarMediaLoadEvent.Error),
+        )
+    }
+
+    @Test
+    fun availableRepositoryImageStillShowsSpinnerUntilMediaReady() {
+        assertTrue(
+            shouldShowSolarMediaSpinner(
+                repositoryLoading = false,
+                imageUrl = "https://example.test/c2small.gif",
+                mediaState = SolarMediaLoadState.Loading,
+            ),
+        )
+        assertFalse(
+            shouldShowSolarMediaSpinner(
+                repositoryLoading = false,
+                imageUrl = "https://example.test/c2small.gif",
+                mediaState = SolarMediaLoadState.Ready,
+            ),
+        )
+        assertFalse(
+            shouldShowSolarMediaSpinner(
+                repositoryLoading = false,
+                imageUrl = "https://example.test/c2small.gif",
+                mediaState = SolarMediaLoadState.Failed,
+            ),
+        )
+    }
+
+    @Test
+    fun repositoryLoadingShowsSpinnerWithoutMediaUrl() {
+        assertTrue(
+            shouldShowSolarMediaSpinner(
+                repositoryLoading = true,
+                imageUrl = null,
+                mediaState = SolarMediaLoadState.Failed,
+            ),
+        )
     }
 
     @Test
