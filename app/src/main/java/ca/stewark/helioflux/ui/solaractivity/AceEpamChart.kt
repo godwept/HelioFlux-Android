@@ -71,5 +71,6 @@ fun AceEpamChart(
         modifier = modifier.fillMaxWidth().height(240.dp),
         fixedYDomain = EpamYDomain,
         yAxisFormat = ChartValueFormat.LogScientific,
+        animateInitial = false,
     )
 }
