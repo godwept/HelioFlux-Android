@@ -4,6 +4,7 @@ import ca.stewark.helioflux.core.data.freshness.*
 import ca.stewark.helioflux.core.data.network.*
 import ca.stewark.helioflux.core.data.parser.ActiveRegionParser
 import ca.stewark.helioflux.core.data.parser.EnlilListingParser
+import ca.stewark.helioflux.core.data.parser.HmibcMetadataParser
 import ca.stewark.helioflux.core.database.dao.*
 import ca.stewark.helioflux.core.database.entity.DataSourceStatusEntity
 import ca.stewark.helioflux.core.database.toDomain
@@ -18,7 +19,8 @@ class SolarImageryRepository(private val imageDao:SolarImageDao,private val regi
  fun image(type:SolarImageType):Flow<RepositoryState<SolarImage>> = combine(imageDao.observeLatest(type),statusDao.observe(sourceFor(type))){row,status->state(row?.toDomain(),row!=null,status,sourceFor(type))}
  fun regions()=combine(regionDao.observeAll(),statusDao.observe(HEK)){rows,status->state(rows.map{it.toDomain()},rows.isNotEmpty(),status,HEK)}
  fun enlil()=combine(enlilDao.observeOrdered(),statusDao.observe(ENLIL)){rows,status->state(rows.map{it.toDomain()},rows.isNotEmpty(),status,ENLIL)}
- suspend fun refreshAll(){refreshImage(SolarImageType.Magnetogram,HelioFluxEndpoints.hmi);refreshImage(SolarImageType.LascoC2,HelioFluxEndpoints.lasco+"LATEST/current_c2.gif");refreshImage(SolarImageType.LascoC3,HelioFluxEndpoints.lasco+"LATEST/current_c3.gif");refreshRegions();refreshEnlil()}
+ suspend fun refreshAll(){refreshMagnetogram();refreshImage(SolarImageType.LascoC2,HelioFluxEndpoints.lasco+"LATEST/current_c2.gif");refreshImage(SolarImageType.LascoC3,HelioFluxEndpoints.lasco+"LATEST/current_c3.gif");refreshRegions();refreshEnlil()}
+ suspend fun refreshMagnetogram(){val now=nowMillis();attempt(HMI,now);try{val response=transport.get(HelioFluxEndpoints.hmiMetadata);require(response.status in 200..299){"HTTP "+response.status};val record=requireNotNull(HmibcMetadataParser.parse(response.body)){"LaTiS HMIBC response contained no valid image"};imageDao.upsert(SolarImage(SolarImageType.Magnetogram,record.timestampMillis,record.url).toEntity());success(HMI,record.timestampMillis,now)}catch(e:Exception){fail(HMI,now,e)}}
  suspend fun refreshImage(type:SolarImageType,url:String){val key=sourceFor(type);val now=nowMillis();attempt(key,now);try{val response=transport.head(url);require(response.status in 200..299){"HTTP "+response.status};val stamp=lastModified(response)?:now;imageDao.upsert(SolarImage(type,stamp,url).toEntity());success(key,stamp,now)}catch(e:Exception){fail(key,now,e)}}
  suspend fun refreshRegions(){val now=nowMillis();attempt(HEK,now);try{val r=transport.get(HelioFluxEndpoints.hek);require(r.status in 200..299){"HTTP "+r.status};val rows=ActiveRegionParser.parse(r.body);regionDao.replaceAll(rows.map(ActiveRegion::toEntity));success(HEK,now,now)}catch(e:Exception){fail(HEK,now,e)}}
  suspend fun refreshEnlil(){val now=nowMillis();attempt(ENLIL,now);try{val r=transport.get(HelioFluxEndpoints.enlil);require(r.status in 200..299){"HTTP "+r.status};val rows=EnlilListingParser.parse(r.body,HelioFluxEndpoints.enlil);require(rows.isNotEmpty()){"ENLIL listing contained no frames"};enlilDao.upsertAll(rows.map(EnlilFrame::toEntity));enlilDao.deleteOtherRuns(rows.first().runTimestampMillis);success(ENLIL,rows.first().runTimestampMillis,now)}catch(e:Exception){fail(ENLIL,now,e)}}

@@ -26,10 +26,12 @@ object HelioFluxEndpoints {
         return "$LASP/iswa_ace_epam_P5M.csv?time%3E=$start&time%3C=$end"
     }
 
+    val hmiMetadata =
+        "$LASP/iswa_sdo_aia_hmic_files.json?takeRight(1)&project(time,url)"
+
     val donki = "$WORKER/donki"
     val helioviewer = "$WORKER/helioviewer"
     val hek = "$WORKER/hek"
-    val hmi = "$WORKER/hmi/"
     val lasco = "$WORKER/lasco/"
     val enlil = "$WORKER/enlil/"
 }
