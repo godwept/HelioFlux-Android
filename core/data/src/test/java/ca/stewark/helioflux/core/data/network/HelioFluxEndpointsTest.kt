@@ -1,6 +1,7 @@
 package ca.stewark.helioflux.core.data.network
 
 import java.time.Instant
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -33,10 +34,23 @@ class HelioFluxEndpointsTest {
     }
 
     @Test
+    fun `hmi metadata uses direct LaTiS latest color magnetogram query`() {
+        assertTrue(
+            HelioFluxEndpoints.hmiMetadata.startsWith(
+                "https://lasp.colorado.edu/space-weather-portal/latis/dap/" +
+                    "iswa_sdo_aia_hmic_files.json?",
+            ),
+        )
+        assertTrue(HelioFluxEndpoints.hmiMetadata.contains("takeRight(1)"))
+        assertTrue(HelioFluxEndpoints.hmiMetadata.contains("project(time,url)"))
+        assertFalse(HelioFluxEndpoints.hmiMetadata.contains("workers.dev"))
+    }
+
+    @Test
     fun `protected endpoints use existing worker host`() {
         listOf(
             HelioFluxEndpoints.donki, HelioFluxEndpoints.helioviewer, HelioFluxEndpoints.hek,
-            HelioFluxEndpoints.hmi, HelioFluxEndpoints.lasco, HelioFluxEndpoints.enlil,
+            HelioFluxEndpoints.lasco, HelioFluxEndpoints.enlil,
         ).forEach { assertTrue(it.startsWith("https://helioflux-api-proxy.mathew-stewart.workers.dev/api")) }
     }
 }
