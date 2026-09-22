@@ -1,5 +1,6 @@
 package ca.stewark.helioflux.ui.components
 
+import androidx.compose.ui.unit.dp
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -9,6 +10,21 @@ import java.time.Instant
 
 class ChartPresentationTest {
     private val hour = 60L * 60L * 1_000L
+
+    @Test
+    fun chartSeriesStrokeWidthIsOneDp() {
+        assertEquals(1.dp, ChartSeriesStrokeWidth)
+    }
+
+    @Test
+    fun sharedRendererAppliesConfiguredSeriesStrokeWidth() {
+        val source =
+            File("src/main/java/ca/stewark/helioflux/ui/components/HelioFluxLineChart.kt")
+                .readText()
+
+        assertTrue(source.contains("LineStroke.Continuous("))
+        assertTrue(source.contains("thickness = ChartSeriesStrokeWidth"))
+    }
 
     @Test
     fun chartDomainUsesExactRequestedWindow() {
