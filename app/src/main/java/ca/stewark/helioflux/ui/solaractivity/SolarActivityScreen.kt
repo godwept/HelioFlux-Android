@@ -312,17 +312,17 @@ private fun LazyListScope.solarActivityScienceItems(
         )
     }
     item {
+        HelioFluxSectionHeading("Particle Environment")
+    }
+    item {
+        ParticleSection(state.epam, chartDomain)
+    }
+    item {
         SolarEventCards(
             flares = state.flares,
             cmes = state.cmes,
             onCmeDetails = onCmeDetails,
         )
-    }
-    item {
-        HelioFluxSectionHeading("Particle Environment")
-    }
-    item {
-        ParticleSection(state.epam, chartDomain)
     }
 }
 
@@ -345,12 +345,12 @@ private fun SolarEventCards(
     cmes: RepositoryState<List<CmeEvent>>,
     onCmeDetails: (CmeEvent) -> Unit,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth().testTag("recent-events-row"),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Card(
-            modifier = Modifier.weight(1f).testTag("recent-flares-card"),
+            modifier = Modifier.fillMaxWidth().testTag("recent-flares-card"),
             colors = CardDefaults.cardColors(containerColor = SpaceSurface),
             border = BorderStroke(1.dp, SolarOrange.copy(alpha = 0.24f)),
         ) {
@@ -368,7 +368,7 @@ private fun SolarEventCards(
         }
 
         Card(
-            modifier = Modifier.weight(1f).testTag("recent-cmes-card"),
+            modifier = Modifier.fillMaxWidth().testTag("recent-cmes-card"),
             colors = CardDefaults.cardColors(containerColor = SpaceSurface),
             border = BorderStroke(1.dp, SolarOrange.copy(alpha = 0.24f)),
         ) {
