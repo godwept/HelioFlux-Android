@@ -5,7 +5,6 @@ import androidx.compose.ui.unit.IntSize
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sqrt
 
 internal data class ActiveRegionLabelInput(
     val key: String,
@@ -30,16 +29,17 @@ private data class LabelBounds(
 
 private data class LabelCandidate(
     val topLeft: Offset,
-    val displacement: Float,
+    val horizontalNudge: Float,
     val order: Int,
 )
 
 internal fun resolveActiveRegionLabels(
     labels: List<ActiveRegionLabelInput>,
     stageSize: IntSize,
-    minGapPx: Float,
-    maxDisplacementPx: Float,
-    leaderThresholdPx: Float,
+    minLabelGapPx: Float,
+    anchorGapPx: Float,
+    maxHorizontalNudgePx: Float,
+    horizontalNudgeStepPx: Float,
 ): List<ActiveRegionLabelPlacement> {
     if (stageSize.width <= 0 || stageSize.height <= 0) return emptyList()
 
@@ -49,14 +49,20 @@ internal fun resolveActiveRegionLabels(
             candidatesFor(
                 label = label,
                 stageSize = stageSize,
-                minGapPx = minGapPx,
-                maxDisplacementPx = maxDisplacementPx,
+                anchorGapPx = anchorGapPx,
+                maxHorizontalNudgePx = maxHorizontalNudgePx,
+                horizontalNudgeStepPx = horizontalNudgeStepPx,
             )
+
         val selected =
             candidates.firstOrNull { candidate ->
-                val bounds = bounds(candidate.topLeft, label.size)
+                val candidateBounds = bounds(candidate.topLeft, label.size)
                 placed.none { existing ->
-                    conflicts(bounds, bounds(existing.topLeft, existing.size), minGapPx)
+                    conflicts(
+                        candidateBounds,
+                        bounds(existing.topLeft, existing.size),
+                        minLabelGapPx,
+                    )
                 }
             } ?: candidates.minWithOrNull(
                 compareBy<LabelCandidate> { candidate ->
@@ -65,18 +71,17 @@ internal fun resolveActiveRegionLabels(
                         overlapArea(
                             candidateBounds,
                             bounds(existing.topLeft, existing.size),
-                            minGapPx,
+                            minLabelGapPx,
                         ).toDouble()
                     }
-                }.thenBy(LabelCandidate::displacement)
+                }.thenBy { abs(it.horizontalNudge) }
                     .thenBy(LabelCandidate::order),
-            ) ?: fallbackCandidate(label, stageSize)
+            ) ?: fallbackCandidate(label, stageSize, anchorGapPx, maxHorizontalNudgePx)
 
-        val center = center(selected.topLeft, label.size)
-        val displacement = distance(label.anchor, center)
         val labelBounds = bounds(selected.topLeft, label.size)
+        val centerX = selected.topLeft.x + label.size.width / 2f
         val leaderEnd =
-            if (displacement > leaderThresholdPx) {
+            if (abs(centerX - label.anchor.x) > 0.5f) {
                 edgeTowardAnchor(label.anchor, labelBounds)
             } else {
                 null
@@ -97,80 +102,72 @@ internal fun resolveActiveRegionLabels(
 private fun candidatesFor(
     label: ActiveRegionLabelInput,
     stageSize: IntSize,
-    minGapPx: Float,
-    maxDisplacementPx: Float,
+    anchorGapPx: Float,
+    maxHorizontalNudgePx: Float,
+    horizontalNudgeStepPx: Float,
 ): List<LabelCandidate> {
     val result = mutableListOf<LabelCandidate>()
     var order = 0
 
-    fun add(center: Offset, displacement: Float) {
-        val topLeft =
-            Offset(
-                center.x - label.size.width / 2f,
-                center.y - label.size.height / 2f,
-            )
+    fun add(horizontalNudge: Float, above: Boolean) {
+        val centerX = label.anchor.x + horizontalNudge
+        val top =
+            if (above) {
+                label.anchor.y - anchorGapPx - label.size.height
+            } else {
+                label.anchor.y + anchorGapPx
+            }
+        val topLeft = Offset(centerX - label.size.width / 2f, top)
         if (isInBounds(topLeft, label.size, stageSize)) {
-            result += LabelCandidate(topLeft, displacement, order)
+            result += LabelCandidate(topLeft, horizontalNudge, order)
         }
         order++
     }
 
-    add(label.anchor, 0f)
+    add(horizontalNudge = 0f, above = true)
+    add(horizontalNudge = 0f, above = false)
 
-    val maxDistance = maxDisplacementPx.coerceAtLeast(0f)
-    if (maxDistance == 0f) return result
+    val maxNudge = maxHorizontalNudgePx.coerceAtLeast(0f)
+    val step = horizontalNudgeStepPx.coerceAtLeast(1f)
+    var magnitude = step
+    while (magnitude <= maxNudge + 0.001f) {
+        val actual = min(magnitude, maxNudge)
+        add(horizontalNudge = -actual, above = true)
+        add(horizontalNudge = -actual, above = false)
+        add(horizontalNudge = actual, above = true)
+        add(horizontalNudge = actual, above = false)
+        if (actual >= maxNudge) break
+        magnitude += step
+        if (magnitude > maxNudge && actual < maxNudge) magnitude = maxNudge
+    }
 
-    val step = minGapPx.coerceAtLeast(1f)
-    val rings = mutableListOf<Float>()
-    var radius = step
-    while (radius < maxDistance) {
-        rings += radius
-        radius += step
-    }
-    if (rings.isEmpty() || abs(rings.last() - maxDistance) > 0.001f) {
-        rings += maxDistance
-    }
-
-    val diagonalScale = (1.0 / sqrt(2.0)).toFloat()
-    rings.forEach { r ->
-        val diagonal = r * diagonalScale
-        val offsets =
-            listOf(
-                Offset(0f, -r),
-                Offset(0f, r),
-                Offset(-r, 0f),
-                Offset(r, 0f),
-                Offset(-diagonal, -diagonal),
-                Offset(diagonal, -diagonal),
-                Offset(-diagonal, diagonal),
-                Offset(diagonal, diagonal),
-            )
-        offsets.forEach { offset ->
-            add(label.anchor + offset, r)
-        }
-    }
     return result
 }
 
 private fun fallbackCandidate(
     label: ActiveRegionLabelInput,
     stageSize: IntSize,
+    anchorGapPx: Float,
+    maxHorizontalNudgePx: Float,
 ): LabelCandidate {
-    val maxX = max(0f, stageSize.width - label.size.width.toFloat())
-    val maxY = max(0f, stageSize.height - label.size.height.toFloat())
-    val centered =
-        Offset(
-            label.anchor.x - label.size.width / 2f,
-            label.anchor.y - label.size.height / 2f,
-        )
-    val topLeft =
-        Offset(
-            centered.x.coerceIn(0f, maxX),
-            centered.y.coerceIn(0f, maxY),
-        )
+    val halfWidth = label.size.width / 2f
+    val minCenterX = halfWidth
+    val maxCenterX = stageSize.width - halfWidth
+    val desiredCenterX =
+        label.anchor.x
+            .coerceIn(label.anchor.x - maxHorizontalNudgePx, label.anchor.x + maxHorizontalNudgePx)
+            .coerceIn(minCenterX, maxCenterX)
+    val aboveTop = label.anchor.y - anchorGapPx - label.size.height
+    val belowTop = label.anchor.y + anchorGapPx
+    val top =
+        when {
+            aboveTop >= 0f -> aboveTop
+            belowTop + label.size.height <= stageSize.height -> belowTop
+            else -> belowTop.coerceIn(0f, max(0f, stageSize.height - label.size.height.toFloat()))
+        }
     return LabelCandidate(
-        topLeft = topLeft,
-        displacement = distance(label.anchor, center(topLeft, label.size)),
+        topLeft = Offset(desiredCenterX - halfWidth, top),
+        horizontalNudge = desiredCenterX - label.anchor.x,
         order = Int.MAX_VALUE,
     )
 }
@@ -183,14 +180,6 @@ private fun bounds(
     top = topLeft.y,
     right = topLeft.x + size.width,
     bottom = topLeft.y + size.height,
-)
-
-private fun center(
-    topLeft: Offset,
-    size: IntSize,
-) = Offset(
-    topLeft.x + size.width / 2f,
-    topLeft.y + size.height / 2f,
 )
 
 private fun isInBounds(
@@ -251,13 +240,4 @@ private fun edgeTowardAnchor(
         center.x + dx * scale,
         center.y + dy * scale,
     )
-}
-
-private fun distance(
-    a: Offset,
-    b: Offset,
-): Float {
-    val dx = a.x - b.x
-    val dy = a.y - b.y
-    return sqrt((dx * dx + dy * dy).toDouble()).toFloat()
 }

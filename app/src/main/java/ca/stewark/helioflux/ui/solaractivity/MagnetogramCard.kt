@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -19,12 +20,12 @@ import androidx.compose.ui.unit.dp
 import ca.stewark.helioflux.core.data.repository.RepositoryState
 import ca.stewark.helioflux.core.model.ActiveRegion
 import ca.stewark.helioflux.core.model.SolarImage
-import ca.stewark.helioflux.ui.theme.SpaceMuted
 import kotlin.math.roundToInt
 
 internal val ActiveRegionLabelMinGap = 10.dp
-internal val ActiveRegionLabelMaxDisplacement = 48.dp
-internal val ActiveRegionLeaderThreshold = 16.dp
+internal val ActiveRegionAnchorGap = 6.dp
+internal val ActiveRegionMaxHorizontalNudge = 24.dp
+internal val ActiveRegionHorizontalNudgeStep = 8.dp
 
 data class NormalizedRegionPosition(
     val x: Double,
@@ -50,8 +51,9 @@ internal fun BoxScope.ActiveRegionOverlay(
     val textMeasurer = rememberTextMeasurer()
     val labelStyle = LocalTextStyle.current
     val minGapPx = with(density) { ActiveRegionLabelMinGap.toPx() }
-    val maxDisplacementPx = with(density) { ActiveRegionLabelMaxDisplacement.toPx() }
-    val leaderThresholdPx = with(density) { ActiveRegionLeaderThreshold.toPx() }
+    val anchorGapPx = with(density) { ActiveRegionAnchorGap.toPx() }
+    val maxHorizontalNudgePx = with(density) { ActiveRegionMaxHorizontalNudge.toPx() }
+    val horizontalNudgeStepPx = with(density) { ActiveRegionHorizontalNudgeStep.toPx() }
     val labelByKey = regions.associate { it.id to (it.number ?: it.id) }
 
     val placements =
@@ -72,9 +74,10 @@ internal fun BoxScope.ActiveRegionOverlay(
                         )
                     },
                 stageSize = IntSize(width, height),
-                minGapPx = minGapPx,
-                maxDisplacementPx = maxDisplacementPx,
-                leaderThresholdPx = leaderThresholdPx,
+                minLabelGapPx = minGapPx,
+                anchorGapPx = anchorGapPx,
+                maxHorizontalNudgePx = maxHorizontalNudgePx,
+                horizontalNudgeStepPx = horizontalNudgeStepPx,
             )
         } else {
             emptyList()
@@ -92,10 +95,10 @@ internal fun BoxScope.ActiveRegionOverlay(
             placements.forEach { placement ->
                 placement.leaderEnd?.let { leaderEnd ->
                     drawLine(
-                        color = SpaceMuted.copy(alpha = 0.55f),
+                        color = Color.White.copy(alpha = 0.85f),
                         start = placement.anchor,
                         end = leaderEnd,
-                        strokeWidth = 1.dp.toPx(),
+                        strokeWidth = 1.25.dp.toPx(),
                     )
                 }
             }
