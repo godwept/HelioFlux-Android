@@ -141,6 +141,42 @@ class SolarActivityScreenSourceTest {
     }
 
     @Test
+    fun recentEventCardsUseDistinctThemeTints() {
+        val eventsStart = source.indexOf("private fun SolarEventCards(")
+        val eventsEnd = source.indexOf("private fun XraySection(", eventsStart)
+
+        assertTrue(eventsStart >= 0)
+        assertTrue(eventsEnd > eventsStart)
+        val eventsSource = source.substring(eventsStart, eventsEnd)
+
+        assertTrue(
+            eventsSource.contains(
+                "containerColor = SolarOrange.copy(alpha = 0.08f)",
+            ),
+        )
+        assertTrue(
+            eventsSource.contains(
+                "BorderStroke(1.dp, WarningAmber.copy(alpha = 0.36f))",
+            ),
+        )
+        assertTrue(eventsSource.contains("color = SolarOrange"))
+
+        assertTrue(
+            eventsSource.contains(
+                "containerColor = DataCyan.copy(alpha = 0.08f)",
+            ),
+        )
+        assertTrue(
+            eventsSource.contains(
+                "BorderStroke(1.dp, DataBlue.copy(alpha = 0.36f))",
+            ),
+        )
+        assertTrue(eventsSource.contains("color = DataCyan"))
+
+        assertFalse(eventsSource.contains("containerColor = SpaceSurface"))
+    }
+
+    @Test
     fun appWiresCmeDetailsToExternalUriHandler() {
         assertTrue(appSource.contains("LocalUriHandler.current"))
         assertTrue(appSource.contains("onCmeDetails ="))
