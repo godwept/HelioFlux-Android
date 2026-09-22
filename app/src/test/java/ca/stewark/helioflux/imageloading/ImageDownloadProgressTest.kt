@@ -66,15 +66,25 @@ class ImageDownloadProgressTest {
         runTest {
             val registry = ImageDownloadProgressRegistry()
             val url = "https://example.test/c2small.gif"
-            val body = ProgressResponseBody(url, ByteArray(4096).toResponseBody(), registry)
+            val body =
+                ProgressResponseBody(
+                    url,
+                    ChunkedBody(
+                        bytes = ByteArray(4096),
+                        reportedLength = 4096L,
+                        maxChunkSize = 512L,
+                    ),
+                    registry,
+                )
             val source = body.source()
             val sink = Buffer()
 
-            source.read(sink, 1024L)
-            assertEquals(ImageDownloadProgress(1024L, 4096L), registry.observe(url).first())
+            source.read(sink, 512L)
+            assertEquals(ImageDownloadProgress(512L, 4096L), registry.observe(url).first())
 
-            source.read(sink, 1024L)
-            assertEquals(ImageDownloadProgress(2048L, 4096L), registry.observe(url).first())
+            sink.clear()
+            source.read(sink, 512L)
+            assertEquals(ImageDownloadProgress(1024L, 4096L), registry.observe(url).first())
         }
 
     @Test
@@ -82,11 +92,20 @@ class ImageDownloadProgressTest {
         runTest {
             val registry = ImageDownloadProgressRegistry()
             val url = "https://example.test/c3small.gif"
-            val body = ProgressResponseBody(url, UnknownLengthBody(ByteArray(2048)), registry)
+            val body =
+                ProgressResponseBody(
+                    url,
+                    ChunkedBody(
+                        bytes = ByteArray(2048),
+                        reportedLength = -1L,
+                        maxChunkSize = 512L,
+                    ),
+                    registry,
+                )
 
-            body.source().read(Buffer(), 1024L)
+            body.source().read(Buffer(), 512L)
 
-            assertEquals(ImageDownloadProgress(1024L, null), registry.observe(url).first())
+            assertEquals(ImageDownloadProgress(512L, null), registry.observe(url).first())
         }
 
     @Test
@@ -94,10 +113,19 @@ class ImageDownloadProgressTest {
         runTest {
             val registry = ImageDownloadProgressRegistry()
             val url = "https://example.test/c2small.gif"
-            val body = ProgressResponseBody(url, ByteArray(4096).toResponseBody(), registry)
+            val body =
+                ProgressResponseBody(
+                    url,
+                    ChunkedBody(
+                        bytes = ByteArray(4096),
+                        reportedLength = 4096L,
+                        maxChunkSize = 512L,
+                    ),
+                    registry,
+                )
             val source = body.source()
 
-            source.read(Buffer(), 1024L)
+            source.read(Buffer(), 512L)
             source.close()
 
             assertNull(registry.observe(url).first())
@@ -138,12 +166,24 @@ class ImageDownloadProgressTest {
             assertEquals(ImageDownloadProgress(2048L, 2048L), registry.observe(url).first())
         }
 
-    private class UnknownLengthBody(
-        private val bytes: ByteArray,
+    private class ChunkedBody(
+        bytes: ByteArray,
+        private val reportedLength: Long,
+        private val maxChunkSize: Long,
     ) : ResponseBody() {
+        private val upstream = Buffer().write(bytes)
+
         override fun contentType(): MediaType? = null
-        override fun contentLength(): Long = -1L
-        override fun source(): BufferedSource = Buffer().write(bytes)
+
+        override fun contentLength(): Long = reportedLength
+
+        override fun source(): BufferedSource =
+            object : ForwardingSource(upstream) {
+                override fun read(
+                    sink: Buffer,
+                    byteCount: Long,
+                ): Long = super.read(sink, minOf(byteCount, maxChunkSize))
+            }.buffer()
     }
 
     private class FailingBody : ResponseBody() {
