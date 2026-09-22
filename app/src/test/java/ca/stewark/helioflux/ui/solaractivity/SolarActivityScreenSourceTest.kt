@@ -101,11 +101,35 @@ class SolarActivityScreenSourceTest {
     }
 
     @Test
-    fun recentEventsUseOnePairedCardRow() {
-        assertTrue(source.contains("fun SolarEventCards("))
-        assertTrue(source.contains("testTag(\"recent-events-row\")"))
-        assertTrue(source.contains("testTag(\"recent-flares-card\")"))
-        assertTrue(source.contains("testTag(\"recent-cmes-card\")"))
+    fun particleEnvironmentPrecedesRecentEvents() {
+        val scienceStart = source.indexOf("private fun LazyListScope.solarActivityScienceItems(")
+        val xray = source.indexOf("XrayActivitySection(", scienceStart)
+        val particleHeading =
+            source.indexOf("HelioFluxSectionHeading(\"Particle Environment\")", scienceStart)
+        val particle = source.indexOf("ParticleSection(state.epam, chartDomain)", scienceStart)
+        val events = source.indexOf("SolarEventCards(", scienceStart)
+
+        assertTrue(scienceStart >= 0)
+        assertTrue(xray in (scienceStart + 1) until particleHeading)
+        assertTrue(particleHeading < particle)
+        assertTrue(particle < events)
+    }
+
+    @Test
+    fun recentEventsUseStackedFullWidthCards() {
+        val eventsStart = source.indexOf("private fun SolarEventCards(")
+        val eventsEnd = source.indexOf("\n@Composable\nprivate fun XraySection(", eventsStart)
+        val eventsSource = source.substring(eventsStart, eventsEnd)
+
+        assertTrue(eventsSource.contains("Column("))
+        assertFalse(eventsSource.contains("Row("))
+        assertTrue(eventsSource.contains("testTag(\"recent-flares-card\")"))
+        assertTrue(eventsSource.contains("testTag(\"recent-cmes-card\")"))
+        assertFalse(eventsSource.contains("weight(1f)"))
+        assertEquals(
+            2,
+            Regex("Modifier\\.fillMaxWidth\\(\\)\\.testTag").findAll(eventsSource).count(),
+        )
     }
 
     @Test
