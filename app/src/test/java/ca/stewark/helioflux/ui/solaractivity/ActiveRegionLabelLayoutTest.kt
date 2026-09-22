@@ -80,7 +80,7 @@ class ActiveRegionLabelLayoutTest {
 
         assertEquals(labels.size, placements.size)
         placements.forEach {
-            assertTrue(hypot(it.center.x - it.anchor.x, it.center.y - it.anchor.y) <= 48.001f)
+            assertTrue(distance(it) <= 48.001f)
         }
     }
 
