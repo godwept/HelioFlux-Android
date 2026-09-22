@@ -272,4 +272,48 @@ class SolarActivityUiTest {
         compose.onNodeWithTag("fullscreen-imagery-viewer").assertExists()
     }
 
+
+    @Test
+    fun solarMediaLoadingIndicatorShowsDownloadProgress() {
+        compose.setContent {
+            SolarMediaLoadingIndicator(
+                progressText = "Downloading… 8,420 KB / 17,860 KB",
+                loadingTag = "solar-media-loading",
+                progressTag = "solar-media-download-progress",
+            )
+        }
+
+        compose.onNodeWithTag("solar-media-loading").assertExists()
+        compose.onNodeWithTag("solar-media-download-progress").assertExists()
+        compose.onNodeWithText("Downloading… 8,420 KB / 17,860 KB").assertExists()
+    }
+
+    @Test
+    fun fullscreenSolarMediaLoadingIndicatorUsesFullscreenTags() {
+        compose.setContent {
+            SolarMediaLoadingIndicator(
+                progressText = "Downloading… 8,420 KB",
+                loadingTag = "fullscreen-solar-media-loading",
+                progressTag = "fullscreen-solar-media-download-progress",
+            )
+        }
+
+        compose.onNodeWithTag("fullscreen-solar-media-loading").assertExists()
+        compose.onNodeWithTag("fullscreen-solar-media-download-progress").assertExists()
+    }
+
+    @Test
+    fun enlilLoadingIndicatorShowsFrameProgress() {
+        compose.setContent {
+            EnlilLoadingIndicator(
+                completedFrames = 18,
+                totalFrames = 48,
+            )
+        }
+
+        compose.onNodeWithTag("enlil-loading").assertExists()
+        compose.onNodeWithTag("enlil-progress").assertExists()
+        compose.onNodeWithText("Loading frame 18 of 48").assertExists()
+    }
+
 }
