@@ -15,11 +15,16 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import ca.stewark.helioflux.core.data.repository.RepositoryState
 import ca.stewark.helioflux.core.model.SolarImage
+import ca.stewark.helioflux.imageloading.ImageDownloadProgress
+import ca.stewark.helioflux.imageloading.imageDownloadProgressRegistry
 import ca.stewark.helioflux.ui.theme.DataCyan
 import ca.stewark.helioflux.ui.theme.SolarOrange
 import ca.stewark.helioflux.ui.theme.SpaceMuted
 import ca.stewark.helioflux.ui.theme.SpaceSurface
 import coil3.compose.AsyncImage
+import java.text.NumberFormat
+import java.util.Locale
+import kotlinx.coroutines.flow.flowOf
 
 enum class SolarMediaLoadState {
     Loading,
@@ -48,6 +53,61 @@ internal fun shouldShowSolarMediaSpinner(
 ): Boolean =
     repositoryLoading ||
         (imageUrl != null && mediaState == SolarMediaLoadState.Loading)
+
+internal fun formatSolarDownloadProgress(progress: ImageDownloadProgress): String {
+    val formatter = NumberFormat.getIntegerInstance(Locale.US)
+    val downloadedKilobytes = progress.bytesRead / 1024L
+    val totalKilobytes = progress.totalBytes?.div(1024L)
+    return if (totalKilobytes == null) {
+        "Downloading… " + formatter.format(downloadedKilobytes) + " KB"
+    } else {
+        "Downloading… " +
+            formatter.format(downloadedKilobytes) +
+            " KB / " +
+            formatter.format(totalKilobytes) +
+            " KB"
+    }
+}
+
+@Composable
+internal fun rememberSolarDownloadProgress(
+    imageUrl: String?,
+    enabled: Boolean,
+): ImageDownloadProgress? {
+    val progressFlow =
+        remember(imageUrl, enabled) {
+            if (enabled && imageUrl != null) {
+                imageDownloadProgressRegistry.observe(imageUrl)
+            } else {
+                flowOf<ImageDownloadProgress?>(null)
+            }
+        }
+    return progressFlow.collectAsState(initial = null).value
+}
+
+@Composable
+internal fun SolarMediaLoadingIndicator(
+    progressText: String?,
+    loadingTag: String,
+    progressTag: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.testTag(loadingTag),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        CircularProgressIndicator()
+        progressText?.let {
+            Text(
+                it,
+                modifier = Modifier.testTag(progressTag),
+                style = MaterialTheme.typography.labelMedium,
+                color = SpaceMuted,
+            )
+        }
+    }
+}
 
 data class SolarImageryPresentation(
     val title: String,
@@ -95,6 +155,7 @@ fun SolarImageryCard(
             },
         )
     }
+    val downloadProgress = rememberSolarDownloadProgress(item.imageUrl, trackMediaLoading)
     val showSpinner =
         shouldShowSolarMediaSpinner(
             repositoryLoading = state is RepositoryState.Loading,
@@ -105,6 +166,10 @@ fun SolarImageryCard(
         trackMediaLoading &&
             item.imageUrl != null &&
             mediaState == SolarMediaLoadState.Failed
+    val progressText =
+        downloadProgress
+            ?.takeIf { mediaState == SolarMediaLoadState.Loading }
+            ?.let(::formatSolarDownloadProgress)
 
     Card(
         modifier = modifier.clickable(enabled = item.imageUrl != null, onClick = onClick),
@@ -118,9 +183,9 @@ fun SolarImageryCard(
                     .aspectRatio(1f)
                     .background(Color.Black),
             ) {
-                item.imageUrl?.let {
+                item.imageUrl?.let { imageUrl ->
                     AsyncImage(
-                        model = it,
+                        model = imageUrl,
                         contentDescription = title,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Fit,
@@ -131,12 +196,14 @@ fun SolarImageryCard(
                         },
                         onSuccess = {
                             if (trackMediaLoading) {
+                                imageDownloadProgressRegistry.clear(imageUrl)
                                 mediaState =
                                     reduceSolarMediaLoadState(SolarMediaLoadEvent.Success)
                             }
                         },
                         onError = {
                             if (trackMediaLoading) {
+                                imageDownloadProgressRegistry.clear(imageUrl)
                                 mediaState =
                                     reduceSolarMediaLoadState(SolarMediaLoadEvent.Error)
                             }
@@ -145,10 +212,11 @@ fun SolarImageryCard(
                 }
                 overlay()
                 if (showSpinner) {
-                    CircularProgressIndicator(
-                        Modifier
-                            .align(Alignment.Center)
-                            .testTag("solar-media-loading"),
+                    SolarMediaLoadingIndicator(
+                        progressText = progressText,
+                        loadingTag = "solar-media-loading",
+                        progressTag = "solar-media-download-progress",
+                        modifier = Modifier.align(Alignment.Center),
                     )
                 }
                 if (
