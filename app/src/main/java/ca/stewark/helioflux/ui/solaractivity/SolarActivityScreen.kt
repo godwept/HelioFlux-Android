@@ -21,9 +21,11 @@ import ca.stewark.helioflux.core.model.*
 import ca.stewark.helioflux.ui.components.ChartDomain
 import ca.stewark.helioflux.ui.components.FreshnessIndicator
 import ca.stewark.helioflux.ui.components.HelioFluxSectionHeading
+import ca.stewark.helioflux.ui.theme.DataBlue
+import ca.stewark.helioflux.ui.theme.DataCyan
 import ca.stewark.helioflux.ui.theme.SolarOrange
 import ca.stewark.helioflux.ui.theme.SpaceMuted
-import ca.stewark.helioflux.ui.theme.SpaceSurface
+import ca.stewark.helioflux.ui.theme.WarningAmber
 
 internal const val ExpandedSolarImageryWeight = 0.43f
 internal const val ExpandedSolarDataWeight = 0.57f
@@ -351,8 +353,11 @@ private fun SolarEventCards(
     ) {
         Card(
             modifier = Modifier.fillMaxWidth().testTag("recent-flares-card"),
-            colors = CardDefaults.cardColors(containerColor = SpaceSurface),
-            border = BorderStroke(1.dp, SolarOrange.copy(alpha = 0.24f)),
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = SolarOrange.copy(alpha = 0.08f),
+                ),
+            border = BorderStroke(1.dp, WarningAmber.copy(alpha = 0.36f)),
         ) {
             Column(
                 Modifier.fillMaxWidth().padding(12.dp),
@@ -369,8 +374,11 @@ private fun SolarEventCards(
 
         Card(
             modifier = Modifier.fillMaxWidth().testTag("recent-cmes-card"),
-            colors = CardDefaults.cardColors(containerColor = SpaceSurface),
-            border = BorderStroke(1.dp, SolarOrange.copy(alpha = 0.24f)),
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = DataCyan.copy(alpha = 0.08f),
+                ),
+            border = BorderStroke(1.dp, DataBlue.copy(alpha = 0.36f)),
         ) {
             Column(
                 Modifier.fillMaxWidth().padding(12.dp),
@@ -379,7 +387,7 @@ private fun SolarEventCards(
                 Text(
                     "Recent CMEs",
                     style = MaterialTheme.typography.titleMedium,
-                    color = SolarOrange,
+                    color = DataCyan,
                 )
                 CmeList(cmes, onCmeDetails)
             }
