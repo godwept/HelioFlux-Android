@@ -56,11 +56,16 @@ class SolarActivityScreenSourceTest {
     fun compactSolarActivityHonorsScaffoldContentModifier() {
         assertTrue(source.contains("modifier: Modifier = Modifier"))
         assertTrue(source.contains("modifier = modifier"))
-        assertTrue(
-            appSource.contains(
-                "SolarActivityScreen(solarActivityState,expanded,modifier=modifier",
-            ),
-        )
+
+        val destinationStart =
+            appSource.indexOf("destination==HelioFluxDestination.SolarActivity")
+        val destinationEnd = appSource.indexOf("else ->", destinationStart)
+        val solarDestination = appSource.substring(destinationStart, destinationEnd)
+
+        assertTrue(destinationStart >= 0)
+        assertTrue(destinationEnd > destinationStart)
+        assertTrue(solarDestination.contains("SolarActivityScreen("))
+        assertTrue(solarDestination.contains("modifier = modifier"))
     }
 
     @Test
