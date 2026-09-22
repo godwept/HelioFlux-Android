@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -25,6 +26,22 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+
+internal const val EnlilPreloadConcurrency = 4
+internal const val EnlilMaxToleratedFailures = 5
+
+internal data class EnlilPreloadResult(
+    val successfulUrls: List<String>,
+    val failureCount: Int,
+)
+
+internal enum class EnlilMediaLoadState {
+    Loading,
+    Ready,
+    Failed,
+}
 
 internal fun enlilBlendProgress(
     elapsedMillis: Long,
@@ -36,13 +53,51 @@ internal fun enlilBlendProgress(
         (elapsedMillis.toFloat() / cadenceMillis).coerceIn(0f, 1f)
     }
 
-internal fun selectPlayableEnlilFrames(
+internal fun isAcceptedEnlilPreload(result: EnlilPreloadResult): Boolean =
+    result.successfulUrls.isNotEmpty() &&
+        result.failureCount <= EnlilMaxToleratedFailures
+
+internal fun playableEnlilFrames(result: EnlilPreloadResult?): List<String> =
+    result
+        ?.takeIf(::isAcceptedEnlilPreload)
+        ?.successfulUrls
+        .orEmpty()
+
+internal fun enlilMediaLoadState(
     urls: List<String>,
-    preloadedUrls: Set<String>,
-): List<String> {
-    val loaded = urls.filter { it in preloadedUrls }
-    return loaded.ifEmpty { urls.take(1) }
-}
+    preloadResult: EnlilPreloadResult?,
+): EnlilMediaLoadState =
+    when {
+        urls.isEmpty() -> EnlilMediaLoadState.Failed
+        preloadResult == null -> EnlilMediaLoadState.Loading
+        isAcceptedEnlilPreload(preloadResult) -> EnlilMediaLoadState.Ready
+        else -> EnlilMediaLoadState.Failed
+    }
+
+internal suspend fun preloadEnlilUrls(
+    urls: List<String>,
+    maxConcurrency: Int = EnlilPreloadConcurrency,
+    load: suspend (String) -> Boolean,
+): EnlilPreloadResult =
+    coroutineScope {
+        require(maxConcurrency > 0)
+        val semaphore = Semaphore(maxConcurrency)
+        val results =
+            urls.map { url ->
+                async {
+                    val loaded =
+                        semaphore.withPermit {
+                            runCatching { load(url) }.getOrDefault(false)
+                        }
+                    url to loaded
+                }
+            }.awaitAll()
+
+        EnlilPreloadResult(
+            successfulUrls = results.filter { it.second }.map { it.first },
+            failureCount = results.count { !it.second },
+        )
+    }
 
 private fun RepositoryState<List<EnlilFrame>>.enlilFrames(): List<EnlilFrame> =
     when (this) {
@@ -54,23 +109,14 @@ private fun RepositoryState<List<EnlilFrame>>.enlilFrames(): List<EnlilFrame> =
 private suspend fun preloadEnlilFrames(
     context: android.content.Context,
     urls: List<String>,
-): Set<String> =
-    coroutineScope {
-        val loader = SingletonImageLoader.get(context)
-        urls
-            .map { url ->
-                async {
-                    url.takeIf {
-                        loader.execute(
-                            ImageRequest.Builder(context).data(url).build(),
-                        ) is SuccessResult
-                    }
-                }
-            }
-            .awaitAll()
-            .filterNotNull()
-            .toSet()
+): EnlilPreloadResult {
+    val loader = SingletonImageLoader.get(context)
+    return preloadEnlilUrls(urls) { url ->
+        loader.execute(
+            ImageRequest.Builder(context).data(url).build(),
+        ) is SuccessResult
     }
+}
 
 @Composable
 fun EnlilAnimation(
@@ -82,15 +128,38 @@ fun EnlilAnimation(
     val frames = state.enlilFrames()
     val urls = frames.map { it.url }
     val context = LocalContext.current
-    var preloaded by remember(urls) { mutableStateOf<Set<String>>(emptySet()) }
+    var preloadResult by remember(urls) { mutableStateOf<EnlilPreloadResult?>(null) }
+
     LaunchedEffect(urls) {
-        preloaded = if (urls.size > 1) preloadEnlilFrames(context, urls) else urls.toSet()
+        preloadResult = null
+        if (urls.isNotEmpty()) {
+            preloadResult = preloadEnlilFrames(context, urls)
+        }
     }
-    val playable = selectPlayableEnlilFrames(urls, preloaded)
+
+    val mediaState =
+        if (state is RepositoryState.Loading) {
+            EnlilMediaLoadState.Loading
+        } else {
+            enlilMediaLoadState(urls, preloadResult)
+        }
+    val playable =
+        if (mediaState == EnlilMediaLoadState.Ready) {
+            playableEnlilFrames(preloadResult)
+        } else {
+            emptyList()
+        }
+
     var index by remember(playable) { mutableIntStateOf(0) }
     var blend by remember(playable) { mutableFloatStateOf(0f) }
-    LaunchedEffect(playable, visible, preloaded) {
-        if (visible && playable.size > 1 && preloaded.isNotEmpty()) {
+    LaunchedEffect(playable, visible, mediaState) {
+        index = 0
+        blend = 0f
+        if (
+            mediaState == EnlilMediaLoadState.Ready &&
+            visible &&
+            playable.size > 1
+        ) {
             while (isActive && visible) {
                 val started = withFrameNanos { it }
                 var elapsed = 0L
@@ -105,26 +174,39 @@ fun EnlilAnimation(
     }
 
     val taggedModifier = if (testTag == null) modifier else modifier.testTag(testTag)
-    Box(taggedModifier) {
-        if (playable.isNotEmpty()) {
-            val current = index.coerceAtMost(playable.lastIndex)
-            val next = (current + 1) % playable.size
-            AsyncImage(
-                model = playable[current],
-                contentDescription = "WSA-Enlil frame",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit,
-            )
-            if (playable.size > 1) {
+    Box(
+        modifier = taggedModifier,
+        contentAlignment = Alignment.Center,
+    ) {
+        when (mediaState) {
+            EnlilMediaLoadState.Loading ->
+                CircularProgressIndicator(
+                    Modifier.testTag("enlil-loading"),
+                )
+            EnlilMediaLoadState.Failed ->
+                Text(
+                    "ENLIL frames unavailable",
+                    modifier = Modifier.padding(16.dp).testTag("enlil-unavailable"),
+                    color = SpaceMuted,
+                )
+            EnlilMediaLoadState.Ready -> {
+                val current = index.coerceAtMost(playable.lastIndex)
+                val next = (current + 1) % playable.size
                 AsyncImage(
-                    model = playable[next],
-                    contentDescription = "WSA-Enlil next frame",
-                    modifier = Modifier.fillMaxSize().graphicsLayer(alpha = blend),
+                    model = playable[current],
+                    contentDescription = "WSA-Enlil frame",
+                    modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Fit,
                 )
+                if (playable.size > 1) {
+                    AsyncImage(
+                        model = playable[next],
+                        contentDescription = "WSA-Enlil next frame",
+                        modifier = Modifier.fillMaxSize().graphicsLayer(alpha = blend),
+                        contentScale = ContentScale.Fit,
+                    )
+                }
             }
-        } else {
-            Text("ENLIL frames unavailable", Modifier.padding(16.dp), color = SpaceMuted)
         }
     }
 }
