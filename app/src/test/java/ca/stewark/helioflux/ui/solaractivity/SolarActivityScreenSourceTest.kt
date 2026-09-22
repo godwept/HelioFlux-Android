@@ -136,6 +136,13 @@ class SolarActivityScreenSourceTest {
     }
 
     @Test
+    fun appWiresCmeDetailsToExternalUriHandler() {
+        assertTrue(appSource.contains("LocalUriHandler.current"))
+        assertTrue(appSource.contains("onCmeDetails ="))
+        assertTrue(appSource.contains("cme.link?.let(uriHandler::openUri)"))
+    }
+
+    @Test
     fun eventCardsDoNotAddNestedScrolling() {
         assertEquals(2, Regex("LazyColumn\\(").findAll(source).count())
         assertFalse(source.contains("verticalScroll("))
