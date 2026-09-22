@@ -47,9 +47,10 @@ class SolarActivityComponentsTest {
     }
 
     @Test
-    fun activeRegionLabelSpacingUsesApprovedThresholds() {
+    fun activeRegionLabelSpacingUsesSolarHamLikeThresholds() {
         assertEquals(10.dp, ActiveRegionLabelMinGap)
-        assertEquals(48.dp, ActiveRegionLabelMaxDisplacement)
-        assertEquals(16.dp, ActiveRegionLeaderThreshold)
+        assertEquals(6.dp, ActiveRegionAnchorGap)
+        assertEquals(24.dp, ActiveRegionMaxHorizontalNudge)
+        assertEquals(8.dp, ActiveRegionHorizontalNudgeStep)
     }
 }
