@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import ca.stewark.helioflux.imageloading.imageDownloadProgressRegistry
 import ca.stewark.helioflux.ui.theme.SpaceMuted
 import coil3.compose.AsyncImage
 
@@ -99,6 +100,11 @@ fun ZoomableSolarImage(
             },
         )
     }
+    val downloadProgress = rememberSolarDownloadProgress(imageUrl, trackMediaLoading)
+    val progressText =
+        downloadProgress
+            ?.takeIf { mediaState == SolarMediaLoadState.Loading }
+            ?.let(::formatSolarDownloadProgress)
 
     BoxWithConstraints(
         modifier = modifier,
@@ -129,12 +135,14 @@ fun ZoomableSolarImage(
                     },
                     onSuccess = {
                         if (trackMediaLoading) {
+                            imageDownloadProgressRegistry.clear(imageUrl)
                             mediaState =
                                 reduceSolarMediaLoadState(SolarMediaLoadEvent.Success)
                         }
                     },
                     onError = {
                         if (trackMediaLoading) {
+                            imageDownloadProgressRegistry.clear(imageUrl)
                             mediaState =
                                 reduceSolarMediaLoadState(SolarMediaLoadEvent.Error)
                         }
@@ -147,10 +155,11 @@ fun ZoomableSolarImage(
                 imageUrl != null &&
                 mediaState == SolarMediaLoadState.Loading
             ) {
-                CircularProgressIndicator(
-                    Modifier
-                        .align(Alignment.Center)
-                        .testTag("fullscreen-solar-media-loading"),
+                SolarMediaLoadingIndicator(
+                    progressText = progressText,
+                    loadingTag = "fullscreen-solar-media-loading",
+                    progressTag = "fullscreen-solar-media-download-progress",
+                    modifier = Modifier.align(Alignment.Center),
                 )
             }
 
