@@ -100,6 +100,8 @@ private data class RenderSegment(
     val points: List<ChartPoint>,
 )
 
+internal val ChartSeriesStrokeWidth = 1.dp
+
 @Composable
 fun HelioFluxLineChart(
     series: List<LineChartSeries>,
@@ -167,6 +169,10 @@ fun HelioFluxLineChart(
                 fill =
                     LineCartesianLayer.LineFill.single(
                         Fill(seriesColor(segment.series.style)),
+                    ),
+                stroke =
+                    LineCartesianLayer.LineStroke.Continuous(
+                        thickness = ChartSeriesStrokeWidth,
                     ),
             )
         }
