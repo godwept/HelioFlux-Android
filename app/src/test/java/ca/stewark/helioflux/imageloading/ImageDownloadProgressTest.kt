@@ -54,6 +54,14 @@ class ImageDownloadProgressTest {
         }
 
     @Test
+    fun onlySmallLascoGifUrlsAreTracked() {
+        assertTrue(isTrackedSolarActivityDownload("https://example.test/LATEST/current_c2small.gif"))
+        assertTrue(isTrackedSolarActivityDownload("https://example.test/LATEST/current_c3small.gif"))
+        assertFalse(isTrackedSolarActivityDownload("https://example.test/hmi.jpg"))
+        assertFalse(isTrackedSolarActivityDownload("https://example.test/enlil/frame.jpg"))
+    }
+
+    @Test
     fun progressResponseBodyReportsCumulativeBytesAndKnownLength() =
         runTest {
             val registry = ImageDownloadProgressRegistry()
