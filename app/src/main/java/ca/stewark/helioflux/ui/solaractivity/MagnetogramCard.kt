@@ -1,18 +1,30 @@
 package ca.stewark.helioflux.ui.solaractivity
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import ca.stewark.helioflux.core.data.repository.RepositoryState
 import ca.stewark.helioflux.core.model.ActiveRegion
 import ca.stewark.helioflux.core.model.SolarImage
+import ca.stewark.helioflux.ui.theme.SpaceMuted
 import kotlin.math.roundToInt
+
+internal val ActiveRegionLabelMinGap = 10.dp
+internal val ActiveRegionLabelMaxDisplacement = 48.dp
+internal val ActiveRegionLeaderThreshold = 16.dp
 
 data class NormalizedRegionPosition(
     val x: Double,
@@ -34,6 +46,40 @@ internal fun BoxScope.ActiveRegionOverlay(
 ) {
     var width by remember { mutableIntStateOf(0) }
     var height by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+    val textMeasurer = rememberTextMeasurer()
+    val labelStyle = LocalTextStyle.current
+    val minGapPx = with(density) { ActiveRegionLabelMinGap.toPx() }
+    val maxDisplacementPx = with(density) { ActiveRegionLabelMaxDisplacement.toPx() }
+    val leaderThresholdPx = with(density) { ActiveRegionLeaderThreshold.toPx() }
+    val labelByKey = regions.associate { it.id to (it.number ?: it.id) }
+
+    val placements =
+        if (width > 0 && height > 0) {
+            resolveActiveRegionLabels(
+                labels =
+                    regions.map { region ->
+                        val p = mapActiveRegion(region.helioprojectiveX, region.helioprojectiveY)
+                        val label = region.number ?: region.id
+                        ActiveRegionLabelInput(
+                            key = region.id,
+                            anchor =
+                                Offset(
+                                    (p.x * width).toFloat(),
+                                    (p.y * height).toFloat(),
+                                ),
+                            size = textMeasurer.measure(label, style = labelStyle).size,
+                        )
+                    },
+                stageSize = IntSize(width, height),
+                minGapPx = minGapPx,
+                maxDisplacementPx = maxDisplacementPx,
+                leaderThresholdPx = leaderThresholdPx,
+            )
+        } else {
+            emptyList()
+        }
+
     Box(
         modifier
             .fillMaxSize()
@@ -42,16 +88,29 @@ internal fun BoxScope.ActiveRegionOverlay(
                 height = it.height
             },
     ) {
-        regions.forEach { region ->
-            val p = mapActiveRegion(region.helioprojectiveX, region.helioprojectiveY)
-            Text(
-                region.number ?: region.id,
-                Modifier.offset {
-                    IntOffset(
-                        (p.x * width).roundToInt(),
-                        (p.y * height).roundToInt(),
+        Canvas(Modifier.fillMaxSize()) {
+            placements.forEach { placement ->
+                placement.leaderEnd?.let { leaderEnd ->
+                    drawLine(
+                        color = SpaceMuted.copy(alpha = 0.55f),
+                        start = placement.anchor,
+                        end = leaderEnd,
+                        strokeWidth = 1.dp.toPx(),
                     )
-                },
+                }
+            }
+        }
+        placements.forEach { placement ->
+            Text(
+                text = labelByKey.getValue(placement.key),
+                modifier =
+                    Modifier.offset {
+                        IntOffset(
+                            placement.topLeft.x.roundToInt(),
+                            placement.topLeft.y.roundToInt(),
+                        )
+                    },
+                style = labelStyle,
             )
         }
     }

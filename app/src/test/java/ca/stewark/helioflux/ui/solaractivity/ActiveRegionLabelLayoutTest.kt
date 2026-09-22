@@ -2,7 +2,7 @@ package ca.stewark.helioflux.ui.solaractivity
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
-import kotlin.math.hypot
+import kotlin.math.sqrt
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -152,11 +152,11 @@ class ActiveRegionLabelLayoutTest {
     private fun resolve(labels: List<ActiveRegionLabelInput>) =
         resolveActiveRegionLabels(labels, stage, 10f, 48f, 16f)
 
-    private fun distance(placement: ActiveRegionLabelPlacement) =
-        hypot(
-            placement.center.x - placement.anchor.x,
-            placement.center.y - placement.anchor.y,
-        )
+    private fun distance(placement: ActiveRegionLabelPlacement): Float {
+        val dx = placement.center.x - placement.anchor.x
+        val dy = placement.center.y - placement.anchor.y
+        return sqrt((dx * dx + dy * dy).toDouble()).toFloat()
+    }
 
     private fun conflicts(
         a: ActiveRegionLabelPlacement,

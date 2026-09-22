@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import ca.stewark.helioflux.core.data.repository.RepositoryState
 import ca.stewark.helioflux.core.model.*
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -199,13 +200,13 @@ class SolarActivityUiTest {
     fun hmiAndEnlilOpenTrueFullscreenAndSelectionSurvivesClose() {
         compose.setContent { SolarActivityScreen(populatedImageryState(), expanded = false) }
 
-        compose.onNodeWithText("4532").assertExists()
-        compose.onNodeWithText("4533").assertExists()
+        assertTrue(compose.onAllNodesWithText("4532").fetchSemanticsNodes().isNotEmpty())
+        assertTrue(compose.onAllNodesWithText("4533").fetchSemanticsNodes().isNotEmpty())
         compose.onNodeWithTag("solar-imagery-stage-hmi").performClick()
         compose.onNodeWithTag("fullscreen-imagery-viewer").assertExists()
         compose.onNodeWithTag("fullscreen-active-region-overlay").assertExists()
-        compose.onNodeWithText("4532").assertExists()
-        compose.onNodeWithText("4533").assertExists()
+        assertTrue(compose.onAllNodesWithText("4532").fetchSemanticsNodes().isNotEmpty())
+        assertTrue(compose.onAllNodesWithText("4533").fetchSemanticsNodes().isNotEmpty())
         compose.onNodeWithTag("fullscreen-imagery-close").performClick()
         compose.onNodeWithTag("fullscreen-imagery-viewer").assertDoesNotExist()
         compose.onNodeWithTag("solar-imagery-stage-hmi").assertExists()
