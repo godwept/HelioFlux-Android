@@ -4,15 +4,44 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
+    <!--
+      Themed icons are an alpha mask. The three inner contours deliberately
+      replace the color artwork's dark valleys with transparent cutouts so the
+      interlocking flow remains readable after Android applies a single tint.
+    -->
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M24,34 C35,20 52,20 66,29 C76,35 84,43 89,53 C79,47 69,42 59,42 C48,42 39,47 31,56 C26,51 23,43 24,34 Z"/>
+        android:fillType="evenOdd"
+        android:pathData="
+            M54,17
+            C59,17 58,28 55,34
+            C58,36 64,35 70,36
+            C84,39 92,49 91,62
+            C90,75 80,84 62,91
+            C59,89 64,78 68,73
+            C64,68 59,66 54,67
+            C45,70 39,77 31,76
+            C23,76 18,70 17,62
+            C17,56 20,51 27,47
+            C25,39 29,31 36,26
+            C42,22 49,18 54,17 Z
 
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M66,29 C80,34 91,47 91,61 C91,74 83,85 72,91 C76,81 77,72 72,64 C68,58 61,54 52,52 C59,46 63,38 66,29 Z"/>
+            M56,30
+            C55,36 52,42 46,43
+            C42,43 40,40 42,36
+            C46,37 51,34 56,30 Z
 
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M20,70 C31,78 41,80 50,75 C58,71 62,63 62,55 C69,58 75,63 79,69 C75,83 64,92 49,94 C35,96 23,88 17,78 C17,75 18,72 20,70 Z"/>
+            M25,48
+            C29,53 34,57 43,57
+            C47,57 50,56 52,55
+            C50,65 43,71 34,70
+            C27,69 22,63 22,57
+            C22,53 24,51 25,49 Z
+
+            M53,57
+            C63,57 71,60 74,66
+            C77,72 74,78 68,81
+            C70,75 68,72 64,70
+            C61,68 57,69 54,71
+            C56,66 56,61 53,57 Z" />
 </vector>
