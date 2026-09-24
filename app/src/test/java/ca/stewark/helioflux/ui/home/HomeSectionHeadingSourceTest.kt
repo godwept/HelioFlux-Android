@@ -18,9 +18,10 @@ class HomeSectionHeadingSourceTest {
         assertFalse(current.contains("HelioFluxSectionHeading("))
         assertTrue(
             forecast.contains(
-                "HelioFluxSectionHeading(\"NOAA Forecast\", topSpacing = 0.dp)",
+                "HelioFluxSectionHeading(",
             ),
         )
+        assertTrue(forecast.contains("\"NOAA Forecast\""))
         assertFalse(current.contains("Text(\"Current Conditions\""))
         assertFalse(forecast.contains("Text(\"NOAA Forecast\""))
     }

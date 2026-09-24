@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
@@ -25,6 +26,7 @@ fun CurrentConditions(
     conditions: HomeConditions,
     onDestination: (HelioFluxDestination) -> Unit,
     modifier: Modifier = Modifier,
+    onBounds: ((String, Rect?) -> Unit)? = null,
 ) {
     Column(modifier.testTag("current-conditions")) {
         Row(
@@ -34,13 +36,13 @@ fun CurrentConditions(
                 .testTag("condition-metrics"),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Metric("Kp", conditions.kp?.oneDecimal() ?: "—", SolarOrange, Modifier.weight(1f)) {
+            Metric("Kp", conditions.kp?.oneDecimal() ?: "—", SolarOrange, Modifier.weight(1f), onBounds) {
                 onDestination(HelioFluxDestination.SpaceWeather)
             }
-            Metric("Bz", conditions.bz?.let { it.oneDecimal() + " nT" } ?: "—", DataCyan, Modifier.weight(1f)) {
+            Metric("Bz", conditions.bz?.let { it.oneDecimal() + " nT" } ?: "—", DataCyan, Modifier.weight(1f), onBounds) {
                 onDestination(HelioFluxDestination.SpaceWeather)
             }
-            Metric("Wind", conditions.speed?.let { it.oneDecimal() + " km/s" } ?: "—", FreshGreen, Modifier.weight(1f)) {
+            Metric("Wind", conditions.speed?.let { it.oneDecimal() + " km/s" } ?: "—", FreshGreen, Modifier.weight(1f), onBounds) {
                 onDestination(HelioFluxDestination.SpaceWeather)
             }
         }
@@ -53,6 +55,7 @@ private fun Metric(
     value: String,
     accent: Color,
     modifier: Modifier,
+    onBounds: ((String, Rect?) -> Unit)?,
     onClick: () -> Unit,
 ) {
     val shape = RoundedCornerShape(50)
@@ -65,6 +68,7 @@ private fun Metric(
                 spotColor = accent.copy(alpha = 0.38f),
             )
             .clickable(onClick = onClick)
+            .then(homeRegionModifier("metric-$label", onBounds))
             .testTag("metric-" + label.lowercase()),
         color = SpaceSurface,
         shape = shape,

@@ -8,16 +8,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import ca.stewark.helioflux.core.data.repository.RepositoryState
 import ca.stewark.helioflux.core.model.SolarImage
@@ -29,7 +30,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
-import kotlin.math.roundToInt
 
 internal fun solarHeroLoading(frames: List<SolarImage>, preloadComplete: Boolean) =
     !solarHeroCanAnimate(frames) || !preloadComplete
@@ -85,6 +85,11 @@ fun SolarHero(
     state: RepositoryState<List<SolarImage>>,
     modifier: Modifier = Modifier,
     playing: Boolean = true,
+    view: HomeSolarViewState = HomeSolarViewState(),
+    backgroundMode: Boolean = false,
+    onTransform: (Float, Offset, IntSize) -> Unit = { _, _, _ -> },
+    onGestureEnd: () -> Unit = {},
+    onReset: () -> Unit = {},
 ) {
     val frames = when (state) {
         is RepositoryState.Available -> state.data
@@ -132,38 +137,41 @@ fun SolarHero(
         }
     }
 
-    var scale by rememberSaveable { mutableFloatStateOf(1f) }
-    var offsetX by rememberSaveable { mutableFloatStateOf(0f) }
-    var offsetY by rememberSaveable { mutableFloatStateOf(0f) }
-    val offset = Offset(offsetX, offsetY)
+    var stageSize by remember { mutableStateOf(IntSize.Zero) }
     val transform = rememberTransformableState { zoom, pan, _ ->
-        val next = (scale * zoom).coerceIn(1f, 4f)
-        scale = next
-        val nextOffset = if (next == 1f) Offset.Zero else offset + pan
-        offsetX = nextOffset.x
-        offsetY = nextOffset.y
+        onTransform(zoom, pan, stageSize)
+    }
+    var wasTransforming by remember { mutableStateOf(false) }
+    LaunchedEffect(transform.isTransformInProgress) {
+        if (transform.isTransformInProgress) {
+            wasTransforming = true
+        } else if (wasTransforming) {
+            wasTransforming = false
+            onGestureEnd()
+        }
     }
     val imageTransform = Modifier
         .fillMaxSize()
-        .graphicsLayer(scaleX = scale, scaleY = scale)
-        .offset { IntOffset(offset.x.roundToInt(), offset.y.roundToInt()) }
+        .graphicsLayer {
+            scaleX = view.scale
+            scaleY = view.scale
+            val pan = view.panPixels(stageSize)
+            translationX = pan.x
+            translationY = pan.y
+        }
 
     Box(modifier.testTag("solar-hero"), contentAlignment = Alignment.Center) {
+        val stageModifier = if (backgroundMode) Modifier.fillMaxSize() else Modifier.fillMaxWidth().aspectRatio(1f)
+        val gestureModifier = if (backgroundMode) Modifier else Modifier
+            .transformable(transform)
+            .pointerInput(onReset) { detectTapGestures(onDoubleTap = { onReset() }) }
         Box(
-            Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f)
+            stageModifier
                 .clipToBounds()
                 .background(Color.Black)
                 .testTag("solar-hero-stage")
-                .transformable(transform)
-                .pointerInput(Unit) {
-                    detectTapGestures(onDoubleTap = {
-                        scale = 1f
-                        offsetX = 0f
-                        offsetY = 0f
-                    })
-                },
+                .onSizeChanged { stageSize = it }
+                .then(gestureModifier),
             contentAlignment = Alignment.Center,
         ) {
             if (!loading && playableFrames.isNotEmpty()) {
@@ -173,12 +181,14 @@ fun SolarHero(
                     solarFrameRequest(context, playableFrames[current].url),
                     "Animated AIA 304 Sun",
                     imageTransform.testTag("solar-frame-$current"),
+                    contentScale = if (backgroundMode) ContentScale.Crop else ContentScale.Fit,
                 )
                 if (solarHeroCanAnimate(playableFrames)) {
                     AsyncImage(
                         solarFrameRequest(context, playableFrames[next].url),
                         "Animated AIA 304 next frame",
                         imageTransform.graphicsLayer(alpha = blend),
+                        contentScale = if (backgroundMode) ContentScale.Crop else ContentScale.Fit,
                     )
                 }
             }
@@ -190,7 +200,7 @@ fun SolarHero(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     CircularProgressIndicator()
-                    solarHeroLoadingText(completedFrames, frames.size)?.let { Text(it) }
+                    Text(solarHeroLoadingText(completedFrames, frames.size) ?: "Loading...")
                 }
             }
             if (state is RepositoryState.Failure) {

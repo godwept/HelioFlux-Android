@@ -21,9 +21,10 @@ class HomeScreenSourceTest {
         val expanded = source.substringAfter("private fun ExpandedHomeLayout(")
         val rightContent = source.substringAfter("private fun ExpandedHomeRightContent(")
 
-        assertTrue(expanded.contains("HelioFluxMasthead()"))
+        assertTrue(expanded.contains("HelioFluxMasthead(onBounds)"))
         assertTrue(expanded.contains("home-expanded-hero"))
-        assertTrue(expanded.contains("SolarHero("))
+        assertTrue(expanded.contains("hero(Modifier.fillMaxWidth(), false)"))
+        assertTrue(expanded.contains("solar-hero-background"))
         assertTrue(expanded.contains("home-expanded-content"))
         assertTrue(expanded.contains("ExpandedHomeRightContent("))
 
@@ -31,7 +32,7 @@ class HomeScreenSourceTest {
         assertTrue(rightContent.contains("home-expanded-scroll"))
         assertTrue(rightContent.contains("CurrentConditions("))
         assertTrue(rightContent.contains("ForecastCards("))
-        assertFalse(rightContent.contains("HelioFluxMasthead()"))
+        assertFalse(rightContent.contains("HelioFluxMasthead("))
         assertFalse(rightContent.contains("SolarHero("))
     }
 }
