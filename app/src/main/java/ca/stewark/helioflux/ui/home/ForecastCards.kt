@@ -9,7 +9,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -26,29 +25,20 @@ fun ForecastCards(
     sections: List<ForecastSection>,
     modifier: Modifier = Modifier,
     expandedLayout: Boolean = false,
-    onBounds: ((String, Rect?) -> Unit)? = null,
 ) {
     Column(modifier.testTag("forecast-section")) {
-        HelioFluxSectionHeading(
-            "NOAA Forecast",
-            modifier = homeRegionModifier("forecast-heading", onBounds),
-            topSpacing = 0.dp,
-        )
+        HelioFluxSectionHeading("NOAA Forecast", topSpacing = 0.dp)
         LazyRow(
             Modifier.fillMaxWidth().testTag("forecast-track"),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            items(sections, key = { it.key }) { section -> ForecastCard(section, expandedLayout, onBounds) }
+            items(sections, key = { it.key }) { section -> ForecastCard(section, expandedLayout) }
         }
     }
 }
 
 @Composable
-private fun ForecastCard(
-    section: ForecastSection,
-    expandedLayout: Boolean,
-    onBounds: ((String, Rect?) -> Unit)?,
-) {
+private fun ForecastCard(section: ForecastSection, expandedLayout: Boolean) {
     var expanded by rememberSaveable(section.key) { mutableStateOf(false) }
     val accent = forecastAccent(section.key)
 
@@ -57,7 +47,6 @@ private fun ForecastCard(
             .width(if (expandedLayout) 320.dp else 280.dp)
             .heightIn(min = FORECAST_CARD_MIN_HEIGHT_DP.dp)
             .clickable { expanded = !expanded }
-            .then(homeRegionModifier("forecast-${section.key}", onBounds))
             .testTag("forecast-" + section.key),
         colors = CardDefaults.cardColors(containerColor = SpaceSurface),
         border = BorderStroke(1.dp, accent.copy(alpha = 0.45f)),
